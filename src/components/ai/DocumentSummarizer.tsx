@@ -62,9 +62,9 @@ export const DocumentSummarizer = () => {
                 console.warn('Extraction completed but no text found.');
                 toast.error('No readable text found in this file.');
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Extraction Error Details:', error);
-            const errorMessage = error?.message || 'Check if the file is encrypted or corrupted.';
+            const errorMessage = (error as Error)?.message || 'Check if the file is encrypted or corrupted.';
             toast.error(`Failed to extract text: ${errorMessage}`);
         } finally {
             setIsExtracting(false);
@@ -83,15 +83,15 @@ export const DocumentSummarizer = () => {
                 const content = await page.getTextContent();
                 // Handle different item types and ensure we get a string
                 const pageText = content.items
-                    .map((item: any) => item.str || '')
+                    .map((item: unknown) => (item as { str?: string }).str || '')
                     .filter((str: string) => str.trim().length > 0)
                     .join(' ');
                 fullText += pageText + '\n';
             }
             return fullText;
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('PDF.js Error:', err);
-            throw new Error(`PDF Error: ${err.message || 'Worker initialization failed'}`);
+            throw new Error(`PDF Error: ${(err as Error).message || 'Worker initialization failed'}`);
         }
     };
 

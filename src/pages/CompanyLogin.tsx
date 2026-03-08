@@ -10,6 +10,7 @@ import { Building2, Mail, Lock, ArrowRight, Shield, Eye, EyeOff } from "lucide-r
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -17,6 +18,7 @@ const loginSchema = z.object({
 });
 
 const CompanyLogin = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -112,16 +114,16 @@ const CompanyLogin = () => {
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
                 <Building2 className="w-4 h-4 text-orange-400" />
-                <span>Company Portal</span>
+                <span>{t("company_login_badge")}</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-                Company{" "}
+                {t("company_login_title_1")}{" "}
                 <span className="bg-gradient-to-r from-orange-400 to-amber-200 bg-clip-text text-transparent">
-                  Login
+                  {t("company_login_title_2")}
                 </span>
               </h1>
               <p className="text-muted-foreground">
-                Access your company dashboard to manage shareholders
+                {t("company_login_desc")}
               </p>
             </div>
 
@@ -130,17 +132,17 @@ const CompanyLogin = () => {
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-xl flex items-center justify-center gap-2">
                   <Shield className="w-5 h-5 text-orange-400" />
-                  Secure Login
+                  {t("company_login_secure")}
                 </CardTitle>
                 <CardDescription>
-                  Enter your company admin credentials
+                  {t("company_login_creds")}
                 </CardDescription>
               </CardHeader>
 
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email">{t("company_login_email")}</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
@@ -149,7 +151,7 @@ const CompanyLogin = () => {
                         type="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        placeholder="admin@company.com"
+                        placeholder={t("company_login_email_ph")}
                         className={`pl-11 ${errors.email ? "border-destructive" : ""}`}
                         required
                         disabled={isLoading}
@@ -161,7 +163,7 @@ const CompanyLogin = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{t("company_login_password")}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
@@ -170,7 +172,7 @@ const CompanyLogin = () => {
                         type={showPassword ? "text" : "password"}
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="••••••••"
+                        placeholder={t("company_login_password_ph")}
                         className={`pl-11 pr-11 ${errors.password ? "border-destructive" : ""}`}
                         required
                         disabled={isLoading}
@@ -198,7 +200,7 @@ const CompanyLogin = () => {
                       <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                     ) : (
                       <>
-                        Sign In
+                        {t("company_login_signin")}
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
@@ -207,9 +209,9 @@ const CompanyLogin = () => {
 
                 <div className="mt-6 pt-6 border-t border-border text-center">
                   <p className="text-sm text-muted-foreground">
-                    Don't have an account?{" "}
+                    {t("company_login_no_account")}{" "}
                     <Link to="/company-register" className="text-primary hover:underline font-medium">
-                      Register your company
+                      {t("company_login_register")}
                     </Link>
                   </p>
                 </div>
@@ -221,9 +223,9 @@ const CompanyLogin = () => {
             <div className="mt-6 flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10 animate-fade-in-up shadow-sm" style={{ animationDelay: "0.2s" }}>
               <Shield className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-white">Enterprise-Grade Security</p>
+                <p className="text-sm font-medium text-white">{t("company_login_sec_title")}</p>
                 <p className="text-xs text-white/70">
-                  Your login is protected with end-to-end encryption and secure session management.
+                  {t("company_login_sec_desc")}
                 </p>
               </div>
             </div>

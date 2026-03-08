@@ -83,7 +83,7 @@ export class MerkleTree {
             index = Math.floor(index / 2);
         }
 
-        return proof as any;
+        return proof;
     }
 
     static async verify(root: string, leaf: string, proof: Array<{ position: 'left' | 'right', data: string }>): Promise<boolean> {

@@ -64,7 +64,7 @@ serve(async (req) => {
                 .join("");
         };
 
-        let layers: string[][] = [hashes];
+        const layers: string[][] = [hashes];
         let currentLayer = hashes;
 
         while (currentLayer.length > 1) {
@@ -111,7 +111,7 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         return new Response(JSON.stringify({ success: false, error: error.message }), {
             status: 200,

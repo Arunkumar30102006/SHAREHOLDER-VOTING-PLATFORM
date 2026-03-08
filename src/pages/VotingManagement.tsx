@@ -44,6 +44,7 @@ import { z } from "zod";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useTranslation } from "react-i18next";
 import { MerkleTree } from "@/lib/merkle";
 import { generateVoteHash, simulateBlockchainTransaction } from "@/lib/blockchain";
 
@@ -95,6 +96,27 @@ interface VotingSession {
   is_meeting_emails_sent: boolean;
   meeting_start_date: string | null;
   meeting_end_date: string | null;
+  auto_start_done?: boolean;
+  auto_end_done?: boolean;
+}
+
+export interface ResolutionResult {
+  id: string;
+  title: string;
+  description: string | null;
+  stats: {
+    for: number;
+    against: number;
+    abstain: number;
+    total: number;
+    winner: boolean;
+  };
+}
+
+export interface AnchorData {
+  created_at: string;
+  transaction_id: string;
+  [key: string]: unknown;
 }
 
 interface Company {
@@ -111,6 +133,7 @@ interface Shareholder {
 
 const VotingManagement = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingEmails, setIsSendingEmails] = useState(false);
@@ -144,9 +167,9 @@ const VotingManagement = () => {
     bio: "",
   });
 
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<ResolutionResult[]>([]);
   const [isAnchoring, setIsAnchoring] = useState(false);
-  const [anchorData, setAnchorData] = useState<any>(null);
+  const [anchorData, setAnchorData] = useState<AnchorData | null>(null);
 
   const handleAnchorToBlockchain = async () => {
     if (!votingSession || results.length === 0) return;
@@ -192,9 +215,9 @@ const VotingManagement = () => {
       toast.success("Session votes successfully anchored to Polygon Amoy Testnet!");
       await loadAnchorStatus();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Anchoring failed:", error);
-      toast.error(`Anchoring failed: ${error.message}`);
+      toast.error(`Anchoring failed: ${(error as Error).message}`);
     } finally {
       setIsAnchoring(false);
     }
@@ -215,6 +238,7 @@ const VotingManagement = () => {
 
   useEffect(() => {
     if (votingSession) loadAnchorStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [votingSession]);
 
   useEffect(() => {
@@ -240,6 +264,7 @@ const VotingManagement = () => {
       }, delay);
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [votingSession, company]);
 
   const checkAuthAndLoadData = async () => {
@@ -284,6 +309,7 @@ const VotingManagement = () => {
 
   useEffect(() => {
     checkAuthAndLoadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadVotingSession = async (companyId: string) => {
@@ -309,7 +335,7 @@ const VotingManagement = () => {
         const start = new Date(data.start_date);
         const end = new Date(data.end_date);
         let needsUpdate = false;
-        const updates: any = {};
+        const updates: Record<string, unknown> = {};
 
         // 1. Auto-Start if time has come and not already started or manually stopped
         if (now >= start && now <= end && !data.is_active && !data.auto_start_done && !data.auto_end_done) {
@@ -362,8 +388,8 @@ const VotingManagement = () => {
         meetingLink: data.meeting_link || "",
         meetingPassword: data.meeting_password || "",
         meetingPlatform: data.meeting_platform || "zoom",
-        meetingStartDate: (data as any).meeting_start_date ? toLocalISOString((data as any).meeting_start_date) : (data.start_date ? toLocalISOString(data.start_date) : ""),
-        meetingEndDate: (data as any).meeting_end_date ? toLocalISOString((data as any).meeting_end_date) : (data.end_date ? toLocalISOString(data.end_date) : ""),
+        meetingStartDate: data.meeting_start_date ? toLocalISOString(data.meeting_start_date) : (data.start_date ? toLocalISOString(data.start_date) : ""),
+        meetingEndDate: data.meeting_end_date ? toLocalISOString(data.meeting_end_date) : (data.end_date ? toLocalISOString(data.end_date) : ""),
         votingInstructions: data.voting_instructions || "",
       });
       await loadNominees(data.id);
@@ -428,7 +454,7 @@ const VotingManagement = () => {
     // Trigger when: session ended automatically, results are loaded, not already anchored, and not currently anchoring
     if (
       votingSession &&
-      (votingSession as any).auto_end_done &&
+      votingSession.auto_end_done &&
       results.length > 0 &&
       !anchorData &&
       !isAnchoring
@@ -436,6 +462,7 @@ const VotingManagement = () => {
       console.log("Triggering automated blockchain anchoring after session end...");
       handleAnchorToBlockchain();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [votingSession, results, anchorData, isAnchoring]);
 
   const loadShareholders = async (companyId: string) => {
@@ -500,7 +527,7 @@ const VotingManagement = () => {
         voting_instructions: validatedData.votingInstructions || null,
         auto_start_done: false,
         auto_end_done: false,
-      } as any;
+      };
 
       if (votingSession) {
         // Update existing session
@@ -704,7 +731,7 @@ const VotingManagement = () => {
     if (!votingSession) return;
 
     const isActivating = !votingSession.is_active;
-    const updates: any = { is_active: isActivating };
+    const updates: Record<string, unknown> = { is_active: isActivating };
 
     // If manually activating, mark auto-start as "done" so it doesn't fight
     if (isActivating) updates.auto_start_done = true;
@@ -778,8 +805,8 @@ const VotingManagement = () => {
           meetingLink: sessionForm.meetingLink,
           meetingPassword: sessionForm.meetingPassword,
           meetingPlatform: sessionForm.meetingPlatform,
-          startDate: (votingSession as any).meeting_start_date || votingSession.start_date,
-          endDate: (votingSession as any).meeting_end_date || votingSession.end_date,
+          startDate: votingSession.meeting_start_date || votingSession.start_date,
+          endDate: votingSession.meeting_end_date || votingSession.end_date,
           votingInstructions: sessionForm.votingInstructions,
           recipients: recipients,
         },
@@ -800,8 +827,8 @@ const VotingManagement = () => {
 
       // --- SYNC STATUS TO DATABASE ---
       const successfulEmails = data.results
-        .filter((r: any) => r.success)
-        .map((r: any) => r.email);
+        .filter((r: { success: boolean, email: string }) => r.success)
+        .map((r: { success: boolean, email: string }) => r.email);
 
       if (successfulEmails.length > 0) {
         // Update shareholders
@@ -834,9 +861,9 @@ const VotingManagement = () => {
       await loadShareholders(company.id);
       await loadNominees(votingSession.id);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error sending invites:", error);
-      toast.error(`Failed to process meeting invites: ${error.message || "Unknown error"}`);
+      toast.error(`Failed to process meeting invites: ${(error as Error).message || "Unknown error"}`);
     } finally {
       setIsSendingEmails(false);
     }
@@ -901,7 +928,7 @@ const VotingManagement = () => {
     });
 
     // 4. Footer
-    const finalY = (doc as any).lastAutoTable.finalY || 50;
+    const finalY = (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || 50;
     doc.setFontSize(10);
     doc.setTextColor(150, 150, 150);
     doc.text("Generated by Vote India Secure Platform", 14, finalY + 10);
@@ -919,14 +946,14 @@ const VotingManagement = () => {
     const end = new Date(votingSession.end_date);
 
     if (!votingSession.is_active) {
-      if ((votingSession as any).auto_end_done) return { status: "Paused (Manual/Auto-Ended)", color: "bg-yellow-100 text-yellow-800" };
+      if (votingSession.auto_end_done) return { status: "Paused (Manual/Auto-Ended)", color: "bg-yellow-100 text-yellow-800" };
       return { status: "Paused", color: "bg-yellow-100 text-yellow-800" };
     }
 
     if (now < start) return { status: "Scheduled", color: "bg-blue-100 text-blue-800" };
     if (now > end) return { status: "Ended", color: "bg-muted text-muted-foreground" };
 
-    if ((votingSession as any).auto_start_done) return { status: "Active (Auto-Started)", color: "bg-green-100 text-green-800" };
+    if (votingSession.auto_start_done) return { status: "Active (Auto-Started)", color: "bg-green-100 text-green-800" };
     return { status: "Active", color: "bg-green-100 text-green-800" };
   };
 
@@ -957,13 +984,13 @@ const VotingManagement = () => {
                 <span>Voting Management</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                AGM & Voting{" "}
+                {t("voting_management_title")}{" "}
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Configuration
+                  {t("voting_management_subtitle")}
                 </span>
               </h1>
               <p className="text-muted-foreground mt-2">
-                Configure voting sessions, nominate candidates, and manage meeting invites
+                {t("voting_management_desc")}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -971,7 +998,7 @@ const VotingManagement = () => {
                 {sessionStatus.status}
               </Badge>
               <Button variant="ghost" onClick={() => navigate("/company-dashboard")}>
-                Back to Dashboard
+                {t("voting_management_back")}
               </Button>
             </div>
           </div>
@@ -981,23 +1008,23 @@ const VotingManagement = () => {
             <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
               <TabsTrigger value="overview" className="gap-2">
                 <FileText className="w-4 h-4" />
-                <span className="hidden sm:inline">Overview</span>
+                <span className="hidden sm:inline">{t("voting_management_tab_overview")}</span>
               </TabsTrigger>
               <TabsTrigger value="schedule" className="gap-2">
                 <CalendarDays className="w-4 h-4" />
-                <span className="hidden sm:inline">Schedule</span>
+                <span className="hidden sm:inline">{t("voting_management_tab_schedule")}</span>
               </TabsTrigger>
               <TabsTrigger value="meeting" className="gap-2">
                 <Video className="w-4 h-4" />
-                <span className="hidden sm:inline">Meeting</span>
+                <span className="hidden sm:inline">{t("voting_management_tab_meeting")}</span>
               </TabsTrigger>
               <TabsTrigger value="nominees" className="gap-2">
                 <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Nominees</span>
+                <span className="hidden sm:inline">{t("voting_management_tab_nominees")}</span>
               </TabsTrigger>
               <TabsTrigger value="results" className="gap-2">
                 <Trophy className="w-4 h-4" />
-                <span className="hidden sm:inline">Results</span>
+                <span className="hidden sm:inline">{t("voting_management_tab_results")}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1013,7 +1040,7 @@ const VotingManagement = () => {
                       </div>
                       <div>
                         <p className="text-3xl font-bold text-foreground">{shareholders.length}</p>
-                        <p className="text-sm text-muted-foreground">Shareholders</p>
+                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_shareholders")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1027,7 +1054,7 @@ const VotingManagement = () => {
                       </div>
                       <div>
                         <p className="text-3xl font-bold text-foreground">{nominees.length}</p>
-                        <p className="text-sm text-muted-foreground">Nominees</p>
+                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_nominees")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1041,9 +1068,9 @@ const VotingManagement = () => {
                       </div>
                       <div>
                         <p className="text-3xl font-bold text-foreground">
-                          {votingSession?.is_meeting_emails_sent ? "Sent" : "Pending"}
+                          {votingSession?.is_meeting_emails_sent ? t("voting_management_stat_email_sent") : t("voting_management_stat_email_pending")}
                         </p>
-                        <p className="text-sm text-muted-foreground">Email Status</p>
+                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_email_status")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1059,7 +1086,7 @@ const VotingManagement = () => {
                         <p className={`${sessionStatus.status.length > 20 ? 'text-lg' : sessionStatus.status.length > 12 ? 'text-xl' : 'text-3xl'} font-bold text-foreground leading-tight`}>
                           {sessionStatus.status}
                         </p>
-                        <p className="text-sm text-muted-foreground">Session Status</p>
+                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_session_status")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1071,10 +1098,10 @@ const VotingManagement = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Info className="w-5 h-5 text-primary" />
-                    Corporate Voting Procedure
+                    {t("voting_management_proc_title")}
                   </CardTitle>
                   <CardDescription>
-                    Standard AGM voting process as per corporate governance guidelines
+                    {t("voting_management_proc_desc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1082,52 +1109,52 @@ const VotingManagement = () => {
                     <div className="space-y-4">
                       <h4 className="font-semibold text-foreground flex items-center gap-2">
                         <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">1</span>
-                        Pre-Meeting Phase
+                        {t("voting_management_proc_1_title")}
                       </h4>
                       <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>• Create voting session with start/end dates</li>
-                        <li>• Add nominee candidates for voting</li>
-                        <li>• Configure online meeting details</li>
-                        <li>• Send meeting invites to all stakeholders</li>
+                        <li>{t("voting_management_proc_1_1")}</li>
+                        <li>{t("voting_management_proc_1_2")}</li>
+                        <li>{t("voting_management_proc_1_3")}</li>
+                        <li>{t("voting_management_proc_1_4")}</li>
                       </ul>
                     </div>
 
                     <div className="space-y-4">
                       <h4 className="font-semibold text-foreground flex items-center gap-2">
                         <span className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground text-sm flex items-center justify-center">2</span>
-                        During Meeting
+                        {t("voting_management_proc_2_title")}
                       </h4>
                       <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>• Shareholders join via meeting link</li>
-                        <li>• Present resolutions and nominees</li>
-                        <li>• Allow Q&A session</li>
-                        <li>• Open voting window</li>
+                        <li>{t("voting_management_proc_2_1")}</li>
+                        <li>{t("voting_management_proc_2_2")}</li>
+                        <li>{t("voting_management_proc_2_3")}</li>
+                        <li>{t("voting_management_proc_2_4")}</li>
                       </ul>
                     </div>
 
                     <div className="space-y-4">
                       <h4 className="font-semibold text-foreground flex items-center gap-2">
                         <span className="w-6 h-6 rounded-full bg-accent text-accent-foreground text-sm flex items-center justify-center">3</span>
-                        Voting Process
+                        {t("voting_management_proc_3_title")}
                       </h4>
                       <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>• Shareholders cast votes (For/Against/Abstain)</li>
-                        <li>• One vote per resolution</li>
-                        <li>• Votes weighted by shareholding</li>
-                        <li>• Real-time vote tracking</li>
+                        <li>{t("voting_management_proc_3_1")}</li>
+                        <li>{t("voting_management_proc_3_2")}</li>
+                        <li>{t("voting_management_proc_3_3")}</li>
+                        <li>{t("voting_management_proc_3_4")}</li>
                       </ul>
                     </div>
 
                     <div className="space-y-4">
                       <h4 className="font-semibold text-foreground flex items-center gap-2">
                         <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">4</span>
-                        Post-Voting
+                        {t("voting_management_proc_4_title")}
                       </h4>
                       <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>• Announce voting results</li>
-                        <li>• Generate voting receipts</li>
-                        <li>• Archive session data</li>
-                        <li>• Compliance documentation</li>
+                        <li>{t("voting_management_proc_4_1")}</li>
+                        <li>{t("voting_management_proc_4_2")}</li>
+                        <li>{t("voting_management_proc_4_3")}</li>
+                        <li>{t("voting_management_proc_4_4")}</li>
                       </ul>
                     </div>
                   </div>
@@ -1138,7 +1165,7 @@ const VotingManagement = () => {
               {votingSession && (
                 <Card className="border-border/50">
                   <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
+                    <CardTitle>{t("voting_management_qa_title")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-3">
@@ -1150,12 +1177,12 @@ const VotingManagement = () => {
                         {votingSession.is_active ? (
                           <>
                             <Pause className="w-4 h-4" />
-                            Pause Voting
+                            {t("voting_management_qa_pause")}
                           </>
                         ) : (
                           <>
                             <Play className="w-4 h-4" />
-                            Activate Voting
+                            {t("voting_management_qa_activate")}
                           </>
                         )}
                       </Button>
@@ -1171,7 +1198,7 @@ const VotingManagement = () => {
                         ) : (
                           <Send className="w-4 h-4" />
                         )}
-                        {votingSession.is_meeting_emails_sent ? "Resend Invites" : "Send Meeting Invites"}
+                        {votingSession.is_meeting_emails_sent ? t("voting_management_qa_resend") : t("voting_management_qa_send")}
                       </Button>
 
                       {sessionForm.meetingLink && (
@@ -1181,7 +1208,7 @@ const VotingManagement = () => {
                           className="gap-2"
                         >
                           <ExternalLink className="w-4 h-4" />
-                          Open Meeting Link
+                          {t("voting_management_qa_open_link")}
                         </Button>
                       )}
                     </div>
@@ -1196,17 +1223,17 @@ const VotingManagement = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CalendarDays className="w-5 h-5 text-primary" />
-                    Voting Session Details
+                    {t("voting_management_sched_title")}
                   </CardTitle>
                   <CardDescription>
-                    Configure the voting period and meeting schedule
+                    {t("voting_management_sched_desc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleCreateOrUpdateSession} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="title">Session Title *</Label>
+                        <Label htmlFor="title">{t("voting_management_sched_form_title")}</Label>
                         <Input
                           id="title"
                           name="title"
@@ -1218,7 +1245,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">{t("voting_management_sched_form_desc")}</Label>
                         <Textarea
                           id="description"
                           name="description"
@@ -1230,7 +1257,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="startDate">Start Date & Time *</Label>
+                        <Label htmlFor="startDate">{t("voting_management_sched_form_start")}</Label>
                         <div className="relative">
                           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
@@ -1246,7 +1273,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="endDate">End Date & Time *</Label>
+                        <Label htmlFor="endDate">{t("voting_management_sched_form_end")}</Label>
                         <div className="relative">
                           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
@@ -1267,18 +1294,14 @@ const VotingManagement = () => {
                     <div className="space-y-4">
                       <h3 className="font-semibold text-foreground flex items-center gap-2">
                         <FileText className="w-4 h-4" />
-                        Voting Instructions
+                        {t("voting_management_sched_form_inst")}
                       </h3>
                       <Textarea
                         id="votingInstructions"
                         name="votingInstructions"
                         value={sessionForm.votingInstructions}
                         onChange={handleSessionInputChange}
-                        placeholder={`1. Login using your shareholder credentials
-2. Review each resolution carefully
-3. Cast your vote: For, Against, or Abstain
-4. Your vote is final and cannot be changed
-5. Download your voting receipt for records`}
+                        placeholder={`1. Login using your shareholder credentials\n2. Review each resolution carefully\n3. Cast your vote: For, Against, or Abstain\n4. Your vote is final and cannot be changed\n5. Download your voting receipt for records`}
                         rows={6}
                       />
                     </div>
@@ -1290,7 +1313,7 @@ const VotingManagement = () => {
                         ) : (
                           <CheckCircle2 className="w-4 h-4" />
                         )}
-                        {votingSession ? "Update Session" : "Create Session"}
+                        {votingSession ? t("voting_management_sched_btn_update") : t("voting_management_sched_btn_create")}
                       </Button>
                     </div>
                   </form>
@@ -1306,10 +1329,10 @@ const VotingManagement = () => {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <UserPlus className="w-5 h-5 text-primary" />
-                        Nominee Candidates
+                        {t("voting_management_nominee_title")}
                       </CardTitle>
                       <CardDescription>
-                        Add candidates for director/position voting
+                        {t("voting_management_nominee_desc")}
                       </CardDescription>
                     </div>
                     <Button
@@ -1318,7 +1341,7 @@ const VotingManagement = () => {
                       className="gap-2"
                       disabled={!votingSession}
                     >
-                      {showAddNominee ? "Cancel" : <><Plus className="w-4 h-4" /> Add Nominee</>}
+                      {showAddNominee ? t("voting_management_nominee_btn_cancel") : <><Plus className="w-4 h-4" /> {t("voting_management_nominee_btn_add")}</>}
                     </Button>
                   </div>
                 </CardHeader>
@@ -1327,7 +1350,7 @@ const VotingManagement = () => {
                   <CardContent>
                     <div className="text-center py-8 text-muted-foreground">
                       <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                      <p>Please create a voting session first in the Schedule tab</p>
+                      <p>{t("voting_management_nominee_empty_session")}</p>
                     </div>
                   </CardContent>
                 )}
@@ -1337,7 +1360,7 @@ const VotingManagement = () => {
                     <form onSubmit={handleAddNominee} className="space-y-4 animate-fade-in-up">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="name">Nominee Name *</Label>
+                          <Label htmlFor="name">{t("voting_management_nominee_form_name")}</Label>
                           <Input
                             id="name"
                             name="name"
@@ -1350,7 +1373,7 @@ const VotingManagement = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email Address *</Label>
+                          <Label htmlFor="email">{t("voting_management_nominee_form_email")}</Label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <Input
@@ -1368,7 +1391,7 @@ const VotingManagement = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="designation">Designation</Label>
+                          <Label htmlFor="designation">{t("voting_management_nominee_form_desig")}</Label>
                           <Input
                             id="designation"
                             name="designation"
@@ -1380,7 +1403,7 @@ const VotingManagement = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="qualification">Qualification</Label>
+                          <Label htmlFor="qualification">{t("voting_management_nominee_form_qual")}</Label>
                           <Input
                             id="qualification"
                             name="qualification"
@@ -1392,7 +1415,7 @@ const VotingManagement = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="experienceYears">Years of Experience</Label>
+                          <Label htmlFor="experienceYears">{t("voting_management_nominee_form_exp")}</Label>
                           <Input
                             id="experienceYears"
                             name="experienceYears"
@@ -1406,7 +1429,7 @@ const VotingManagement = () => {
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="bio">Brief Bio</Label>
+                          <Label htmlFor="bio">{t("voting_management_nominee_form_bio")}</Label>
                           <Textarea
                             id="bio"
                             name="bio"
@@ -1426,7 +1449,7 @@ const VotingManagement = () => {
                           ) : (
                             <Plus className="w-4 h-4" />
                           )}
-                          Add Nominee
+                          {t("voting_management_nominee_btn_submit")}
                         </Button>
                       </div>
                     </form>
@@ -1463,7 +1486,7 @@ const VotingManagement = () => {
                                 )}
                                 {nominee.experience_years && (
                                   <Badge variant="outline" className="text-xs">
-                                    {nominee.experience_years} yrs exp
+                                    {nominee.experience_years} {t("voting_management_nominee_yrs_exp")}
                                   </Badge>
                                 )}
                               </div>
@@ -1492,7 +1515,7 @@ const VotingManagement = () => {
                   <CardContent>
                     <div className="text-center py-8 text-muted-foreground">
                       <UserPlus className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                      <p>No nominees added yet. Click "Add Nominee" to get started.</p>
+                      <p>{t("voting_management_nominee_empty_list")}</p>
                     </div>
                   </CardContent>
                 )}
@@ -1505,17 +1528,17 @@ const VotingManagement = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Video className="w-5 h-5 text-primary" />
-                    Online Meeting Configuration
+                    {t("voting_management_meet_title")}
                   </CardTitle>
                   <CardDescription>
-                    Set up the virtual meeting for shareholders and nominees
+                    {t("voting_management_meet_desc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleCreateOrUpdateSession} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="meetingPlatform">Meeting Platform</Label>
+                        <Label htmlFor="meetingPlatform">{t("voting_management_meet_form_platform")}</Label>
                         <Select
                           value={sessionForm.meetingPlatform}
                           onValueChange={(value) => setSessionForm(prev => ({ ...prev, meetingPlatform: value }))}
@@ -1534,7 +1557,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="meetingPassword">Meeting Password (Optional)</Label>
+                        <Label htmlFor="meetingPassword">{t("voting_management_meet_form_pwd")}</Label>
                         <Input
                           id="meetingPassword"
                           name="meetingPassword"
@@ -1545,7 +1568,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="meetingStartDate">Meeting Start Date & Time</Label>
+                        <Label htmlFor="meetingStartDate">{t("voting_management_meet_form_start")}</Label>
                         <div className="relative">
                           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
@@ -1560,7 +1583,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="meetingEndDate">Meeting End Date & Time</Label>
+                        <Label htmlFor="meetingEndDate">{t("voting_management_meet_form_end")}</Label>
                         <div className="relative">
                           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
@@ -1575,7 +1598,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="meetingLink">Meeting Link *</Label>
+                        <Label htmlFor="meetingLink">{t("voting_management_meet_form_link")}</Label>
                         <div className="relative">
                           <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
@@ -1588,7 +1611,7 @@ const VotingManagement = () => {
                           />
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          This link will be sent to all shareholders and nominees
+                          {t("voting_management_meet_form_link_help")}
                         </p>
                       </div>
                     </div>
@@ -1602,7 +1625,7 @@ const VotingManagement = () => {
                         ) : (
                           <CheckCircle2 className="w-4 h-4" />
                         )}
-                        Save Meeting Details
+                        {t("voting_management_meet_btn_save")}
                       </Button>
                     </div>
                   </form>
@@ -1614,10 +1637,10 @@ const VotingManagement = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Send className="w-5 h-5 text-secondary" />
-                    Send Meeting Invitations
+                    {t("voting_management_meet_invite_title")}
                   </CardTitle>
                   <CardDescription>
-                    Email meeting details to all shareholders and nominees
+                    {t("voting_management_meet_invite_desc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1625,28 +1648,28 @@ const VotingManagement = () => {
                     <div className="flex flex-wrap gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 text-primary" />
-                        <span>{shareholders.length} Shareholders</span>
+                        <span>{shareholders.length} {t("voting_management_stat_shareholders")}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <UserPlus className="w-4 h-4 text-secondary" />
-                        <span>{nominees.length} Nominees</span>
+                        <span>{nominees.length} {t("voting_management_stat_nominees")}</span>
                       </div>
                       {votingSession?.is_meeting_emails_sent && (
                         <Badge variant="secondary" className="gap-1">
                           <CheckCircle2 className="w-3 h-3" />
-                          Invites Sent
+                          {t("voting_management_meet_invite_sent")}
                         </Badge>
                       )}
                     </div>
 
                     <div className="bg-muted/50 rounded-lg p-4">
-                      <h4 className="font-medium text-foreground mb-2">Email will include:</h4>
+                      <h4 className="font-medium text-foreground mb-2">{t("voting_management_meet_invite_inc_title")}</h4>
                       <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Meeting title and agenda</li>
-                        <li>• Start and end date/time (IST)</li>
-                        <li>• Meeting link and password</li>
-                        <li>• Voting instructions</li>
-                        <li>• Important notes for participants</li>
+                        <li>{t("voting_management_meet_invite_inc_1")}</li>
+                        <li>{t("voting_management_meet_invite_inc_2")}</li>
+                        <li>{t("voting_management_meet_invite_inc_3")}</li>
+                        <li>{t("voting_management_meet_invite_inc_4")}</li>
+                        <li>{t("voting_management_meet_invite_inc_5")}</li>
                       </ul>
                     </div>
 
@@ -1659,12 +1682,12 @@ const VotingManagement = () => {
                       {isSendingEmails ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          Sending Invites...
+                          {t("voting_management_meet_invite_sending")}
                         </>
                       ) : (
                         <>
                           <Mail className="w-4 h-4" />
-                          {votingSession?.is_meeting_emails_sent ? "Resend All Invites" : "Send Invites to All"}
+                          {votingSession?.is_meeting_emails_sent ? t("voting_management_meet_invite_btn_resend") : t("voting_management_meet_invite_btn_send")}
                         </>
                       )}
                     </Button>
@@ -1672,7 +1695,7 @@ const VotingManagement = () => {
                     {!sessionForm.meetingLink && (
                       <p className="text-sm text-destructive flex items-center gap-2">
                         <AlertCircle className="w-4 h-4" />
-                        Please add a meeting link before sending invites
+                        {t("voting_management_meet_invite_err_link")}
                       </p>
                     )}
                   </div>
@@ -1685,9 +1708,9 @@ const VotingManagement = () => {
                   <div className="flex gap-4">
                     <Shield className="w-8 h-8 text-accent flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-foreground mb-1">Security & Compliance</h4>
+                      <h4 className="font-semibold text-foreground mb-1">{t("voting_management_sec_title")}</h4>
                       <p className="text-sm text-muted-foreground">
-                        All voting data is encrypted and securely stored. Meeting invitations are sent with unique identifiers for audit purposes. Votes are final and cannot be modified once submitted, ensuring the integrity of the corporate voting process.
+                        {t("voting_management_sec_desc")}
                       </p>
                     </div>
                   </div>
@@ -1700,25 +1723,25 @@ const VotingManagement = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-primary" />
-                    Voting Results
+                    {t("voting_management_res_title")}
                   </CardTitle>
                   {votingSession && new Date(votingSession.end_date) <= new Date() && results.length > 0 && (
                     <Button variant="outline" size="sm" onClick={handleDownloadPDF} className="gap-2">
                       <FileText className="w-4 h-4" />
-                      Download PDF
+                      {t("voting_management_res_btn_download")}
                     </Button>
                   )}
                 </CardHeader>
                 <CardContent>
                   {!votingSession ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      Please create a voting session first.
+                      {t("voting_management_res_empty_session")}
                     </div>
                   ) : new Date(votingSession.end_date) > new Date() ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                       <Lock className="w-12 h-12 mb-4 opacity-50" />
-                      <h3 className="text-lg font-medium text-foreground">Results Locked</h3>
-                      <p>Voting results will be available after the session ends on {new Date(votingSession.end_date).toLocaleString()}.</p>
+                      <h3 className="text-lg font-medium text-foreground">{t("voting_management_res_locked_title")}</h3>
+                      <p>{t("voting_management_res_locked_desc")} {new Date(votingSession.end_date).toLocaleString()}.</p>
                     </div>
                   ) :
                     <div className="space-y-6">
@@ -1729,11 +1752,11 @@ const VotingManagement = () => {
                               <Shield className="w-6 h-6 text-indigo-500" />
                             </div>
                             <div>
-                              <h4 className="font-semibold text-foreground">Blockchain Immutable Audit</h4>
+                              <h4 className="font-semibold text-foreground">{t("voting_management_res_audit_title")}</h4>
                               <p className="text-sm text-muted-foreground">
                                 {anchorData
-                                  ? `Anchored on ${new Date(anchorData.created_at).toLocaleDateString()} • Block #${anchorData.transaction_id.slice(0, 8)}...`
-                                  : "Anchor all votes to the public blockchain for permanent verification."}
+                                  ? `${t("voting_management_res_audit_anchored_on")} ${new Date(anchorData.created_at).toLocaleDateString()} • Block #${anchorData.transaction_id.slice(0, 8)}...`
+                                  : t("voting_management_res_audit_desc")}
                               </p>
                             </div>
                           </div>
@@ -1750,7 +1773,7 @@ const VotingManagement = () => {
                             ) : (
                               <Lock className="w-4 h-4 mr-2" />
                             )}
-                            {isAnchoring ? "Anchoring..." : anchorData ? "Verified On-Chain" : "Anchor Results Now"}
+                            {isAnchoring ? t("voting_management_res_audit_btn_anchoring") : anchorData ? t("voting_management_res_audit_btn_verified") : t("voting_management_res_audit_btn_anchor")}
                           </Button>
                         </CardContent>
                       </Card>
@@ -1763,28 +1786,28 @@ const VotingManagement = () => {
                               <p className="text-sm text-muted-foreground">{item.description}</p>
                             </div>
                             <Badge variant={item.stats.for > item.stats.against ? "default" : "secondary"} className={item.stats.for > item.stats.against ? "bg-green-500 hover:bg-green-600" : ""}>
-                              {item.stats.for > item.stats.against ? "PASSED / LEADING" : "NOT PASSED"}
+                              {item.stats.for > item.stats.against ? t("voting_management_res_passed") : t("voting_management_res_failed")}
                             </Badge>
                           </div>
 
                           <div className="grid grid-cols-3 gap-4 text-center">
                             <div className="p-3 bg-green-500/10 rounded-lg">
                               <div className="text-2xl font-bold text-green-600">{item.stats.for}</div>
-                              <div className="text-xs text-muted-foreground uppercase">Votes For</div>
+                              <div className="text-xs text-muted-foreground uppercase">{t("voting_management_res_votes_for")}</div>
                             </div>
                             <div className="p-3 bg-red-500/10 rounded-lg">
                               <div className="text-2xl font-bold text-red-600">{item.stats.against}</div>
-                              <div className="text-xs text-muted-foreground uppercase">Votes Against</div>
+                              <div className="text-xs text-muted-foreground uppercase">{t("voting_management_res_votes_against")}</div>
                             </div>
                             <div className="p-3 bg-gray-500/10 rounded-lg">
                               <div className="text-2xl font-bold text-gray-600">{item.stats.abstain}</div>
-                              <div className="text-xs text-muted-foreground uppercase">Abstain</div>
+                              <div className="text-xs text-muted-foreground uppercase">{t("voting_management_res_votes_abstain")}</div>
                             </div>
                           </div>
                         </div>
                       ))}
                       {results.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">No resolutions or votes found.</div>
+                        <div className="text-center py-8 text-muted-foreground">{t("voting_management_res_no_votes")}</div>
                       )}
                     </div>
                   }

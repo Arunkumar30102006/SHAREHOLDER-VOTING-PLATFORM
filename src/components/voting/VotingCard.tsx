@@ -8,6 +8,9 @@ import { CheckCircle2, Shield, ExternalLink, Lock, ThumbsUp, ThumbsDown, Minus, 
 import { getExplorerLink } from "@/lib/blockchain";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { VotingItem } from "@/types/voting";
+import { useResolutionTranslation } from "@/hooks/useResolutionTranslation";
+import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface VotingCardProps {
     item: VotingItem;
@@ -16,8 +19,16 @@ interface VotingCardProps {
 }
 
 const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
+    const { t } = useTranslation();
     const [showConfirm, setShowConfirm] = useState(false);
     const [selectedVoteType, setSelectedVoteType] = useState<"for" | "against" | "abstain" | null>(null);
+
+    // Auto-translate resolution content based on current language
+    const { title, description, isTranslating } = useResolutionTranslation(
+        item.id,
+        item.title,
+        item.description
+    );
 
     const initiateVote = (type: "for" | "against" | "abstain") => {
         setSelectedVoteType(type);
@@ -68,17 +79,17 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                     }`}
                                             >
                                                 {item.vote === "FOR"
-                                                    ? "Voted FOR"
+                                                    ? t("voting_card_voted_for")
                                                     : item.vote === "AGAINST"
-                                                        ? "Voted AGAINST"
-                                                        : "ABSTAINED"}
+                                                        ? t("voting_card_voted_against")
+                                                        : t("voting_card_abstained")}
                                             </span>
 
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <button className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors focus:outline-none">
                                                         <Shield className="w-3 h-3" />
-                                                        View Receipt
+                                                        {t("voting_card_view_receipt")}
                                                     </button>
                                                 </DialogTrigger>
                                                 <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-white/10">
@@ -87,27 +98,27 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                             <div className="p-2 rounded-full bg-accent/20">
                                                                 <CheckCircle2 className="w-5 h-5 text-accent" />
                                                             </div>
-                                                            Digital Vote Receipt
+                                                            {t("voting_card_receipt_title")}
                                                         </DialogTitle>
                                                         <DialogDescription>
-                                                            Official record of your vote for corporate audit.
+                                                            {t("voting_card_receipt_desc")}
                                                         </DialogDescription>
                                                     </DialogHeader>
 
                                                     <div className="space-y-4 py-4">
                                                         <div className="p-4 rounded-lg bg-muted/40 border border-border space-y-3">
                                                             <div className="flex justify-between items-start">
-                                                                <span className="text-sm text-muted-foreground">Resolution</span>
+                                                                <span className="text-sm text-muted-foreground">{t("voting_card_res")}</span>
                                                                 <span className="text-sm font-medium text-right w-2/3">{item.title}</span>
                                                             </div>
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-sm text-muted-foreground">Your Decision</span>
+                                                                <span className="text-sm text-muted-foreground">{t("voting_card_decision")}</span>
                                                                 <span className={`text-sm font-bold uppercase ${item.vote === 'FOR' ? 'text-emerald-500' : item.vote === 'AGAINST' ? 'text-red-500' : 'text-yellow-500'}`}>
                                                                     {item.vote}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-sm text-muted-foreground">Timestamp</span>
+                                                                <span className="text-sm text-muted-foreground">{t("voting_card_time")}</span>
                                                                 <span className="text-sm font-mono text-muted-foreground">{new Date().toLocaleString()}</span>
                                                                 {/* Note: Ideally this comes from the DB record */}
                                                             </div>
@@ -116,7 +127,7 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                         <div className="space-y-1.5">
                                                             <div className="flex items-center justify-between">
                                                                 <Label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                                                                    Cryptographic Hash (SHA-256)
+                                                                    {t("voting_card_hash_label")}
                                                                 </Label>
                                                                 <TooltipProvider>
                                                                     <Tooltip>
@@ -124,40 +135,40 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                                             <Info className="w-3 h-3 text-muted-foreground" />
                                                                         </TooltipTrigger>
                                                                         <TooltipContent>
-                                                                            <p>This hash anchors your vote to the database immutably.</p>
+                                                                            <p>{t("voting_card_hash_tt")}</p>
                                                                         </TooltipContent>
                                                                     </Tooltip>
                                                                 </TooltipProvider>
                                                             </div>
                                                             <div className="p-3 bg-black/20 font-mono text-[10px] break-all rounded-md border border-border/50 select-all text-primary/80">
-                                                                {item.voteHash || "Generating Hash..."}
+                                                                {item.voteHash || t("voting_card_gen_hash")}
                                                             </div>
                                                         </div>
 
                                                         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
                                                             <Lock className="w-3 h-3" />
-                                                            <span>Secured by Immutable Ledger & RLS</span>
+                                                            <span>{t("voting_card_secured_by")}</span>
                                                         </div>
 
                                                         {item.anchorRoot && (
                                                             <div className="mt-4 pt-4 border-t border-border flex flex-col gap-3">
                                                                 <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500 uppercase tracking-wider">
                                                                     <ShieldCheck className="w-4 h-4" />
-                                                                    Blockchain Verified
+                                                                    {t("voting_card_blockchain_veri")}
                                                                 </div>
                                                                 <div className="space-y-1.5">
-                                                                    <Label className="text-[10px] text-muted-foreground uppercase">Merkle Root (Anchored)</Label>
+                                                                    <Label className="text-[10px] text-muted-foreground uppercase">{t("voting_card_merkle_root")}</Label>
                                                                     <div className="p-2 bg-emerald-500/5 font-mono text-[10px] break-all rounded border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                                                                         {item.anchorRoot}
                                                                     </div>
                                                                 </div>
                                                                 {item.merkleProof && (
                                                                     <div className="space-y-1.5">
-                                                                        <Label className="text-[10px] text-muted-foreground uppercase">Merkle Path (Verification Proof)</Label>
+                                                                        <Label className="text-[10px] text-muted-foreground uppercase">{t("voting_card_merkle_path")}</Label>
                                                                         <div className="flex flex-col gap-1">
                                                                             {item.merkleProof.map((p, i) => (
                                                                                 <div key={i} className="flex items-center gap-2 text-[9px] font-mono text-muted-foreground">
-                                                                                    <span className="opacity-50">Step {i + 1}:</span>
+                                                                                    <span className="opacity-50">{t("voting_card_step")} {i + 1}:</span>
                                                                                     <span className="truncate">{p.data.slice(0, 16)}...</span>
                                                                                     <span className="px-1 rounded bg-muted text-[8px] uppercase">{p.position}</span>
                                                                                 </div>
@@ -173,8 +184,19 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                         </div>
                                     )}
                                 </div>
-                                <CardTitle className="text-lg leading-tight">{item.title}</CardTitle>
-                                <CardDescription className="mt-2 line-clamp-2">{item.description}</CardDescription>
+                                <CardTitle className="text-lg leading-tight flex items-center gap-2">
+                                    {isTranslating ? (
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span className="text-sm font-normal">{t("voting_card_translating")}</span>
+                                        </div>
+                                    ) : (
+                                        title
+                                    )}
+                                </CardTitle>
+                                <CardDescription className="mt-2 line-clamp-2">
+                                    {isTranslating ? "..." : description}
+                                </CardDescription>
                             </div>
                         </div>
                     </div>
@@ -189,7 +211,7 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                 onClick={() => initiateVote("for")}
                             >
                                 <ThumbsUp className="w-4 h-4" />
-                                Vote For
+                                {t("voting_card_btn_for")}
                             </Button>
                             <Button
                                 variant="destructive"
@@ -197,7 +219,7 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                 onClick={() => initiateVote("against")}
                             >
                                 <ThumbsDown className="w-4 h-4" />
-                                Vote Against
+                                {t("voting_card_btn_against")}
                             </Button>
                             <Button
                                 variant="outline"
@@ -205,7 +227,7 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                 onClick={() => initiateVote("abstain")}
                             >
                                 <Minus className="w-4 h-4" />
-                                Abstain
+                                {t("voting_card_btn_abstain")}
                             </Button>
                         </div>
                     </CardContent>
@@ -216,20 +238,20 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
             <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Your Vote</AlertDialogTitle>
+                        <AlertDialogTitle>{t("voting_card_confirm_title")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to vote <strong className="uppercase text-primary">{selectedVoteType}</strong> for this resolution?
+                            {t("voting_card_confirm_desc_1")} <strong className="uppercase text-primary">{selectedVoteType}</strong> {t("voting_card_confirm_desc_2")}
                             <br /><br />
-                            This action cannot be undone. Your vote will be cryptographically signed and recorded permanently.
+                            {t("voting_card_confirm_warn")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("voting_card_cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmVote}
                             className={selectedVoteType === 'for' ? 'bg-emerald-600 hover:bg-emerald-700' : selectedVoteType === 'against' ? 'bg-red-600 hover:bg-red-700' : ''}
                         >
-                            Confirm Vote
+                            {t("voting_card_confirm_btn")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

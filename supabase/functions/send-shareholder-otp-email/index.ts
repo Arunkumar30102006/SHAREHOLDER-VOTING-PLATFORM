@@ -135,7 +135,7 @@ serve(async (req) => {
       JSON.stringify({ success: true, message: "OTP sent via email" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
     return new Response(
       JSON.stringify({ success: false, message: error.message }),

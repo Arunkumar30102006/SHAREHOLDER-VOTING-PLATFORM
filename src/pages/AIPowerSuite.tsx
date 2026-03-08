@@ -11,23 +11,24 @@ import { Sparkles, FileText, BrainCircuit, ArrowLeft } from "lucide-react";
 import { LiveSentimentMonitor } from "@/components/ai/LiveSentimentMonitor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const AIPowerSuite = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
 
     useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                navigate("/company-login");
+                return;
+            }
+            setLoading(false);
+        };
         checkAuth();
-    }, []);
-
-    const checkAuth = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            navigate("/company-login");
-            return;
-        }
-        setLoading(false);
-    };
+    }, [navigate]);
 
     if (loading) {
         return <div className="min-h-screen" />;
@@ -44,21 +45,21 @@ const AIPowerSuite = () => {
                         <div>
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-sm font-medium mb-4">
                                 <Sparkles className="w-4 h-4" />
-                                <span className="text-foreground">AI Power Suite</span>
+                                <span className="text-foreground">{t("ai_suite_badge")}</span>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                                Advanced AI{" "}
+                                {t("ai_suite_title_part1")}{" "}
                                 <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Tools
+                                    {t("ai_suite_title_part2")}
                                 </span>
                             </h1>
                             <p className="text-muted-foreground mt-2">
-                                Leverage AI to summarize documents and analyze sentiment
+                                {t("ai_suite_subtitle")}
                             </p>
                         </div>
                         <Button variant="ghost" onClick={() => navigate("/company-dashboard")} className="gap-2">
                             <ArrowLeft className="w-4 h-4" />
-                            Back to Dashboard
+                            {t("ai_suite_back_btn")}
                         </Button>
                     </div>
 
@@ -71,9 +72,9 @@ const AIPowerSuite = () => {
                                         <BrainCircuit className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-foreground mb-1">Deeper Insights</h3>
+                                        <h3 className="font-semibold text-foreground mb-1">{t("ai_val_1_title")}</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Understand shareholder sentiment instantly without reading thousands of comments manually.
+                                            {t("ai_val_1_desc")}
                                         </p>
                                     </div>
                                 </div>
@@ -87,9 +88,9 @@ const AIPowerSuite = () => {
                                         <FileText className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-foreground mb-1">Time Saving</h3>
+                                        <h3 className="font-semibold text-foreground mb-1">{t("ai_val_2_title")}</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Summarize lengthy 100+ page reports into concise executive summaries in seconds.
+                                            {t("ai_val_2_desc")}
                                         </p>
                                     </div>
                                 </div>
@@ -103,9 +104,9 @@ const AIPowerSuite = () => {
                                         <Sparkles className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-foreground mb-1">Smart Decisions</h3>
+                                        <h3 className="font-semibold text-foreground mb-1">{t("ai_val_3_title")}</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Make data-driven governance decisions based on real-time aggregated feedback analysis.
+                                            {t("ai_val_3_desc")}
                                         </p>
                                     </div>
                                 </div>
@@ -121,21 +122,21 @@ const AIPowerSuite = () => {
                             <CardTitle className="flex items-center gap-2 text-2xl">
                                 <Sparkles className="w-6 h-6 text-purple-600" />
                                 <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    AI Features
+                                    {t("ai_feat_title")}
                                 </span>
                             </CardTitle>
                             <CardDescription>
-                                Select a tool to get started
+                                {t("ai_feat_desc")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Tabs defaultValue="summarizer" className="w-full">
                                 <TabsList className="grid w-full grid-cols-2 lg:w-[400px] mb-6">
                                     <TabsTrigger value="summarizer" className="gap-2">
-                                        <FileText className="w-4 h-4" /> Document Summarizer
+                                        <FileText className="w-4 h-4" /> {t("ai_tab_summarizer")}
                                     </TabsTrigger>
                                     <TabsTrigger value="sentiment" className="gap-2">
-                                        <BrainCircuit className="w-4 h-4" /> Sentiment Analysis
+                                        <BrainCircuit className="w-4 h-4" /> {t("ai_tab_sentiment")}
                                     </TabsTrigger>
                                 </TabsList>
 
@@ -147,8 +148,8 @@ const AIPowerSuite = () => {
                                     <div className="grid lg:grid-cols-12 gap-6">
                                         <div className="lg:col-span-4 h-full">
                                             <div className="p-6 rounded-lg bg-card/50 backdrop-blur-sm border-primary/10 shadow-sm h-full flex flex-col">
-                                                <h3 className="font-semibold mb-2 text-lg text-foreground">Shareholder Feedback Analysis</h3>
-                                                <p className="text-sm text-muted-foreground mb-6 italic">Paste feedback text below to detect sentiment, generate summaries, and extract key themes.</p>
+                                                <h3 className="font-semibold mb-2 text-lg text-foreground">{t("ai_feedback_title")}</h3>
+                                                <p className="text-sm text-muted-foreground mb-6 italic">{t("ai_feedback_desc")}</p>
                                                 <div className="flex-1">
                                                     <AIAnalysisDemo />
                                                 </div>

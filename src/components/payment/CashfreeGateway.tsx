@@ -20,6 +20,7 @@ interface CashfreeGatewayProps {
 }
 
 const CashfreeGateway = ({ amount, onSuccess, onCancel }: CashfreeGatewayProps) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [cashfree, setCashfree] = useState<any>(null);
     const [step, setStep] = useState<"init" | "processing" | "success" | "failed">("init");
     const [isSandbox, setIsSandbox] = useState(true);
@@ -72,7 +73,7 @@ const CashfreeGateway = ({ amount, onSuccess, onCancel }: CashfreeGatewayProps) 
 
             setGeneratedSessionId(data.payment_session_id);
             return data.payment_session_id;
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Backend Error:", err);
             toast.error("Failed to crate order. Check keys in Supabase.");
             return null;
@@ -94,6 +95,7 @@ const CashfreeGateway = ({ amount, onSuccess, onCancel }: CashfreeGatewayProps) 
             redirectTarget: "_modal",
         };
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         cashfree.checkout(checkoutOptions).then((result: any) => {
             if (result.error) {
                 console.error("User closed payment or error", result.error);
@@ -137,12 +139,15 @@ const CashfreeGateway = ({ amount, onSuccess, onCancel }: CashfreeGatewayProps) 
                 const components = cashfree.components();
                 const upiQr = components.create("upiQr", {
                     paymentSessionId: sessionId,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     onSuccess: (data: any) => {
                         setStep("success");
                         handleSuccess(data.orderId || "QR_SUCCESS");
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     onFailure: (data: any) => {
                         setStep("failed");
+                        console.error('QR failure', data);
                     }
                 });
                 if (qrContainerRef.current) {

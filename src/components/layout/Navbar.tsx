@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { ModeToggle } from "@/components/mode-toggle";
 import { Vote, Shield, Users, Building2, LogOut, ShieldCheck, Home } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import PillNav, { PillNavItem } from "@/components/ui/PillNav";
 import {
@@ -17,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -69,20 +71,20 @@ const Navbar = () => {
 
   // Define Links - Reordered based on design to prioritize Home
   const navItems: PillNavItem[] = useMemo(() => [
-    { label: "Home", href: "/", icon: <Home className="w-4 h-4" /> },
-    { label: "About", href: "/about", icon: <Users className="w-4 h-4" /> },
-    { label: "Security", href: "/security", icon: <ShieldCheck className="w-4 h-4" /> },
-    { label: "Contact", href: "/contact", icon: <Shield className="w-4 h-4" /> },
-    { label: "Company\u00A0Register", href: "/company-register", icon: <Building2 className="w-4 h-4" /> },
-    { label: "Company\u00A0Portal", href: "/company-login", icon: <Building2 className="w-4 h-4" /> },
-    { label: "Shareholder\u00A0Login", href: "/shareholder-login", icon: <Users className="w-4 h-4" /> },
+    { label: t("home"), href: "/", icon: <Home className="w-4 h-4" /> },
+    { label: t("about"), href: "/about", icon: <Users className="w-4 h-4" /> },
+    { label: t("security"), href: "/security", icon: <ShieldCheck className="w-4 h-4" /> },
+    { label: t("contact"), href: "/contact", icon: <Shield className="w-4 h-4" /> },
+    { label: t("company_register"), href: "/company-register", icon: <Building2 className="w-4 h-4" /> },
+    { label: t("company_portal"), href: "/company-login", icon: <Building2 className="w-4 h-4" /> },
+    { label: t("shareholder_login"), href: "/shareholder-login", icon: <Users className="w-4 h-4" /> },
   ].map(item => ({
     ...item,
     onClick: (e) => {
       e.preventDefault();
       handleNavigation(item.href);
     }
-  })), [handleNavigation]);
+  })), [handleNavigation, t]);
 
   return (
     <>
@@ -120,9 +122,8 @@ const Navbar = () => {
             />
           </div>
 
-          {/* Right: Empty for balance */}
-          <div className="hidden md:flex items-center z-20 justify-self-end w-24">
-            {/* Empty */}
+          {/* Right: Actions */}
+          <div className="hidden md:flex items-center gap-4 z-20 justify-self-end w-32">
           </div>
 
           {/* Mobile Menu Trigger (Visible only on mobile) */}

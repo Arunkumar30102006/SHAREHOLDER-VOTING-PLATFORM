@@ -9,7 +9,7 @@ import { Loader2, TrendingUp, ThumbsUp, ThumbsDown, Minus, BrainCircuit, Maximiz
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-interface SentimentResult {
+export interface SentimentResult {
     sentiment: 'Positive' | 'Neutral' | 'Negative';
     score: number;
     themes: string[];
@@ -45,6 +45,7 @@ export const SentimentWidget = ({ feedbackText, onResult }: { feedbackText: stri
         };
 
         analyzeSentiment();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [feedbackText]);
 
     if (!feedbackText) return null;

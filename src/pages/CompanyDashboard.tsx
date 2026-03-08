@@ -36,6 +36,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { votingApi } from "@/services/api/voting";
 import { DashboardFeedback } from "@/components/company/DashboardFeedback";
 import { env } from "@/config/env";
@@ -76,6 +77,7 @@ interface Company {
 }
 
 const CompanyDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingShareholder, setIsAddingShareholder] = useState(false);
@@ -96,6 +98,7 @@ const CompanyDashboard = () => {
 
   useEffect(() => {
     checkAuthAndLoadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuthAndLoadData = async () => {
@@ -270,7 +273,7 @@ const CompanyDashboard = () => {
         } else {
           toast.success("Shareholder added and credentials sent via email!");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Operation failed:", err);
         toast.error("An error occurred while adding the shareholder.");
       }
@@ -345,9 +348,9 @@ const CompanyDashboard = () => {
 
       if (company) await loadShareholders(company.id);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Resend failed:", error);
-      toast.error(`Email failed: ${error.message || "Unknown error"}`);
+      toast.error(`Email failed: ${(error as Error).message || "Unknown error"}`);
     } finally {
       setIsSendingCredentials(null);
     }
@@ -406,9 +409,9 @@ const CompanyDashboard = () => {
 
       toast.success("OTP sent to your registered email");
       setOtpSent(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to send OTP:", error);
-      toast.error(`Failed to send verification email: ${error.message}`);
+      toast.error(`Failed to send verification email: ${(error as Error).message}`);
     } finally {
       setIsSendingCredentials(null);
     }
@@ -462,9 +465,9 @@ const CompanyDashboard = () => {
       toast.success("Company deregistered successfully");
       await supabase.auth.signOut();
       navigate("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Deregister failed:", error);
-      toast.error(error.message || "Failed to deregister company");
+      toast.error((error as Error).message || "Failed to deregister company");
     } finally {
       setIsDeletingCompany(false);
       setShowDeregisterDialog(false);
@@ -491,26 +494,26 @@ const CompanyDashboard = () => {
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
                 <Building2 className="w-4 h-4" />
-                <span>Company Dashboard</span>
+                <span>{t("company_dashboard_badge")}</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                Welcome,{" "}
+                {t("company_dashboard_welcome")}{" "}
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   {company?.company_name}
                 </span>
               </h1>
               <p className="text-muted-foreground mt-2">
-                Manage your shareholders and send voting credentials
+                {t("company_dashboard_subtitle")}
               </p>
             </div>
             <div className="flex gap-3 self-start">
               <Button variant="saffron" onClick={() => navigate("/voting-management")} className="gap-2">
                 <Shield className="w-4 h-4" />
-                Manage Voting
+                {t("company_dashboard_manage_voting")}
               </Button>
               <Button variant="ghost" onClick={handleLogout} className="gap-2">
                 <LogOut className="w-4 h-4" />
-                Logout
+                {t("company_dashboard_logout")}
               </Button>
             </div>
           </div>
@@ -527,24 +530,24 @@ const CompanyDashboard = () => {
                   <CardTitle className="flex items-center gap-2 text-2xl">
                     <Sparkles className="w-6 h-6 text-purple-600" />
                     <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                      AI Power Suite
+                      {t("company_dashboard_ai_title")}
                     </span>
                   </CardTitle>
                   <CardDescription>
-                    Advanced AI tools to streamline your corporate governance
+                    {t("company_dashboard_ai_desc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4 text-purple-700 dark:text-purple-300">
                     <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30">
-                      <FileText className="w-4 h-4" /> Document Summarizer
+                      <FileText className="w-4 h-4" /> {t("company_dashboard_ai_doc")}
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30">
-                      <BrainCircuit className="w-4 h-4" /> Sentiment Analysis
+                      <BrainCircuit className="w-4 h-4" /> {t("company_dashboard_ai_sentiment")}
                     </div>
                   </div>
                   <Button className="mt-6 bg-purple-600 hover:bg-purple-700 text-white gap-2">
-                    Open AI Suite <Sparkles className="w-4 h-4" />
+                    {t("company_dashboard_ai_open")} <Sparkles className="w-4 h-4" />
                   </Button>
                 </CardContent>
               </Card>
@@ -558,29 +561,29 @@ const CompanyDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Building2 className="w-5 h-5 text-primary" />
-                Company Profile
+                {t("company_dashboard_profile")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Company Name</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_name")}</p>
                   <p className="font-semibold text-foreground">{company?.company_name}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">CIN Number</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_cin")}</p>
                   <p className="font-mono text-foreground bg-background/50 px-2 py-1 rounded w-fit border border-border">{company?.cin_number || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Registered Email</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_email")}</p>
                   <p className="text-foreground">{company?.contact_email}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Contact Phone</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_phone")}</p>
                   <p className="text-foreground">{company?.contact_phone || "N/A"}</p>
                 </div>
                 <div className="space-y-1 md:col-span-2">
-                  <p className="text-sm font-medium text-muted-foreground">Registered Address</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_address")}</p>
                   <p className="text-foreground">{company?.registered_address}</p>
                 </div>
               </div>
@@ -591,8 +594,8 @@ const CompanyDashboard = () => {
 
           <Tabs defaultValue="shareholders" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-              <TabsTrigger value="shareholders" className="gap-2"><Users className="w-4 h-4" /> Shareholders</TabsTrigger>
-              <TabsTrigger value="results" className="gap-2"><FileText className="w-4 h-4" /> Results & Reports</TabsTrigger>
+              <TabsTrigger value="shareholders" className="gap-2"><Users className="w-4 h-4" /> {t("company_dashboard_tab_shareholders")}</TabsTrigger>
+              <TabsTrigger value="results" className="gap-2"><FileText className="w-4 h-4" /> {t("company_dashboard_tab_results")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="shareholders" className="space-y-6 animate-fade-in-up">
@@ -606,7 +609,7 @@ const CompanyDashboard = () => {
                       </div>
                       <div>
                         <p className="text-3xl font-bold text-foreground">{shareholders.length}</p>
-                        <p className="text-sm text-muted-foreground">Total Shareholders</p>
+                        <p className="text-sm text-muted-foreground">{t("company_dashboard_stat_total")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -622,7 +625,7 @@ const CompanyDashboard = () => {
                         <p className="text-3xl font-bold text-foreground">
                           {shareholders.filter(s => s.is_credential_used).length}
                         </p>
-                        <p className="text-sm text-muted-foreground">Credentials Used</p>
+                        <p className="text-sm text-muted-foreground">{t("company_dashboard_stat_used")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -638,7 +641,7 @@ const CompanyDashboard = () => {
                         <p className="text-3xl font-bold text-foreground">
                           {shareholders.reduce((acc, s) => acc + s.shares_held, 0).toLocaleString()}
                         </p>
-                        <p className="text-sm text-muted-foreground">Total Shares</p>
+                        <p className="text-sm text-muted-foreground">{t("company_dashboard_stat_shares")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -652,10 +655,10 @@ const CompanyDashboard = () => {
                     <div>
                       <CardTitle className="text-xl flex items-center gap-2">
                         <Users className="w-5 h-5 text-primary" />
-                        Shareholder Management
+                        {t("company_dashboard_sm_title")}
                       </CardTitle>
                       <CardDescription>
-                        Add shareholders and send them secure login credentials via email
+                        {t("company_dashboard_sm_desc")}
                       </CardDescription>
                     </div>
                     <Button
@@ -663,7 +666,7 @@ const CompanyDashboard = () => {
                       onClick={() => setShowAddForm(!showAddForm)}
                       className="gap-2"
                     >
-                      {showAddForm ? "Cancel" : <><Plus className="w-4 h-4" /> Add Shareholder</>}
+                      {showAddForm ? t("company_dashboard_sm_cancel") : <><Plus className="w-4 h-4" /> {t("company_dashboard_sm_add")}</>}
                     </Button>
                   </div>
                 </CardHeader>
@@ -673,7 +676,7 @@ const CompanyDashboard = () => {
                     <form onSubmit={handleAddShareholder} className="space-y-4 animate-fade-in-up">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="name">Shareholder Name *</Label>
+                          <Label htmlFor="name">{t("company_dashboard_form_name")}</Label>
                           <Input
                             id="name"
                             name="name"
@@ -688,7 +691,7 @@ const CompanyDashboard = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email Address *</Label>
+                          <Label htmlFor="email">{t("company_dashboard_form_email")}</Label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <Input
@@ -707,7 +710,7 @@ const CompanyDashboard = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="phone">Phone Number</Label>
+                          <Label htmlFor="phone">{t("company_dashboard_form_phone")}</Label>
                           <div className="relative">
                             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <Input
@@ -723,7 +726,7 @@ const CompanyDashboard = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="sharesHeld">Number of Shares *</Label>
+                          <Label htmlFor="sharesHeld">{t("company_dashboard_form_shares")}</Label>
                           <Input
                             id="sharesHeld"
                             name="sharesHeld"
@@ -743,10 +746,9 @@ const CompanyDashboard = () => {
                       <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
                         <Shield className="w-5 h-5 text-accent mt-0.5" />
                         <div>
-                          <p className="text-sm font-medium text-foreground">Secure Credential Generation</p>
+                          <p className="text-sm font-medium text-foreground">{t("company_dashboard_form_secure_title")}</p>
                           <p className="text-xs text-muted-foreground">
-                            Auto-generated unique User ID and password will be sent to the shareholder's email.
-                            Credentials are hashed and stored securely.
+                            {t("company_dashboard_form_secure_desc")}
                           </p>
                         </div>
                       </div>
@@ -757,7 +759,7 @@ const CompanyDashboard = () => {
                         ) : (
                           <Send className="w-4 h-4" />
                         )}
-                        Add & Send Credentials
+                        {t("company_dashboard_form_submit")}
                       </Button>
                     </form>
                   </CardContent>
@@ -767,29 +769,29 @@ const CompanyDashboard = () => {
               {/* Shareholders List */}
               <Card className="border-white/10 bg-card/10 backdrop-blur-md">
                 <CardHeader>
-                  <CardTitle className="text-xl">Registered Shareholders</CardTitle>
+                  <CardTitle className="text-xl">{t("company_dashboard_list_title")}</CardTitle>
                   <CardDescription>
-                    View and manage all shareholders with their credential status
+                    {t("company_dashboard_list_desc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {shareholders.length === 0 ? (
                     <div className="text-center py-12">
                       <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-                      <p className="text-muted-foreground">No shareholders added yet</p>
-                      <p className="text-sm text-muted-foreground/80">Click "Add Shareholder" to get started</p>
+                      <p className="text-muted-foreground">{t("company_dashboard_empty_title")}</p>
+                      <p className="text-sm text-muted-foreground/80">{t("company_dashboard_empty_desc")}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-border">
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Email</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Shares</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Login ID</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
-                            <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_name")}</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_email")}</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_shares")}</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_login_id")}</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_status")}</th>
+                            <th className="text-right py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_actions")}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -805,11 +807,11 @@ const CompanyDashboard = () => {
                                 {shareholder.is_credential_used ? (
                                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-medium">
                                     <CheckCircle2 className="w-3 h-3" />
-                                    Active
+                                    {t("company_dashboard_status_active")}
                                   </span>
                                 ) : (
                                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 text-xs font-medium">
-                                    Pending
+                                    {t("company_dashboard_status_pending")}
                                   </span>
                                 )}
                               </td>
@@ -827,7 +829,7 @@ const CompanyDashboard = () => {
                                     ) : (
                                       <RefreshCw className="w-4 h-4" />
                                     )}
-                                    Resend
+                                    {t("company_dashboard_action_resend")}
                                   </Button>
                                   <Button
                                     variant="ghost"
@@ -864,7 +866,7 @@ const CompanyDashboard = () => {
                 */}
               {/* Placeholder for now until we add session fetching logic */}
               <div className="p-8 text-center border border-dashed border-white/10 rounded-xl">
-                <p className="text-muted-foreground mb-4">Select an active session to view results.</p>
+                <p className="text-muted-foreground mb-4">{t("company_dashboard_results_empty")}</p>
                 {/* We need to implement session selection or auto-select active */}
                 <AdminVotingResults sessionId={sessionId || ""} companyName={company?.company_name || ""} />
                 {/* The component will just return empty/loading if no session ID. We need to fix this. */}
@@ -885,18 +887,18 @@ const CompanyDashboard = () => {
             <CardHeader>
               <CardTitle className="text-xl text-destructive flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5" />
-                Danger Zone
+                {t("company_dashboard_danger_title")}
               </CardTitle>
               <CardDescription className="text-destructive/80">
-                Irreversible actions for your company account
+                {t("company_dashboard_danger_desc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-destructive/20 rounded-lg bg-background">
                 <div>
-                  <h4 className="font-medium text-foreground">Deregister Company</h4>
+                  <h4 className="font-medium text-foreground">{t("company_dashboard_deregister_title")}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Permanently delete your company account and all associated data. This action cannot be undone.
+                    {t("company_dashboard_deregister_desc")}
                   </p>
                 </div>
 
@@ -915,21 +917,20 @@ const CompanyDashboard = () => {
                       ) : (
                         <Trash2 className="w-4 h-4 mr-2" />
                       )}
-                      Deregister
+                      {t("company_dashboard_btn_deregister")}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     {!otpSent ? (
                       <>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogTitle>{t("company_dashboard_dialog_title")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your company account,
-                            all shareholder data, and voting records from our servers.
+                            {t("company_dashboard_dialog_desc")}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{t("company_dashboard_sm_cancel")}</AlertDialogCancel>
                           <Button
                             variant="destructive"
                             onClick={handleSendDeregisterOtp}
@@ -940,21 +941,20 @@ const CompanyDashboard = () => {
                             ) : (
                               <Send className="w-4 h-4 mr-2" />
                             )}
-                            Send OTP to Verify
+                            {t("company_dashboard_dialog_send_otp")}
                           </Button>
                         </AlertDialogFooter>
                       </>
                     ) : (
                       <>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Enter Verification Code</AlertDialogTitle>
+                          <AlertDialogTitle>{t("company_dashboard_dialog_enter_otp_title")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            We have sent a 6-digit verification code to your registered email.
-                            Please enter it below to confirm deletion.
+                            {t("company_dashboard_dialog_enter_otp_desc")}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="py-4">
-                          <Label htmlFor="otp" className="mb-2 block">Verification Code</Label>
+                          <Label htmlFor="otp" className="mb-2 block">{t("company_dashboard_dialog_enter_otp_title")}</Label>
                           <Input
                             id="otp"
                             placeholder="Enter 6-digit code"
@@ -966,7 +966,7 @@ const CompanyDashboard = () => {
                         </div>
                         <AlertDialogFooter>
                           <Button variant="ghost" onClick={() => setShowDeregisterDialog(false)}>
-                            Cancel
+                            {t("company_dashboard_sm_cancel")}
                           </Button>
                           <Button
                             variant="destructive"
@@ -978,7 +978,7 @@ const CompanyDashboard = () => {
                             ) : (
                               <Trash2 className="w-4 h-4 mr-2" />
                             )}
-                            Verify & Deregister
+                            {t("company_dashboard_dialog_verify")}
                           </Button>
                         </AlertDialogFooter>
                       </>

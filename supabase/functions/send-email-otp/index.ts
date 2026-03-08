@@ -127,7 +127,7 @@ serve(async (req) => {
       JSON.stringify({ success: true, message: "OTP sent" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
     // Return 200 even on error so client can read the message
     return new Response(

@@ -6,10 +6,12 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/layout/SEO";
+import { useTranslation } from "react-i18next";
 
 import { env } from "@/config/env";
 
 const Contact = () => {
+    const { t } = useTranslation();
     // The user's instruction included `const { toast } = useToast();`.
     // However, the existing code uses `toast` imported from "sonner" directly.
     // Adding `const { toast } = useToast();` without importing `useToast`
@@ -72,7 +74,7 @@ const Contact = () => {
             }
 
             console.log("Message sent successfully:", data);
-            toast.success("Message sent successfully! We will get back to you shortly.");
+            toast.success("Message sent successfully! We will get back to you shortly."); // Keep as is or add to translation later
 
             setFormData({
                 firstname: "",
@@ -81,9 +83,9 @@ const Contact = () => {
                 subject: "",
                 message: ""
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Submission failed:", error);
-            toast.error(error.message || "Failed to send message. Please try again or email us directly.");
+            toast.error((error as Error).message || "Failed to send message. Please try again or email us directly.");
         } finally {
             setIsSubmitting(false);
         }
@@ -100,16 +102,16 @@ const Contact = () => {
             <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center space-y-3 mb-12 md:mb-16">
-                        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white">Contact Us</h1>
+                        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white">{t("contact_title")}</h1>
                         <p className="text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                            Our team of compliance and technical experts is available to assist your organization with digital polling and governance requirements.
+                            {t("contact_subtitle")}
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
                         {/* Contact Information */}
                         <div className="space-y-6 md:space-y-8">
-                            <h2 className="text-2xl font-bold text-white mb-6">Get in Touch</h2>
+                            <h2 className="text-2xl font-bold text-white mb-6">{t("contact_get_in_touch")}</h2>
 
                             <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#0d1b2a]/40 backdrop-blur-xl border border-white/10 hover:border-primary/30 transition-all group overflow-hidden relative">
                                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -117,8 +119,8 @@ const Contact = () => {
                                     <Mail className="w-6 h-6 text-primary" />
                                 </div>
                                 <div className="relative z-10 overflow-hidden w-full">
-                                    <h3 className="font-semibold mb-1 text-white">Email Support</h3>
-                                    <p className="text-xs md:text-sm text-slate-400 mb-2">For general inquiries and support:</p>
+                                    <h3 className="font-semibold mb-1 text-white">{t("contact_email_support")}</h3>
+                                    <p className="text-xs md:text-sm text-slate-400 mb-2">{t("contact_email_desc")}</p>
                                     <div className="space-y-1">
                                         <a href="mailto:support@shareholdervoting.in" className="text-sm md:text-base text-primary hover:underline font-medium block break-all">support@shareholdervoting.in</a>
                                         <a href="mailto:admin@shareholdervoting.in" className="text-sm md:text-base text-primary hover:underline font-medium block break-all">admin@shareholdervoting.in</a>
@@ -132,8 +134,8 @@ const Contact = () => {
                                     <Phone className="w-6 h-6 text-secondary" />
                                 </div>
                                 <div className="relative z-10">
-                                    <h3 className="font-semibold mb-1 text-white">Phone Support</h3>
-                                    <p className="text-xs md:text-sm text-slate-400 mb-1">Mon-Fri from 9am to 6pm IST</p>
+                                    <h3 className="font-semibold mb-1 text-white">{t("contact_phone_support")}</h3>
+                                    <p className="text-xs md:text-sm text-slate-400 mb-1">{t("contact_phone_desc")}</p>
                                     <a href="tel:+919876543210" className="text-sm md:text-base text-secondary hover:underline font-medium">+91-9876543210</a>
                                 </div>
                             </div>
@@ -144,10 +146,9 @@ const Contact = () => {
                                     <MapPin className="w-6 h-6 text-accent" />
                                 </div>
                                 <div className="relative z-10">
-                                    <h3 className="font-semibold mb-1 text-white">Office Location</h3>
-                                    <p className="text-xs md:text-sm text-slate-400 leading-relaxed italic">
-                                        Tech Hub, Financial District<br />
-                                        Mumbai, Maharashtra 400051, India
+                                    <h3 className="font-semibold mb-1 text-white">{t("contact_office")}</h3>
+                                    <p className="text-xs md:text-sm text-slate-400 leading-relaxed italic whitespace-pre-wrap">
+                                        {t("contact_office_desc")}
                                     </p>
                                 </div>
                             </div>
@@ -163,12 +164,12 @@ const Contact = () => {
                                         <MessageSquare className="w-6 h-6 text-secondary" />
                                     </div>
                                     <h2 className="text-lg md:text-xl font-bold text-white">
-                                        Send a Message</h2>
+                                        {t("contact_send_msg")}</h2>
                                 </div>
                                 <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
                                     <div className="grid sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label htmlFor="firstname" className="text-xs md:text-sm font-medium text-slate-300">First Name</label>
+                                            <label htmlFor="firstname" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_fname")}</label>
                                             <input
                                                 type="text"
                                                 id="firstname"
@@ -180,7 +181,7 @@ const Contact = () => {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="lastname" className="text-xs md:text-sm font-medium text-slate-300">Last Name</label>
+                                            <label htmlFor="lastname" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_lname")}</label>
                                             <input
                                                 type="text"
                                                 id="lastname"
@@ -193,7 +194,7 @@ const Contact = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label htmlFor="email" className="text-xs md:text-sm font-medium text-slate-300">Email Address</label>
+                                        <label htmlFor="email" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_email")}</label>
                                         <input
                                             type="email"
                                             id="email"
@@ -205,7 +206,7 @@ const Contact = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label htmlFor="subject" className="text-xs md:text-sm font-medium text-slate-300">Subject</label>
+                                        <label htmlFor="subject" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_subject")}</label>
                                         <input
                                             type="text"
                                             id="subject"
@@ -217,7 +218,7 @@ const Contact = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label htmlFor="message" className="text-xs md:text-sm font-medium text-slate-300">Your Message</label>
+                                        <label htmlFor="message" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_message")}</label>
                                         <textarea
                                             id="message"
                                             rows={4}
@@ -229,7 +230,7 @@ const Contact = () => {
                                         />
                                     </div>
                                     <Button className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-[0.98]" size="lg" disabled={isSubmitting}>
-                                        {isSubmitting ? "Sending..." : "Send Message"}
+                                        {isSubmitting ? t("contact_form_btn_sending") : t("contact_form_btn_send")}
                                     </Button>
                                 </form>
                             </div>

@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 
 import {
   countries,
@@ -59,6 +60,7 @@ const step2Schema = z.object({
 type Step = 1 | 2 | 3;
 
 const CompanyRegister = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -237,7 +239,7 @@ const CompanyRegister = () => {
   };
 
   const prevStep = () => {
-    if (step > 1) setStep((step - 1) as any);
+    if (step > 1) setStep((step - 1) as 1 | 2 | 3);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -384,9 +386,9 @@ const CompanyRegister = () => {
   };
 
   const stepInfo = [
-    { number: 1, title: "Company Details", icon: Building2 },
-    { number: 2, title: "Admin Account", icon: Users },
-    { number: 3, title: "Verification", icon: Shield },
+    { number: 1, title: t("company_reg_step1_title"), icon: Building2 },
+    { number: 2, title: t("company_reg_step2_title"), icon: Users },
+    { number: 3, title: t("company_reg_step3_title"), icon: Shield },
   ];
 
   return (
@@ -404,16 +406,16 @@ const CompanyRegister = () => {
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
               <Building2 className="w-4 h-4 text-orange-400" />
-              <span>Company Registration</span>
+              <span>{t("company_reg_badge")}</span>
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Register Your{" "}
+              {t("company_reg_title_1")}{" "}
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Company
+                {t("company_reg_title_2")}
               </span>
             </h1>
             <p className="text-lg text-muted-foreground">
-              Set up your company for secure e-voting in just a few minutes
+              {t("company_reg_subtitle")}
             </p>
           </div>
 
@@ -452,14 +454,14 @@ const CompanyRegister = () => {
           <Card className="max-w-2xl mx-auto shadow-large border-white/10 bg-card/10 backdrop-blur-md">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl">
-                {step === 1 && "Company Details"}
-                {step === 2 && "Admin Account Setup"}
-                {step === 3 && "Email Verification"}
+                {step === 1 && t("company_reg_step1_title")}
+                {step === 2 && t("company_reg_step2_title")}
+                {step === 3 && t("company_reg_step3_title")}
               </CardTitle>
               <CardDescription>
-                {step === 1 && "Enter your company's official details"}
-                {step === 2 && "Create your company admin account"}
-                {step === 3 && "Enter the OTP sent to your email"}
+                {step === 1 && t("company_reg_step1_desc")}
+                {step === 2 && t("company_reg_step2_desc")}
+                {step === 3 && t("company_reg_step3_desc")}
               </CardDescription>
             </CardHeader>
 
@@ -469,7 +471,7 @@ const CompanyRegister = () => {
                 {step === 1 && (
                   <div className="space-y-4 animate-fade-in-up">
                     <div className="space-y-2">
-                      <Label htmlFor="companyName">Company Name *</Label>
+                      <Label htmlFor="companyName">{t("company_reg_name_label")}</Label>
                       <Input
                         id="companyName"
                         name="companyName"
@@ -483,7 +485,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="cin">Corporate Identification Number (CIN) *</Label>
+                      <Label htmlFor="cin">{t("company_reg_cin_label")}</Label>
                       <Input
                         id="cin"
                         name="cin"
@@ -497,7 +499,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="registeredAddress">Registered Address *</Label>
+                      <Label htmlFor="registeredAddress">{t("company_reg_address_label")}</Label>
                       <Input
                         id="registeredAddress"
                         name="registeredAddress"
@@ -511,7 +513,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="country">Country *</Label>
+                      <Label htmlFor="country">{t("company_reg_country_label")}</Label>
                       <select
                         id="country"
                         name="country"
@@ -521,7 +523,7 @@ const CompanyRegister = () => {
                         }}
                         className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.country ? "border-destructive" : ""}`}
                       >
-                        <option value="" disabled>Select Country</option>
+                        <option value="" disabled>{t("company_reg_country_ph")}</option>
                         {countries.map(c => (
                           <option key={c.value} value={c.value}>{c.label}</option>
                         ))}
@@ -533,7 +535,7 @@ const CompanyRegister = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* PIN Code - Moved up for better flow */}
                       <div className="space-y-2">
-                        <Label htmlFor="pincode">PIN Code *</Label>
+                        <Label htmlFor="pincode">{t("company_reg_pincode_label")}</Label>
                         <div className="relative">
                           <Input
                             id="pincode"
@@ -554,7 +556,7 @@ const CompanyRegister = () => {
 
                       {/* Area */}
                       <div className="space-y-2">
-                        <Label htmlFor="area">Area *</Label>
+                        <Label htmlFor="area">{t("company_reg_area_label")}</Label>
                         <Input
                           id="area"
                           name="area"
@@ -571,7 +573,7 @@ const CompanyRegister = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* State Selection */}
                       <div className="space-y-2">
-                        <Label htmlFor="state">State *</Label>
+                        <Label htmlFor="state">{t("company_reg_state_label")}</Label>
                         {formData.country === "India" ? (
                           <>
                             <select
@@ -588,11 +590,11 @@ const CompanyRegister = () => {
                               }}
                               className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.state ? "border-destructive" : ""}`}
                             >
-                              <option value="" disabled>Select State</option>
+                              <option value="" disabled>{t("company_reg_state_ph")}</option>
                               {indianStates.map(s => (
                                 <option key={s} value={s}>{s}</option>
                               ))}
-                              <option value="Other">Other (Type Manually)</option>
+                              <option value="Other">{t("company_reg_other")}</option>
                             </select>
 
                             {(!indianStates.includes(formData.state) && formData.state !== "" && formData.state !== "Other") || formData.state === "Other" ? (
@@ -600,7 +602,7 @@ const CompanyRegister = () => {
                                 name="state"
                                 value={formData.state === "Other" ? "" : formData.state}
                                 onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                                placeholder="Type State Name"
+                                placeholder={t("company_reg_type_state")}
                                 className="mt-2"
                                 autoFocus
                               />
@@ -621,7 +623,7 @@ const CompanyRegister = () => {
 
                       {/* District Selection */}
                       <div className="space-y-2">
-                        <Label htmlFor="district">District *</Label>
+                        <Label htmlFor="district">{t("company_reg_district_label")}</Label>
                         {formData.country === "India" && (indianStates.includes(formData.state) || formData.state === "Other" || formData.state === "") ? (
                           <>
                             {districtsMap[formData.state] ? (
@@ -639,11 +641,11 @@ const CompanyRegister = () => {
                                 }}
                                 className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.district ? "border-destructive" : ""}`}
                               >
-                                <option value="" disabled>Select District</option>
+                                <option value="" disabled>{t("company_reg_district_ph")}</option>
                                 {districtsMap[formData.state].map(d => (
                                   <option key={d} value={d}>{d}</option>
                                 ))}
-                                <option value="Other">Other (Type Manually)</option>
+                                <option value="Other">{t("company_reg_other")}</option>
                               </select>
                             ) : (
                               <Input
@@ -651,7 +653,7 @@ const CompanyRegister = () => {
                                 name="district"
                                 value={formData.district}
                                 onChange={handleInputChange}
-                                placeholder="Enter District"
+                                placeholder={t("company_reg_enter_district")}
                                 className={errors.district ? "border-destructive" : ""}
                               />
                             )}
@@ -661,7 +663,7 @@ const CompanyRegister = () => {
                                 name="district"
                                 value={formData.district === "Other" ? "" : formData.district}
                                 onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
-                                placeholder="Type District Name"
+                                placeholder={t("company_reg_type_district")}
                                 className="mt-2"
                                 autoFocus
                               />
@@ -673,7 +675,7 @@ const CompanyRegister = () => {
                             name="district"
                             value={formData.district}
                             onChange={handleInputChange}
-                            placeholder="Enter District"
+                            placeholder={t("company_reg_enter_district")}
                             className={errors.district ? "border-destructive" : ""}
                           />
                         )}
@@ -687,7 +689,7 @@ const CompanyRegister = () => {
                 {step === 2 && (
                   <div className="space-y-4 animate-fade-in-up">
                     <div className="space-y-2">
-                      <Label htmlFor="contactName">Your Full Name *</Label>
+                      <Label htmlFor="contactName">{t("company_reg_contact_name_label")}</Label>
                       <div className="relative">
                         <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -705,7 +707,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="designation">Designation *</Label>
+                      <Label htmlFor="designation">{t("company_reg_designation_label")}</Label>
                       <Input
                         id="designation"
                         name="designation"
@@ -720,7 +722,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="contactEmail">Email Address *</Label>
+                      <Label htmlFor="contactEmail">{t("company_reg_email_label")}</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -740,7 +742,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="contactPhone">Phone Number *</Label>
+                      <Label htmlFor="contactPhone">{t("company_reg_phone_label")}</Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -760,7 +762,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password">Create Password *</Label>
+                      <Label htmlFor="password">{t("company_reg_pass_label")}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -769,7 +771,7 @@ const CompanyRegister = () => {
                           type={showPassword ? "text" : "password"}
                           value={formData.password}
                           onChange={handleInputChange}
-                          placeholder="Minimum 8 characters"
+                          placeholder={t("company_reg_pass_ph")}
                           className={`pl-11 pr-11 ${errors.password ? "border-destructive" : ""}`}
                           required
                           disabled={isLoading}
@@ -787,7 +789,7 @@ const CompanyRegister = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <Label htmlFor="confirmPassword">{t("company_reg_confirm_pass_label")}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -796,7 +798,7 @@ const CompanyRegister = () => {
                           type={showPassword ? "text" : "password"}
                           value={formData.confirmPassword}
                           onChange={handleInputChange}
-                          placeholder="Re-enter your password"
+                          placeholder={t("company_reg_confirm_pass_ph")}
                           className={`pl-11 ${errors.confirmPassword ? "border-destructive" : ""}`}
                           required
                           disabled={isLoading}
@@ -810,9 +812,9 @@ const CompanyRegister = () => {
                     <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
                       <Shield className="w-5 h-5 text-accent mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-foreground">Secure Registration</p>
+                        <p className="text-sm font-medium text-foreground">{t("company_reg_secure_title")}</p>
                         <p className="text-xs text-muted-foreground">
-                          Your password is encrypted and stored securely. You'll use this to access your company dashboard.
+                          {t("company_reg_secure_desc")}
                         </p>
                       </div>
                     </div>
@@ -827,16 +829,16 @@ const CompanyRegister = () => {
                         <Mail className="w-8 h-8 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-foreground">Check your Email</h3>
+                        <h3 className="text-lg font-semibold text-foreground">{t("company_reg_check_email_title")}</h3>
                         <p className="text-muted-foreground mt-1">
-                          We've sent a 6-digit verification code to
+                          {t("company_reg_check_email_desc")}
                           <br />
                           <span className="font-medium text-foreground">{formData.contactEmail}</span>
                         </p>
                       </div>
 
                       <div className="max-w-xs mx-auto space-y-2 text-left">
-                        <Label htmlFor="otp" className="text-center block">Verification Code</Label>
+                        <Label htmlFor="otp" className="text-center block">{t("company_reg_otp_label")}</Label>
                         <Input
                           id="otp"
                           name="otp"
@@ -850,7 +852,7 @@ const CompanyRegister = () => {
                           required
                         />
                         <p className="text-xs text-muted-foreground text-center">
-                          Code expires in 10 minutes
+                          {t("company_reg_otp_expires_desc")}
                         </p>
                       </div>
                     </div>
@@ -860,18 +862,18 @@ const CompanyRegister = () => {
                       <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/5 border border-accent/20">
                         <Shield className="w-5 h-5 text-accent shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm font-semibold text-foreground">Bank-Grade Security</p>
+                          <p className="text-sm font-semibold text-foreground">{t("company_reg_bank_sec_title")}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Your vote and company data are protected with 256-bit encryption and immutable audit logs.
+                            {t("company_reg_bank_sec_desc")}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3 p-4 rounded-xl bg-saffron/10 border border-saffron/20">
                         <Lock className="w-5 h-5 text-saffron shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm font-semibold text-foreground">Verified & Compliance</p>
+                          <p className="text-sm font-semibold text-foreground">{t("company_reg_verified_title")}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Fully compliant with MCA (Ministry of Corporate Affairs) e-voting regulations.
+                            {t("company_reg_verified_desc")}
                           </p>
                         </div>
                       </div>
@@ -884,13 +886,13 @@ const CompanyRegister = () => {
                   {step > 1 ? (
                     <Button type="button" variant="ghost" onClick={prevStep} className="gap-2" disabled={isLoading}>
                       <ArrowLeft className="w-4 h-4" />
-                      Previous
+                      {t("company_reg_btn_prev")}
                     </Button>
                   ) : (
                     <Link to="/">
                       <Button type="button" variant="ghost" className="gap-2">
                         <ArrowLeft className="w-4 h-4" />
-                        Back to Home
+                        {t("company_reg_btn_back")}
                       </Button>
                     </Link>
                   )}
@@ -900,11 +902,11 @@ const CompanyRegister = () => {
                       {isLoading ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          {step === 2 ? "Securely Sending OTP..." : "Verifying..."}
+                          {step === 2 ? t("company_reg_btn_sending_otp") : t("company_reg_btn_verifying")}
                         </>
                       ) : (
                         <>
-                          {step === 2 ? "Verify Email" : "Next Step"}
+                          {step === 2 ? t("company_reg_btn_verify_email") : t("company_reg_btn_next")}
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
@@ -916,7 +918,7 @@ const CompanyRegister = () => {
                       ) : (
                         <CheckCircle2 className="w-4 h-4" />
                       )}
-                      Complete Registration
+                      {t("company_reg_btn_complete")}
                     </Button>
                   )}
                 </div>
@@ -928,9 +930,9 @@ const CompanyRegister = () => {
           {/* Login Link */}
           <div className="text-center mt-6">
             <p className="text-muted-foreground">
-              Already registered?{" "}
+              {t("company_reg_already")}{" "}
               <Link to="/company-login" className="text-primary hover:underline font-medium">
-                Login to your dashboard
+                {t("company_reg_login_link")}
               </Link>
             </p>
           </div>

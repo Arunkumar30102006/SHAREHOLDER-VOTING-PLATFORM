@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,8 @@ import {
   Video,
   UserCheck,
   UserPlus,
-  ShieldCheck
+  ShieldCheck,
+  Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { SEO } from "@/components/layout/SEO";
@@ -34,6 +35,7 @@ import { VotingItem, VoteType, VoteRecord } from "@/types/voting";
 import { supabase } from "@/integrations/supabase/client";
 import { MerkleTree } from "@/lib/merkle";
 import { ShareholderFeedbackForm } from "@/components/ai/ShareholderFeedbackForm";
+import { useTranslation } from "react-i18next";
 
 const AppointProxyCard = ({
   shareholders,
@@ -41,11 +43,13 @@ const AppointProxyCard = ({
   delegation,
   isDelegating
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shareholders: any[],
   onDelegate: (proxyId: string) => void,
-  delegation: any,
+  delegation: { proxy?: { shareholder_name?: string, email?: string } } | null,
   isDelegating: boolean
 }) => {
+  const { t } = useTranslation();
   const [selectedProxyId, setSelectedProxyId] = useState("");
 
   if (delegation) {
@@ -57,9 +61,9 @@ const AppointProxyCard = ({
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-foreground mb-1">Proxy Appointed</h3>
+              <h3 className="font-semibold text-lg text-foreground mb-1">{t("voting_dash_proxy_appointed")}</h3>
               <p className="text-sm text-muted-foreground">
-                Your voting rights for this session are delegated to: <span className="font-bold">{delegation.proxy?.shareholder_name}</span> ({delegation.proxy?.email})
+                {t("voting_dash_delegated_to")} <span className="font-bold">{delegation.proxy?.shareholder_name}</span> ({delegation.proxy?.email})
               </p>
             </div>
           </div>
@@ -77,9 +81,9 @@ const AppointProxyCard = ({
               <UserPlus className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-foreground mb-1">Appoint a Proxy</h3>
+              <h3 className="font-semibold text-lg text-foreground mb-1">{t("voting_dash_appoint_proxy")}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Can't attend? Delegate your voting rights to another trusted shareholder for this session.
+                {t("voting_dash_appoint_desc")}
               </p>
               <div className="flex gap-2">
                 <select
@@ -87,7 +91,7 @@ const AppointProxyCard = ({
                   value={selectedProxyId}
                   onChange={(e) => setSelectedProxyId(e.target.value)}
                 >
-                  <option value="">Select Shareholder...</option>
+                  <option value="">{t("voting_dash_select_sh")}</option>
                   {shareholders?.map(s => (
                     <option key={s.id} value={s.id}>{s.shareholder_name} ({s.email})</option>
                   ))}
@@ -97,7 +101,7 @@ const AppointProxyCard = ({
                   disabled={!selectedProxyId || isDelegating}
                   onClick={() => onDelegate(selectedProxyId)}
                 >
-                  {isDelegating ? "Delegating..." : "Delegate Now"}
+                  {isDelegating ? t("voting_dash_delegating") : t("voting_dash_delegate_now")}
                 </Button>
               </div>
             </div>
@@ -109,6 +113,7 @@ const AppointProxyCard = ({
 };
 
 const VotingDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const shareholderId = localStorage.getItem("shareholderId");
@@ -249,8 +254,8 @@ const VotingDashboard = () => {
       if (error) throw error;
       toast.success("Proxy Appointed Successfully");
       refetchDelegation();
-    } catch (err: any) {
-      toast.error(`Delegation Failed: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Delegation Failed: ${(err as Error).message}`);
     } finally {
       setIsDelegating(false);
     }
@@ -259,55 +264,57 @@ const VotingDashboard = () => {
   const isLoading = loadingShareholder || loadingSession || loadingResolutions || loadingVotes;
 
   // Process Data for UI
-  const votingItems: VotingItem[] = resolutions?.map((res) => {
-    const voteRecord = existingVotes?.find((v) => v.resolution_id === res.id);
-    let voteValue: VoteType | null = null;
-    let proof = null;
+  const votingItems: VotingItem[] = useMemo(() => {
+    return resolutions?.map((res) => {
+      const voteRecord = existingVotes?.find((v) => v.resolution_id === res.id);
+      let voteValue: VoteType | null = null;
+      let proof = null;
 
-    if (voteRecord) {
-      // Normalize existing vote value
-      const val = voteRecord.vote_value.toUpperCase();
-      if (val === "FOR") voteValue = "FOR";
-      else if (val === "AGAINST") voteValue = "AGAINST";
-      else if (val === "ABSTAIN") voteValue = "ABSTAIN";
+      if (voteRecord) {
+        // Normalize existing vote value
+        const val = voteRecord.vote_value.toUpperCase();
+        if (val === "FOR") voteValue = "FOR";
+        else if (val === "AGAINST") voteValue = "AGAINST";
+        else if (val === "ABSTAIN") voteValue = "ABSTAIN";
 
-      // Build Merkle Proof if session is anchored
-      if (anchorData?.merkle_tree?.layers) {
-        const leafIndex = voteRecord.leaf_index;
-        if (leafIndex !== undefined && leafIndex !== null) {
-          // Reconstruct proof from stored layers to avoid recomputing tree
-          const layers = anchorData.merkle_tree.layers;
-          const leafProof = [];
-          let idx = leafIndex;
-          for (let i = 0; i < layers.length - 1; i++) {
-            const layer = layers[i];
-            const isRightNode = idx % 2 === 1;
-            const pairIndex = isRightNode ? idx - 1 : idx + 1;
-            if (pairIndex < layer.length) {
-              leafProof.push({
-                position: isRightNode ? 'left' : 'right',
-                data: layer[pairIndex]
-              });
+        // Build Merkle Proof if session is anchored
+        if (anchorData?.merkle_tree?.layers) {
+          const leafIndex = voteRecord.leaf_index;
+          if (leafIndex !== undefined && leafIndex !== null) {
+            // Reconstruct proof from stored layers to avoid recomputing tree
+            const layers = anchorData.merkle_tree.layers;
+            const leafProof = [];
+            let idx = leafIndex;
+            for (let i = 0; i < layers.length - 1; i++) {
+              const layer = layers[i];
+              const isRightNode = idx % 2 === 1;
+              const pairIndex = isRightNode ? idx - 1 : idx + 1;
+              if (pairIndex < layer.length) {
+                leafProof.push({
+                  position: isRightNode ? 'left' : 'right',
+                  data: layer[pairIndex]
+                });
+              }
+              idx = Math.floor(idx / 2);
             }
-            idx = Math.floor(idx / 2);
+            proof = leafProof;
           }
-          proof = leafProof;
         }
       }
-    }
 
-    return {
-      id: res.id,
-      title: res.title,
-      description: res.description || "",
-      category: res.resolution_type === "director_election" ? "Director Election" : "Resolution",
-      voted: !!voteRecord,
-      vote: voteValue,
-      voteHash: voteRecord?.vote_hash,
-      merkleProof: proof,
-      anchorRoot: anchorData?.merkle_root
-    };
-  }) || [];
+      return {
+        id: res.id,
+        title: res.title,
+        description: res.description || "",
+        category: res.resolution_type === "director_election" ? "Director Election" : "Resolution",
+        voted: !!voteRecord,
+        vote: voteValue,
+        voteHash: voteRecord?.vote_hash,
+        merkleProof: proof,
+        anchorRoot: anchorData?.merkle_root
+      };
+    }) || [];
+  }, [resolutions, existingVotes, anchorData]);
 
   const totalVoted = votingItems.filter((item) => item.voted).length;
 
@@ -394,15 +401,15 @@ const VotingDashboard = () => {
       toast.success("Vote securely recorded!", {
         description: `Your vote (and any delegated votes) has been cryptographically hashed.`,
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Error recording vote:", e);
-      toast.error(`Vote Failed: ${e.message}`);
+      toast.error(`Vote Failed: ${(e as Error).message}`);
       // Revert Optimistic Update
       queryClient.setQueryData(["votes", shareholderId], (old: VoteRecord[] | undefined) =>
         old?.filter((v) => v.vote_hash !== voteHash) || []
       );
     }
-  }, [isSessionExpired, votingItems, shareholderId, queryClient]);
+  }, [isSessionStarted, isSessionExpired, isSessionActive, votingItems, myDelegators, shareholderId, queryClient]);
 
 
 
@@ -428,31 +435,42 @@ const VotingDashboard = () => {
           <div className="sticky top-20 z-30 -mx-4 px-4 py-4 bg-background/80 backdrop-blur-md border-b border-white/5 mb-8 transition-all">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+                <Link to="/" className="hover:text-primary transition-colors">{t("voting_dash_home")}</Link>
                 <ChevronRight className="w-4 h-4" />
                 <span className="text-foreground font-medium truncate max-w-[200px]">{shareholder?.companies?.company_name}</span>
                 <ChevronRight className="w-4 h-4" />
-                <span className="text-foreground">Voting Dashboard</span>
+                <span className="text-foreground">{t("voting_dash_title")}</span>
               </div>
 
               <div className="flex items-center gap-4">
                 <div className="hidden md:block text-right">
                   <p className="text-sm font-bold text-foreground">{shareholder?.shareholder_name}</p>
-                  <p className="text-xs text-muted-foreground">{shareholder?.shares_held?.toLocaleString()} Shares</p>
+                  <p className="text-xs text-muted-foreground">{shareholder?.shares_held?.toLocaleString()} {t("voting_dash_shares")}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => {
-                    localStorage.removeItem("shareholderId");
-                    queryClient.clear();
-                    navigate("/shareholder-login");
-                  }}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
+                    onClick={() => navigate("/shareholder-analysis")}
+                  >
+                    <Activity className="w-4 h-4 mr-2" />
+                    {t("voting_dash_view_analysis")}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      localStorage.removeItem("shareholderId");
+                      queryClient.clear();
+                      navigate("/shareholder-login");
+                    }}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    {t("voting_dash_logout")}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -469,7 +487,7 @@ const VotingDashboard = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg text-foreground mb-1">
-                          {session.meeting_platform === 'physical' ? 'Physical Venue' : 'Live Video Conference'}
+                          {session.meeting_platform === 'physical' ? t("voting_dash_physical") : t("voting_dash_video")}
                         </h3>
                         <div className="space-y-1 text-sm text-muted-foreground">
                           {session.meeting_start_date && (
@@ -481,7 +499,7 @@ const VotingDashboard = () => {
                           {session.meeting_password && (
                             <p className="flex items-center gap-2">
                               <Shield className="w-4 h-4" />
-                              Password: <span className="font-mono bg-background px-1 rounded">{session.meeting_password}</span>
+                              {t("voting_dash_password")} <span className="font-mono bg-background px-1 rounded">{session.meeting_password}</span>
                             </p>
                           )}
                         </div>
@@ -494,7 +512,7 @@ const VotingDashboard = () => {
                       onClick={() => window.open(session.meeting_link!, '_blank')}
                     >
                       <Video className="w-4 h-4 mr-2" />
-                      Join Meeting Now
+                      {t("voting_dash_join_btn")}
                     </Button>
                   </div>
                 </CardContent>
@@ -539,11 +557,11 @@ const VotingDashboard = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                 <Vote className="w-6 h-6 text-primary" />
-                Resolutions
+                {t("voting_dash_resolutions")}
               </h2>
               <div className="text-sm text-muted-foreground flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                Secure Connection
+                {t("voting_dash_secure_conn")}
               </div>
             </div>
 
@@ -578,9 +596,9 @@ const VotingDashboard = () => {
                     <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground text-lg">Voting Complete</h3>
+                    <h3 className="font-semibold text-foreground text-lg">{t("voting_dash_complete_title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                      All your votes have been cast, encrypted, and recorded on the immutable ledger.
+                      {t("voting_dash_complete_desc")}
                     </p>
                   </div>
                 </div>
@@ -600,8 +618,8 @@ const VotingDashboard = () => {
 
           {/* Session Footer Info */}
           <div className="mt-12 text-center text-sm text-muted-foreground pb-8">
-            <p>Session ID: {session?.id}</p>
-            <p>All timestamps are recorded in UTC. Voting is governed by company bylaws.</p>
+            <p>{t("voting_dash_session_id")} {session?.id}</p>
+            <p>{t("voting_dash_footer_note")}</p>
           </div>
 
         </div>

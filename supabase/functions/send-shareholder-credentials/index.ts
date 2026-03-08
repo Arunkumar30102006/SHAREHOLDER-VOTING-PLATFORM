@@ -176,7 +176,7 @@ const handler = async (req: Request): Promise<Response> => {
         ...corsHeaders,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-shareholder-credentials function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),

@@ -200,7 +200,7 @@ const handler = async (req: Request): Promise<Response> => {
           });
 
           return { success: true, email: recipient.email, id: res.id };
-        } catch (emailError: any) {
+        } catch (emailError: unknown) {
           console.error(`Failed delivery to ${recipient.email}:`, emailError);
           return { success: false, email: recipient.email, error: emailError?.message || "Delivery failed" };
         }
@@ -230,7 +230,7 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-meeting-invites function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),

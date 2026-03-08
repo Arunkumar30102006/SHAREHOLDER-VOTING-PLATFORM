@@ -2,13 +2,16 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Building2, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics";
+import { useTranslation } from "react-i18next";
 
 const CTASection = () => {
+  const { t } = useTranslation();
+  
   const benefits = [
-    "Free company registration",
-    "Unlimited shareholder accounts",
-    "24/7 technical support",
-    "SEBI compliance guaranteed",
+    t("cta_ben_1"),
+    t("cta_ben_2"),
+    t("cta_ben_3"),
+    t("cta_ben_4"),
   ];
 
   return (
@@ -25,19 +28,18 @@ const CTASection = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-sm text-white text-sm font-medium mb-8">
             <Shield className="w-4 h-4 text-orange-400" />
-            <span>Start Your Free Trial Today</span>
+            <span>{t("cta_badge")}</span>
           </div>
 
           {/* Heading */}
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Ready to Transform Your{" "}
-            <span className="text-primary">Shareholder Meetings?</span>
+            {t("cta_title_part1")}{" "}
+            <span className="text-primary">{t("cta_title_part2")}</span>
           </h2>
 
           {/* Description */}
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Join 500+ Indian companies that trust E-Vote India for their shareholder voting needs.
-            Get started in minutes, not days.
+            {t("cta_desc")}
           </p>
 
           {/* Benefits */}
@@ -61,14 +63,14 @@ const CTASection = () => {
               className="gap-3 text-lg px-10 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
             >
               <Building2 className="w-6 h-6" />
-              Register Your Company Now
+              {t("cta_btn")}
               <ArrowRight className="w-6 h-6" />
             </Button>
           </Link>
 
           {/* Trust Text */}
           <p className="text-sm text-muted-foreground mt-6">
-            No credit card required • Setup in 5 minutes • Cancel anytime
+            {t("cta_trust")}
           </p>
         </div>
       </div>

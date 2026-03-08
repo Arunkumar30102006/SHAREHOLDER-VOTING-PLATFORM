@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { SentimentWidget } from '@/components/ai/SentimentWidget';
+import { SentimentWidget, SentimentResult } from '@/components/ai/SentimentWidget';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Search, Send, Loader2 } from 'lucide-react';
@@ -12,7 +12,7 @@ export const AIAnalysisDemo = () => {
     const [text, setText] = useState("");
     const [analyzeText, setAnalyzeText] = useState("");
     const [sessionId, setSessionId] = useState<string | null>(null);
-    const [analysisResult, setAnalysisResult] = useState<any>(null);
+    const [analysisResult, setAnalysisResult] = useState<SentimentResult | null>(null);
     const [isAddingToLive, setIsAddingToLive] = useState(false);
 
     useEffect(() => {

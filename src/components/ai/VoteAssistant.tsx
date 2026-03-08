@@ -28,11 +28,13 @@ export const VoteAssistant = () => {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Speech Recognition Setup
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognitionRef = useRef<any>(null);
     const [debugStatus, setDebugStatus] = useState<string>(""); // For visual debugging
 
     const initializeSpeech = () => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
             recognition.continuous = false;
@@ -45,6 +47,7 @@ export const VoteAssistant = () => {
                 toast.info("Listening... Speak now.");
             };
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recognition.onresult = (event: any) => {
                 setDebugStatus("Status: Result received");
                 let finalTranscript = '';
@@ -62,6 +65,7 @@ export const VoteAssistant = () => {
                 }
             };
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recognition.onerror = (event: any) => {
                 setDebugStatus(`Status: Error - ${event.error}`);
                 console.error('Speech error:', event.error);
@@ -92,6 +96,7 @@ export const VoteAssistant = () => {
 
     useEffect(() => {
         initializeSpeech();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -117,9 +122,9 @@ export const VoteAssistant = () => {
             try {
                 recognitionRef.current.start();
                 setDebugStatus("Status: Starting...");
-            } catch (e: any) {
+            } catch (e: unknown) {
                 console.error("Start error:", e);
-                setDebugStatus(`Status: Start Error - ${e.message}`);
+                setDebugStatus(`Status: Start Error - ${(e as Error).message}`);
                 // If it fails (e.g. already started), try to stop and restart
                 try {
                     recognitionRef.current.stop();
@@ -213,13 +218,13 @@ INSTRUCTIONS:
                 speakText(responseText);
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error sending message:', error);
             // Don't show toast for rate limit to avoid spamming the user, just show in chat
-            if (!error.message.includes("Rate limit")) {
-                toast.error(`Failed to get response: ${error.message || 'Unknown error'}`);
+            if (!(error as Error).message.includes("Rate limit")) {
+                toast.error(`Failed to get response: ${(error as Error).message || 'Unknown error'}`);
             }
-            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${(error as Error).message}` }]);
         } finally {
             setIsLoading(false);
         }

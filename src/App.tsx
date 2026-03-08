@@ -11,6 +11,7 @@ import { VoteAssistant } from "./components/ai/VoteAssistant";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 import GlobalErrorBoundary from "./components/layout/GlobalErrorBoundary";
+import "./i18n/config"; // Initialize i18n
 
 // Lazy Load Pages
 const Index = lazy(() => import("./pages/Index"));
@@ -19,6 +20,7 @@ const CompanyLogin = lazy(() => import("./pages/CompanyLogin"));
 const CompanyDashboard = lazy(() => import("./pages/CompanyDashboard"));
 const ShareholderLogin = lazy(() => import("./pages/ShareholderLogin"));
 const VotingDashboard = lazy(() => import("./pages/VotingDashboard"));
+const ShareholderAnalysis = lazy(() => import("./pages/ShareholderAnalysis"));
 const VotingManagement = lazy(() => import("./pages/VotingManagement"));
 const AIPowerSuite = lazy(() => import("./pages/AIPowerSuite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -56,7 +58,7 @@ const App = () => {
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              <BrowserRouter>
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <ScrollToTop />
                 <WebsiteFeedback />
                 <VoteAssistant />
@@ -67,6 +69,7 @@ const App = () => {
                     <Route path="/company-login" element={<CompanyLogin />} />
                     <Route path="/shareholder-login" element={<ShareholderLogin />} />
                     <Route path="/voting-dashboard" element={<VotingDashboard />} />
+                    <Route path="/shareholder-analysis" element={<ShareholderAnalysis />} />
 
                     {/* Protected Admin Routes */}
                     <Route element={<ProtectedAdminRoute />}>

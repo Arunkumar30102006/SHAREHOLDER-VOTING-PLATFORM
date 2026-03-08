@@ -2,8 +2,10 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Shield, Users, Target, Award } from "lucide-react";
 import { SEO } from "@/components/layout/SEO";
+import { useTranslation } from "react-i18next";
 
 const About = () => {
+    const { t } = useTranslation();
     return (
         <div className="min-h-screen relative">
             <SEO
@@ -17,10 +19,10 @@ const About = () => {
                     {/* Hero Section */}
                     <div className="text-center space-y-4 md:space-y-6">
                         <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white">
-                            About <span className="text-primary italic">ShareholderVoting.in</span>
+                            {t("about_title")} <span className="text-primary italic">ShareholderVoting.in</span>
                         </h1>
                         <p className="text-sm md:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto">
-                            We are India's premier digital infrastructure provider for corporate democracy, bridging the gap between companies and their stakeholders through secure, transparent, and technology-driven governance solutions.
+                            {t("about_subtitle")}
                         </p>
                     </div>
 
@@ -31,9 +33,9 @@ const About = () => {
                             <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 relative z-10">
                                 <Target className="w-6 h-6 text-primary" />
                             </div>
-                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-white relative z-10">Our Mission</h2>
+                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-white relative z-10">{t("about_mission_title")}</h2>
                             <p className="text-slate-400 leading-relaxed text-sm md:text-base relative z-10">
-                                To modernize corporate governance in India by providing a secure, user-friendly platform that enables companies to conduct meetings and voting in full compliance with the <span className="text-primary/90 font-semibold italic">Companies Act, 2013</span> and <span className="text-primary/90 font-semibold italic">SEBI Regulations</span>.
+                                {t("about_mission_desc")}
                             </p>
                         </div>
 
@@ -42,9 +44,9 @@ const About = () => {
                             <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center mb-6 relative z-10">
                                 <Users className="w-6 h-6 text-secondary" />
                             </div>
-                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-white relative z-10">Who We Are</h2>
+                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-white relative z-10">{t("about_who_title")}</h2>
                             <p className="text-slate-400 leading-relaxed text-sm md:text-base relative z-10">
-                                We are a team of financial technology experts and legal compliance professionals dedicated to building the infrastructure for the next generation of digital corporate democracy in India.
+                                {t("about_who_desc")}
                             </p>
                         </div>
                     </div>
@@ -52,7 +54,7 @@ const About = () => {
                     {/* Core Values */}
                     <div className="space-y-8 mt-16 md:mt-24">
                         <div className="text-center space-y-2">
-                            <h2 className="text-xl md:text-2xl font-bold text-white">Our Core Values</h2>
+                            <h2 className="text-xl md:text-2xl font-bold text-white">{t("about_values_title")}</h2>
                             <div className="w-10 h-1 bg-primary mx-auto rounded-full" />
                         </div>
                         <div className="grid md:grid-cols-3 gap-6">
@@ -60,27 +62,27 @@ const About = () => {
                                 <div className="mx-auto w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <Shield className="w-7 h-7 text-accent" />
                                 </div>
-                                <h3 className="text-lg font-semibold mb-2 text-white">Security First</h3>
+                                <h3 className="text-lg font-semibold mb-2 text-white">{t("about_values_security_title")}</h3>
                                 <p className="text-xs md:text-sm text-slate-400">
-                                    We employ state-of-the-art encryption and security protocols to ensure the integrity of every vote cast.
+                                    {t("about_values_security_desc")}
                                 </p>
                             </div>
                             <div className="text-center p-6 bg-[#0d1b2a]/30 backdrop-blur-lg border border-white/5 rounded-2xl hover:bg-[#0d1b2a]/50 transition-colors group">
                                 <div className="mx-auto w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <Target className="w-7 h-7 text-primary" />
                                 </div>
-                                <h3 className="text-lg font-semibold mb-2 text-white">Transparency</h3>
+                                <h3 className="text-lg font-semibold mb-2 text-white">{t("about_values_transparency_title")}</h3>
                                 <p className="text-xs md:text-sm text-slate-400">
-                                    Our platform provides verifiable audit trails, ensuring complete transparency in the voting process.
+                                    {t("about_values_transparency_desc")}
                                 </p>
                             </div>
                             <div className="text-center p-6 bg-[#0d1b2a]/30 backdrop-blur-lg border border-white/5 rounded-2xl hover:bg-[#0d1b2a]/50 transition-colors group">
                                 <div className="mx-auto w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <Award className="w-7 h-7 text-secondary" />
                                 </div>
-                                <h3 className="text-lg font-semibold mb-2 text-white">Compliance</h3>
+                                <h3 className="text-lg font-semibold mb-2 text-white">{t("about_values_compliance_title")}</h3>
                                 <p className="text-xs md:text-sm text-slate-400">
-                                    Built with Indian corporate regulations in mind, striving to meet the highest standards of legal adherence.
+                                    {t("about_values_compliance_desc")}
                                 </p>
                             </div>
                         </div>

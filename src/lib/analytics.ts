@@ -4,7 +4,7 @@
  */
 
 type EventParams = {
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
 };
 
 /**
@@ -13,8 +13,8 @@ type EventParams = {
  * @param params Additional event parameters (category, label, value, etc.)
  */
 export const trackEvent = (action: string, params?: EventParams) => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', action, params);
+    if (typeof window !== 'undefined' && 'gtag' in window && typeof window.gtag === 'function') {
+        window.gtag('event', action, params);
     } else {
         console.warn(`Analytics: gtag not found for event "${action}"`, params);
     }

@@ -9,6 +9,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 interface AdminVotingResultsProps {
     sessionId: string;
@@ -16,6 +17,7 @@ interface AdminVotingResultsProps {
 }
 
 export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResultsProps) => {
+    const { t } = useTranslation();
     const [resolutions, setResolutions] = useState<Resolution[]>([]);
     const [stats, setStats] = useState<Record<string, ResolutionStats>>({});
     const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +34,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                 const statsData = await votingApi.getSessionStats(resolutionIds);
 
                 const statsMap: Record<string, ResolutionStats> = {};
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 statsData.forEach((s: any) => {
                     statsMap[s.resolution_id] = s;
                 });
@@ -39,7 +42,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
             }
         } catch (error) {
             console.error("Failed to fetch results:", error);
-            toast.error("Failed to load voting results");
+            toast.error(t("admin_voting_results_toast_load_fail"));
         } finally {
             setIsLoading(false);
         }
@@ -49,6 +52,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
         if (sessionId) {
             fetchResults();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sessionId]);
 
     // Real-time subscription
@@ -105,7 +109,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
     const refreshData = async () => {
         await fetchResults();
-        toast.success("Results refreshed");
+        toast.success(t("admin_voting_results_toast_success"));
     };
 
     const exportPDF = () => {
@@ -164,11 +168,11 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
             }
 
             doc.save(`voting-results-${new Date().toISOString().slice(0, 10)}.pdf`);
-            toast.success("Report downloaded successfully");
+            toast.success(t("admin_voting_results_toast_pdf_success"));
 
         } catch (error) {
             console.error("Export failed:", error);
-            toast.error("Failed to export PDF");
+            toast.error(t("admin_voting_results_toast_pdf_fail"));
         } finally {
             setIsExporting(false);
         }
@@ -179,7 +183,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
     if (!sessionId) {
         return (
             <div className="p-12 text-center border border-dashed border-white/10 rounded-xl bg-card/10">
-                <p className="text-muted-foreground">Please select an active voting session to view analysis.</p>
+                <p className="text-muted-foreground">{t("admin_voting_results_empty")}</p>
             </div>
         );
     }
@@ -190,21 +194,21 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                 <div>
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                         <FileText className="w-6 h-6 text-primary" />
-                        Voting Results
+                        {t("admin_voting_results_title")}
                     </h2>
-                    <p className="text-muted-foreground text-sm">Real-time aggregation from the immutable ledger</p>
+                    <p className="text-muted-foreground text-sm">{t("admin_voting_results_desc")}</p>
                 </div>
                 <div className="flex gap-2 items-center">
                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium animate-pulse mr-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                        LIVE
+                        {t("admin_voting_results_live")}
                     </div>
                     <Button variant="outline" size="sm" onClick={refreshData}>
-                        <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+                        <RefreshCw className="w-4 h-4 mr-2" /> {t("admin_voting_results_btn_refresh")}
                     </Button>
                     <Button variant="default" size="sm" onClick={exportPDF} disabled={isExporting} className="bg-emerald-600 hover:bg-emerald-700">
                         {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-                        Export PDF Report
+                        {t("admin_voting_results_btn_export")}
                     </Button>
                 </div>
             </div>
@@ -223,12 +227,12 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                             <CardHeader className="pb-2">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <span className="text-xs font-mono text-muted-foreground mb-1 block">Resolution #{index + 1}</span>
+                                        <span className="text-xs font-mono text-muted-foreground mb-1 block">{t("admin_voting_results_res_label")}{index + 1}</span>
                                         <CardTitle className="text-lg">{res.title}</CardTitle>
                                     </div>
                                     <div className="text-right">
                                         <span className="text-2xl font-bold">{stat.total_votes}</span>
-                                        <span className="text-xs text-muted-foreground block">Total Votes</span>
+                                        <span className="text-xs text-muted-foreground block">{t("admin_voting_results_total_votes")}</span>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -253,15 +257,15 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border/50 text-center">
                                     <div>
-                                        <p className="text-xs text-muted-foreground mb-1">FOR</p>
+                                        <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_for")}</p>
                                         <p className="font-bold text-emerald-500">{stat.for_count}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-muted-foreground mb-1">AGAINST</p>
+                                        <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_against")}</p>
                                         <p className="font-bold text-red-500">{stat.against_count}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-muted-foreground mb-1">ABSTAIN</p>
+                                        <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_abstain")}</p>
                                         <p className="font-bold text-yellow-500">{stat.abstain_count}</p>
                                     </div>
                                 </div>
@@ -272,7 +276,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
                 {resolutions.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
-                        No resolutions found for this session.
+                        {t("admin_voting_results_no_votes")}
                     </div>
                 )}
             </div>

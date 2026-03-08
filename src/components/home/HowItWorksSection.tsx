@@ -1,37 +1,39 @@
 import { Building2, Users, Vote, FileCheck, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const steps = [
   {
     step: 1,
     icon: Building2,
-    title: "Company Registration",
-    description: "Company registers on the platform, providing corporate details and SEBI-required documentation.",
+    titleKey: "hiw_1_title",
+    descKey: "hiw_1_desc",
     color: "from-primary to-navy-500",
   },
   {
     step: 2,
     icon: Users,
-    title: "Director Nominations",
-    description: "Add director details, their vision for the company, and set voting agenda items.",
+    titleKey: "hiw_2_title",
+    descKey: "hiw_2_desc",
     color: "from-secondary to-saffron-600",
   },
   {
     step: 3,
     icon: Vote,
-    title: "Shareholder Voting",
-    description: "Shareholders receive unique credentials via email and cast their votes securely.",
+    titleKey: "hiw_3_title",
+    descKey: "hiw_3_desc",
     color: "from-accent to-emerald-400",
   },
   {
     step: 4,
     icon: FileCheck,
-    title: "Results & Audit",
-    description: "Voting results are compiled with complete audit trails and regulatory reports.",
+    titleKey: "hiw_4_title",
+    descKey: "hiw_4_desc",
     color: "from-primary to-secondary",
   },
 ];
 
 const HowItWorksSection = () => {
+  const { t } = useTranslation();
   return (
     <section id="how-it-works" className="py-20 md:py-32 relative overflow-hidden bg-transparent">
       {/* Background - Removed for DarkVeil visibility */}
@@ -44,18 +46,17 @@ const HowItWorksSection = () => {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
             <Vote className="w-4 h-4 text-purple-400" />
-            <span>Simple 4-Step Process</span>
+            <span>{t("hiw_badge")}</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            How{" "}
+            {t("hiw_title_part1")}{" "}
             <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
-              E-Voting
+              {t("hiw_title_part2")}
             </span>{" "}
-            Works
+            {t("hiw_title_part3")}
           </h2>
           <p className="text-lg text-muted-foreground">
-            From company registration to final results, our streamlined process
-            ensures a secure and efficient voting experience.
+            {t("hiw_subtitle")}
           </p>
         </div>
 
@@ -84,10 +85,10 @@ const HowItWorksSection = () => {
 
                   {/* Content */}
                   <h3 className="text-xl font-bold text-foreground mb-3">
-                    {step.title}
+                    {t(step.titleKey)}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    {step.description}
+                    {t(step.descKey)}
                   </p>
                 </div>
 

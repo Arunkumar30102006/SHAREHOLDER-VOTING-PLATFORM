@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { Vote, Shield, Lock, Mail, Phone, MapPin } from "lucide-react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t } = useTranslation();
   return (
     <footer className="bg-black/20 backdrop-blur-md border-t border-white/10 text-foreground transition-colors duration-300">
       {/* Main Footer */}
@@ -26,13 +28,11 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              ShareholderVoting.in is a digital platform for corporate governance.
-              We are a private technology provider enabling secure electronic voting.
+              {t("footer_desc")}
             </p>
             <div className="bg-background/5 border border-white/10 p-3 rounded-lg">
               <p className="text-[10px] text-muted-foreground leading-tight">
-                <strong>DISCLAIMER:</strong> This is a prototype/demo platform. Not affiliated with NSDL, CDSL, or SEBI.
-                Voting results on this platform are for demonstration of technology capabilities only.
+                <strong>{t("footer_disclaimer").split(':')[0]}:</strong> {t("footer_disclaimer").substring(t("footer_disclaimer").indexOf(':') + 1)}
               </p>
             </div>
             <div className="flex items-center gap-4 mt-6">
@@ -83,7 +83,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Contact Us</h3>
+            <h3 className="font-semibold text-lg mb-4">{t("footer_contact")}</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm text-foreground/80">
                 <Mail className="w-4 h-4 text-secondary" />
@@ -116,8 +116,8 @@ const Footer = () => {
       >
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© 2026 ShareholderVoting.in. All rights reserved.</p>
-            <p>Secure. Transparent. Reliable.</p>
+            <p>{t("footer_rights")}</p>
+            <p>{t("footer_tagline")}</p>
           </div>
         </div>
       </motion.div>

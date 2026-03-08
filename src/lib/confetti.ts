@@ -35,7 +35,15 @@ export const triggerConfetti = () => {
 // In a real production app, 'canvas-confetti' npm package is recommended. 
 // However, since we promised a custom utility to avoid heavy deps, I will use a simple implementation below.
 
-const confetti = (options: any) => {
+interface ConfettiOptions {
+    particleCount?: number;
+    origin?: { x: number, y: number };
+    spread?: number;
+    ticks?: number;
+    zIndex?: number;
+}
+
+const confetti = (options: ConfettiOptions) => {
     // This is a placeholder. For the best visual effect with ZERO dependencies, 
     // we would insert a canvas and animate it. 
     // Given the limited scope of a single file utility without modifying global styles too much,

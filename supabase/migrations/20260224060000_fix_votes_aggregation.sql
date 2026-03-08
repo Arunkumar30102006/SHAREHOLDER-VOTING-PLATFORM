@@ -1,7 +1,15 @@
 -- Fix Voting Aggregation & Real-time Sync
+
+-- 0. Cleanup stale materialized view (from scalability.sql) FIRST, because it depends on the vote_value enum
+DROP MATERIALIZED VIEW IF EXISTS public.vote_stats_mat;
+
 -- 1. Fix Case Sensitivity in Votes Table
 ALTER TABLE public.votes 
 DROP CONSTRAINT IF EXISTS votes_vote_value_check;
+
+-- Change the column from enum to text so that it can accept uppercase strings without erroring out
+ALTER TABLE public.votes 
+ALTER COLUMN vote_value TYPE TEXT USING vote_value::TEXT;
 
 ALTER TABLE public.votes 
 ADD CONSTRAINT votes_vote_value_check 

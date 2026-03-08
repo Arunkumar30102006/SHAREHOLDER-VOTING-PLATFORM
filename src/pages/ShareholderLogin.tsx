@@ -19,8 +19,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { env } from "@/config/env";
+import { useTranslation } from "react-i18next";
 
 const ShareholderLogin = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -146,10 +148,10 @@ const ShareholderLogin = () => {
           description: `OTP sent to register email ${maskedLocal}@${domain}`,
         });
         setLoginStep("OTP");
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to send OTP:", err);
         toast.error("Failed to send OTP", {
-          description: err.message || "Please check your internet connection or try again later.",
+          description: (err as Error).message || "Please check your internet connection or try again later.",
         });
       }
     } else {
@@ -220,27 +222,26 @@ const ShareholderLogin = () => {
             <div className="text-center lg:text-left order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
                 <Vote className="w-4 h-4 text-blue-400" />
-                <span>Shareholder Portal</span>
+                <span>{t("login_portal_badge")}</span>
               </div>
 
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
-                Cast Your Vote{" "}
+                {t("login_title_1")}{" "}
                 <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
-                  Securely
+                  {t("login_title_2")}
                 </span>
               </h1>
 
               <p className="text-lg text-muted-foreground mb-8">
-                Use your unique credentials sent to your registered email to
-                access the voting portal. Your vote matters!
+                {t("login_description")}
               </p>
 
               {/* Security Features */}
               <div className="space-y-4">
                 {[
-                  { icon: Lock, title: "End-to-End Encrypted", desc: "Your vote is protected from submission to counting" },
-                  { icon: Shield, title: "One-Time Credentials", desc: "Credentials are automatically invalidated after voting" },
-                  { icon: Eye, title: "Audit Trail", desc: "Complete transparency with tamper-proof logs" },
+                  { icon: Lock, title: t("login_feat1_title"), desc: t("login_feat1_desc") },
+                  { icon: Shield, title: t("login_feat2_title"), desc: t("login_feat2_desc") },
+                  { icon: Eye, title: t("login_feat3_title"), desc: t("login_feat3_desc") },
                 ].map((feature) => (
                   <div key={feature.title} className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10 shadow-soft">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
@@ -266,9 +267,9 @@ const ShareholderLogin = () => {
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4 shadow-medium animate-pulse-glow">
                     <Vote className="w-8 h-8 text-primary-foreground" />
                   </div>
-                  <CardTitle className="text-2xl">Shareholder Login</CardTitle>
+                  <CardTitle className="text-2xl">{t("login_card_title")}</CardTitle>
                   <CardDescription>
-                    Enter your credentials to access voting portal
+                    {t("login_card_desc")}
                   </CardDescription>
                 </CardHeader>
 
@@ -277,7 +278,7 @@ const ShareholderLogin = () => {
                     {loginStep === "CREDENTIALS" && (
                       <div className="space-y-5">
                         <div className="space-y-2">
-                          <Label htmlFor="userId">User ID</Label>
+                          <Label htmlFor="userId">{t("login_user_id")}</Label>
                           <div className="relative">
                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <Input
@@ -286,18 +287,18 @@ const ShareholderLogin = () => {
                               value={formData.userId}
                               onChange={handleInputChange}
                               onFocus={warmEdgeFunction}
-                              placeholder="Enter your User ID"
+                              placeholder={t("login_user_id_placeholder")}
                               className="pl-11"
                               required
                             />
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            Your User ID was sent to your registered email
+                            {t("login_user_id_hint")}
                           </p>
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="password">Password</Label>
+                          <Label htmlFor="password">{t("login_password")}</Label>
                           <div className="relative">
                             <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <Input
@@ -307,7 +308,7 @@ const ShareholderLogin = () => {
                               value={formData.password}
                               onChange={handleInputChange}
                               onFocus={warmEdgeFunction}
-                              placeholder="Enter your password"
+                              placeholder={t("login_password_placeholder")}
                               className="pl-11 pr-11"
                               required
                             />
@@ -329,7 +330,7 @@ const ShareholderLogin = () => {
                         <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20">
                           <Shield className="w-4 h-4 text-accent flex-shrink-0" />
                           <p className="text-xs text-muted-foreground">
-                            This is a secure 256-bit encrypted connection
+                            {t("login_encrypted_notice")}
                           </p>
                         </div>
                       </div>
@@ -346,11 +347,11 @@ const ShareholderLogin = () => {
                         {isLoading ? (
                           <>
                             <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                            Securely Verifying...
+                            {t("login_verifying")}
                           </>
                         ) : (
                           <>
-                            Proceed to Verify
+                            {t("login_proceed")}
                             <ArrowRight className="w-5 h-5" />
                           </>
                         )}
@@ -358,19 +359,19 @@ const ShareholderLogin = () => {
                     ) : (
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="otp">One-Time Password (OTP)</Label>
+                          <Label htmlFor="otp">{t("login_otp_label")}</Label>
                           <Input
                             id="otp"
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
-                            placeholder="Enter 6-digit OTP"
+                            placeholder={t("login_otp_placeholder")}
                             className="text-center text-2xl tracking-widest"
                             maxLength={6}
                             autoFocus
                             required
                           />
                           <p className="text-xs text-center text-muted-foreground">
-                            Sent to {maskedPhone}
+                            {t("login_otp_sent")} {maskedPhone}
                           </p>
                         </div>
 
@@ -384,11 +385,11 @@ const ShareholderLogin = () => {
                           {isLoading ? (
                             <>
                               <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                              Verifying OTP...
+                              {t("login_verifying_otp")}
                             </>
                           ) : (
                             <>
-                              Secure Login
+                              {t("login_secure_btn")}
                               <Lock className="w-5 h-5" />
                             </>
                           )}
@@ -402,7 +403,7 @@ const ShareholderLogin = () => {
                           }}
                           className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
-                          Back to Credentials
+                          {t("login_back_btn")}
                         </button>
                       </div>
                     )}
@@ -411,9 +412,9 @@ const ShareholderLogin = () => {
                   {/* Help Link */}
                   <div className="mt-6 text-center">
                     <p className="text-sm text-muted-foreground">
-                      Haven't received your credentials?{" "}
+                      {t("login_no_creds")}{" "}
                       <Link to="/contact" className="text-primary font-medium hover:underline">
-                        Contact Support
+                        {t("login_contact")}
                       </Link>
                     </p>
                   </div>
@@ -421,9 +422,9 @@ const ShareholderLogin = () => {
                   {/* Company Login Link */}
                   <div className="mt-4 pt-4 border-t border-border text-center">
                     <p className="text-sm text-muted-foreground">
-                      Are you a company administrator?{" "}
+                      {t("login_admin_prompt")}{" "}
                       <Link to="/company-register" className="text-secondary font-medium hover:underline">
-                        Register your company
+                        {t("login_register_company")}
                       </Link>
                     </p>
                   </div>

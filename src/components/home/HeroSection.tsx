@@ -1,17 +1,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import BlurText from "@/components/ui/BlurText";
-import {
-  ShieldCheck,
-  CheckCircle2,
-  Building2,
-  Users,
-  ArrowRight
-} from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, ShieldCheck, Users } from "lucide-react";
 import { motion } from "motion/react";
-import { trackEvent, AnalyticsEvents } from "@/lib/analytics";
+import { AnalyticsEvents, trackEvent } from "@/lib/analytics";
+import { useTranslation } from "react-i18next";
 
 const HeroSection = () => {
+  const { t } = useTranslation();
   const features = [
     "End-to-End Encryption",
     "SEBI Compliant",
@@ -39,7 +35,7 @@ const HeroSection = () => {
 
             <div className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight flex flex-col items-center gap-2">
               <BlurText
-                text="Digital Governance for"
+                text={t("hero_title_1")}
                 className="text-foreground text-center"
                 delay={200}
                 animateBy="words"
@@ -51,12 +47,12 @@ const HeroSection = () => {
                 transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
                 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-300 animate-gradient text-center inline-block"
               >
-                Modern India
+                {t("hero_title_2")}
               </motion.span>
             </div>
 
             <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-              ShareholderVoting.in is a digital platform for shareholders to securely participate in corporate voting, feedback, and governance activities. Experience seamless decision-making with bank-grade security.
+              {t("hero_subtitle")}
             </p>
 
 
@@ -79,14 +75,14 @@ const HeroSection = () => {
               <Link to="/company-register" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'hero' })}>
                 <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2">
                   <Building2 className="w-5 h-5" />
-                  Register Your Company
+                  {t("register_company")}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
               <Link to="/shareholder-login" onClick={() => trackEvent(AnalyticsEvents.LOGIN_CLICK, { type: 'shareholder', location: 'hero' })}>
                 <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2">
                   <Users className="w-5 h-5" />
-                  Shareholder Login
+                  {t("shareholder_login")}
                 </Button>
               </Link>
             </div>

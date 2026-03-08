@@ -65,7 +65,7 @@ serve(async (req) => {
             JSON.stringify({ success: true, id: data.id }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error in send-contact-message:", error);
         return new Response(
             JSON.stringify({ success: false, error: error.message }),
