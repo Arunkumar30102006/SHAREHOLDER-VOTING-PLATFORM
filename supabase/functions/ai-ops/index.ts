@@ -140,8 +140,8 @@ Need help with any step?`
                 throw new Error(`Invalid action: ${action}`)
         }
 
-        // Content Truncation Protection (Prevents Groq 413 Payload Too Large)
-        // Groq API has stricter payload/token limits than the theoretical 128k context depending on the tier.
+        // Content Truncation Protection (Prevents 413 Payload Too Large)
+        // Groq API has generous limits, but keeping safety limit to 14,000 characters.
         // Setting safety limit to 14,000 characters (~3,500 tokens).
         const MAX_PAYLOAD_CHARS = 14000;
         const truncatedUserPrompt = userPrompt && userPrompt.length > MAX_PAYLOAD_CHARS
@@ -164,19 +164,19 @@ Need help with any step?`
                             { role: "user", content: truncatedUserPrompt }
                         ],
                         temperature: 0.3,
-                        max_tokens: action === 'summarize' ? 2000 : 600,
+                        max_tokens: action === 'summarize' ? 4000 : 800,
                         response_format: action === 'sentiment' ? { type: "json_object" } : undefined
                     }),
                 });
 
                 if (response.status === 429) {
-                    if (retryCount < 3) {
-                        const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
-                        console.warn(`Groq 429 hit. Retrying in ${Math.round(delay)}ms...`);
+                    if (retryCount < 5) {
+                        const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 500;
+                        console.warn(`Groq 429 hit. Retrying ${retryCount + 1}/5 in ${Math.round(delay)}ms...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         return makeGroqRequest(retryCount + 1);
                     } else {
-                        throw new Error('Rate limit exceeded. Please try again later.');
+                        throw new Error('AI_RATE_LIMIT_EXCEEDED');
                     }
                 }
 
@@ -188,7 +188,7 @@ Need help with any step?`
 
                 return response;
             } catch (error) {
-                if (retryCount < 3 && (error instanceof TypeError || (error instanceof Error && error.message.includes('network')))) {
+                if (retryCount < 5 && (error instanceof TypeError || (error instanceof Error && error.message.includes('network')))) {
                     const delay = 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
                     return makeGroqRequest(retryCount + 1);
@@ -225,8 +225,17 @@ Need help with any step?`
 
     } catch (error: unknown) {
         console.error('Function Error:', error)
+        
+        const isRateLimit = (error as Error).message === 'AI_RATE_LIMIT_EXCEEDED';
+        const errorMessage = isRateLimit 
+            ? "The AI is currently experiencing high traffic. Please wait a moment and try again."
+            : `System Error: ${(error as Error).message}`;
+
         return new Response(
-            JSON.stringify({ result: `System Error: ${error.message}` }),
+            JSON.stringify({ 
+                result: errorMessage,
+                error_code: isRateLimit ? 'RATE_LIMIT' : 'GENERIC_ERROR'
+            }),
             {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 200,

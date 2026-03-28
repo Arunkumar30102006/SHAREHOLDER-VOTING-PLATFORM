@@ -59,7 +59,13 @@ export const AIAnalysisDemo = () => {
                 placeholder="e.g. 'I am very happy with the new director appointment, but the dividend rollout was delayed and frustrating.'"
                 className="min-h-[120px] resize-none"
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                    setText(e.target.value);
+                    if (analyzeText) {
+                        setAnalyzeText("");
+                        setAnalysisResult(null);
+                    }
+                }}
             />
             <Button
                 onClick={() => {

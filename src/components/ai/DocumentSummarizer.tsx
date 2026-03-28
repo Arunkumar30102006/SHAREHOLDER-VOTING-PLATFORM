@@ -33,6 +33,14 @@ export const DocumentSummarizer = () => {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        // Add a 10MB file size limit to prevent memory and extraction freezing issues
+        const MAX_FILE_SIZE_MB = 10;
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            toast.error(`File is too large. Please upload a file smaller than ${MAX_FILE_SIZE_MB}MB.`);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
         setActiveFile(file);
         setIsExtracting(true);
         setSummary(''); // Clear previous summary

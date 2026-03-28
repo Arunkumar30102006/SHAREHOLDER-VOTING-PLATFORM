@@ -23,6 +23,7 @@ export const VoteAssistant = () => {
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [lastErrorCode, setLastErrorCode] = useState<string | null>(null);
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false); // Toggle for reading responses
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -158,6 +159,7 @@ export const VoteAssistant = () => {
         setInputValue('');
         setMessages(prev => [...prev, { role: 'user', content: textToSend }]);
         setIsLoading(true);
+        setLastErrorCode(null);
 
         // If text came from voice (textOverride) or speaking is enabled, check if we should read
         // However, if the user explicitly muted (isSpeaking is false), we should NOT read even if voice input was used.
@@ -197,11 +199,12 @@ YOUR KNOWLEDGE BASE:
    - **Anonymity**: The company knows *that* you voted, but not *what* you voted (unless required by law).
    - **Timeframe**: Voting is only open during the 'Scheduled' start and end times.
 
-INSTRUCTIONS:
-- Answer ONLY about this website processes.
-- Do NOT describe generic real-world paper ballot voting.
-- If asked "How do I vote?", give the specific 7-step digital process above.
-- Be concise, professional, and helpful.`
+### FORMATTING RULES (CRITICAL):
+- **ALWAYS** answer using a clear **bullet point format**.
+- **NEVER** write long paragraphs.
+- Keep the information well-structured, clear, and concise. Be direct.
+- Use markdown bullets (e.g., \`-\`).
+- Do NOT describe generic real-world paper ballot voting, only answer about this website.`
                     }
                 },
                 headers: {
@@ -212,6 +215,9 @@ INSTRUCTIONS:
             if (error) throw error;
 
             const responseText = data.result;
+            if (data.error_code === 'RATE_LIMIT') {
+                setLastErrorCode('RATE_LIMIT');
+            }
             setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
 
             if (shouldRead) {
@@ -220,11 +226,16 @@ INSTRUCTIONS:
 
         } catch (error: unknown) {
             console.error('Error sending message:', error);
-            // Don't show toast for rate limit to avoid spamming the user, just show in chat
-            if (!(error as Error).message.includes("Rate limit")) {
-                toast.error(`Failed to get response: ${(error as Error).message || 'Unknown error'}`);
+            const errorMsg = (error as Error).message || 'Unknown error';
+            const isRateLimit = errorMsg.includes("Rate limit") || errorMsg.includes("traffic");
+            
+            if (isRateLimit) {
+                setLastErrorCode('RATE_LIMIT');
+            } else {
+                toast.error(`Failed to get response: ${errorMsg}`);
             }
-            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${(error as Error).message}` }]);
+            
+            setMessages(prev => [...prev, { role: 'assistant', content: isRateLimit ? "The AI is currently experiencing high traffic. Please wait a moment and try again." : `Error: ${errorMsg}` }]);
         } finally {
             setIsLoading(false);
         }
@@ -305,16 +316,26 @@ INSTRUCTIONS:
                                 )}
 
                                 <div className={cn(
-                                    "max-w-[85%] px-4 py-2.5 text-sm shadow-sm backdrop-blur-md",
+                                    "max-w-[85%] px-4 py-2.5 text-sm shadow-sm backdrop-blur-md overflow-hidden",
                                     msg.role === 'user'
                                         ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
                                         : "bg-white/10 text-zinc-100 rounded-2xl rounded-tl-sm border border-white/5"
                                 )}>
-                                    <div className="prose prose-invert prose-sm max-w-none">
+                                    <div className="prose prose-invert prose-sm max-w-none overflow-x-auto break-words">
                                         <ReactMarkdown>
                                             {msg.content}
                                         </ReactMarkdown>
                                     </div>
+                                    {idx === messages.length - 1 && msg.role === 'assistant' && (lastErrorCode === 'RATE_LIMIT' || msg.content.includes("Error:")) && (
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            onClick={() => handleSend(messages[messages.length - 2]?.content)}
+                                            className="mt-2 h-7 px-2 text-[10px] bg-white/5 border-white/10 hover:bg-white/10 text-zinc-300 rounded-md transition-all active:scale-95"
+                                        >
+                                            Retry Request
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         ))}

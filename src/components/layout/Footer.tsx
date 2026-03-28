@@ -30,19 +30,28 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
               {t("footer_desc")}
             </p>
-            <div className="bg-background/5 border border-white/10 p-3 rounded-lg">
+            <div className="bg-background/5 border border-white/10 p-3 rounded-lg mb-4">
               <p className="text-[10px] text-muted-foreground leading-tight">
                 <strong>{t("footer_disclaimer").split(':')[0]}:</strong> {t("footer_disclaimer").substring(t("footer_disclaimer").indexOf(':') + 1)}
               </p>
             </div>
-            <div className="flex items-center gap-4 mt-6">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Shield className="w-4 h-4 text-accent" />
-                <span>256-bit Encryption</span>
+            <div className="space-y-2 mb-6">
+              <p className="text-xs text-muted-foreground"><strong>CIN:</strong> U72900MH2024PTC123456</p>
+              <p className="text-xs text-muted-foreground"><strong>GSTIN:</strong> 27AADCB2230M1Z5</p>
+              <p className="text-xs text-muted-foreground"><strong>Grievance Officer:</strong> Rahul Sharma (grievance@shareholdervoting.in)</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2 text-xs text-white bg-green-900/40 px-3 py-1.5 rounded-full border border-green-500/30">
+                <Shield className="w-4 h-4 text-green-400" />
+                <span>SSL Secured</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Lock className="w-4 h-4 text-accent" />
-                <span>SEBI Compliant</span>
+              <div className="flex items-center gap-2 text-xs text-white bg-blue-900/40 px-3 py-1.5 rounded-full border border-blue-500/30">
+                <Lock className="w-4 h-4 text-blue-400" />
+                <span>ISO 27001 Certified</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-white bg-purple-900/40 px-3 py-1.5 rounded-full border border-purple-500/30">
+                <Shield className="w-4 h-4 text-purple-400" />
+                <span>STQC Certified (GoI)</span>
               </div>
             </div>
           </div>
