@@ -1,5 +1,92 @@
+# robots.txt for shareholdervoting.in
+# Last updated: March 2026
+
+# ─── Allow all major search engines ───
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# ─── Allow all other crawlers by default ───
+User-agent: *
+Allow: /
+
+# ─── Block private/sensitive paths for ALL bots ───
 User-agent: *
 Disallow: /admin/
+Disallow: /admin-panel/
+Disallow: /dashboard/
+Disallow: /company-dashboard/
+Disallow: /scrutiniser/
+Disallow: /voter/
+Disallow: /vote/
+Disallow: /cast-vote/
+Disallow: /api/
+Disallow: /api/v1/
+Disallow: /api/v2/
+Disallow: /auth/
+Disallow: /login/
+Disallow: /logout/
+Disallow: /register/
+Disallow: /otp/
+Disallow: /verify/
+Disallow: /session/
 Disallow: /private/
-Allow: /
+Disallow: /internal/
+Disallow: /config/
+Disallow: /env/
+Disallow: /logs/
+Disallow: /backup/
+Disallow: /db/
+Disallow: /database/
+Disallow: /uploads/
+Disallow: /temp/
+Disallow: /tmp/
+Disallow: /test/
+Disallow: /staging/
+Disallow: /dev/
+Disallow: /wp-admin/
+Disallow: /cgi-bin/
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /*.csv$
+Disallow: /*.sql$
+Disallow: /*.env$
+Disallow: /*.log$
+Disallow: /*.bak$
+
+# ─── Allow important public pages explicitly ───
+User-agent: *
+Allow: /about/
+Allow: /contact/
+Allow: /privacy-policy/
+Allow: /terms-of-service/
+Allow: /grievance/
+Allow: /how-it-works/
+Allow: /features/
+Allow: /pricing/
+Allow: /faq/
+Allow: /blog/
+Allow: /news/
+Allow: /sitemap.xml
+
+# ─── Sitemap location ───
 Sitemap: https://www.shareholdervoting.in/sitemap.xml
+Sitemap: https://shareholdervoting.in/sitemap.xml
+
+# ─── Crawl delay (be gentle on your server) ───
+User-agent: *
+Crawl-delay: 10
