@@ -9,6 +9,7 @@ interface VotingAnalyticsProps {
     votedResolutions: number;
     shareholderShares: number;
     totalCompanyShares?: number; // Optional: Total shares in company for weight calculation
+    recordDate?: string | null;
 }
 
 const VotingAnalytics = ({
@@ -16,6 +17,7 @@ const VotingAnalytics = ({
     votedResolutions,
     shareholderShares,
     totalCompanyShares = 1000000, // Default fallback if not provided
+    recordDate,
 }: VotingAnalyticsProps) => {
     const { t } = useTranslation();
     const participationPercentage =
@@ -94,15 +96,20 @@ const VotingAnalytics = ({
                         <div>
                             <div className="flex justify-between items-end mb-2">
                                 <span className="text-2xl font-bold text-foreground">
-                                    {shareholderShares.toLocaleString()}
+                                    {Number(shareholderShares || 0).toLocaleString()}
                                 </span>
                                 <span className="text-xs text-muted-foreground mb-1">{t("voting_analytics_shares")}</span>
                             </div>
                             <Progress value={votingWeight > 100 ? 100 : votingWeight} className="h-2" />
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-2">
                             {t("voting_analytics_hold_approx")}<span className="text-accent font-medium">{votingWeight.toFixed(4)}%</span> {t("voting_analytics_of_total")}
                         </p>
+                        {recordDate && (
+                            <p className="text-[10px] text-muted-foreground italic border-t border-border/30 pt-2 mt-2">
+                                Based on shareholding as of {new Date(recordDate).toLocaleDateString()} (Record Date)
+                            </p>
+                        )}
                     </div>
                 </CardContent>
             </Card>

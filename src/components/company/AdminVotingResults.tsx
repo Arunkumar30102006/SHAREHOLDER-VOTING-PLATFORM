@@ -81,17 +81,19 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                             for_count: 0,
                             against_count: 0,
                             abstain_count: 0,
-                            total_votes: 0,
+                            total_weighted_votes: 0,
+                            total_vote_count: 0,
                             last_updated: new Date().toISOString()
                         };
 
                         const updatedStat = { ...currentStat };
-                        updatedStat.total_votes += 1;
+                        updatedStat.total_vote_count += 1;
+                        updatedStat.total_weighted_votes += (payload.new as any).weighted_votes || 1;
 
                         const voteValue = newVote.vote_value.toUpperCase();
-                        if (voteValue === 'FOR') updatedStat.for_count += 1;
-                        else if (voteValue === 'AGAINST') updatedStat.against_count += 1;
-                        else if (voteValue === 'ABSTAIN') updatedStat.abstain_count += 1;
+                        if (voteValue === 'FOR') updatedStat.for_count += (payload.new as any).weighted_votes || 1;
+                        else if (voteValue === 'AGAINST') updatedStat.against_count += (payload.new as any).weighted_votes || 1;
+                        else if (voteValue === 'ABSTAIN') updatedStat.abstain_count += (payload.new as any).weighted_votes || 1;
 
                         return {
                             ...prevStats,
@@ -133,15 +135,16 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
             // Table Data
             const tableData = resolutions.map((res, index) => {
-                const stat = stats[res.id] || { for_count: 0, against_count: 0, abstain_count: 0, total_votes: 0 };
+                const stat = stats[res.id] || { for_count: 0, against_count: 0, abstain_count: 0, total_weighted_votes: 0, total_vote_count: 0 };
+                const validVotesForAgainst = stat.for_count + stat.against_count;
                 return [
                     index + 1,
                     res.title,
-                    stat.for_count,
-                    stat.against_count,
-                    stat.abstain_count,
-                    stat.total_votes,
-                    `${stat.total_votes > 0 ? ((stat.for_count / stat.total_votes) * 100).toFixed(1) : 0}%`
+                    stat.for_count.toLocaleString(),
+                    stat.against_count.toLocaleString(),
+                    stat.abstain_count.toLocaleString(),
+                    stat.total_weighted_votes.toLocaleString(),
+                    `${validVotesForAgainst > 0 ? ((stat.for_count / validVotesForAgainst) * 100).toFixed(1) : 0}%`
                 ];
             });
 
@@ -215,11 +218,17 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
             <div className="grid grid-cols-1 gap-6">
                 {resolutions.map((res, index) => {
-                    const stat = stats[res.id] || { for_count: 0, against_count: 0, abstain_count: 0, total_votes: 0 };
+                    const stat = stats[res.id];
+                    const forCount = stat?.for_count || 0;
+                    const againstCount = stat?.against_count || 0;
+                    const abstainCount = stat?.abstain_count || 0;
+                    const totalWeightedVotes = stat?.total_weighted_votes || 0;
+                    const totalVoteCount = stat?.total_vote_count || 0;
+
                     const chartData = [
-                        { name: 'For', value: stat.for_count, color: '#10b981' },
-                        { name: 'Against', value: stat.against_count, color: '#ef4444' },
-                        { name: 'Abstain', value: stat.abstain_count, color: '#eab308' },
+                        { name: 'For', value: forCount, color: '#10b981' },
+                        { name: 'Against', value: againstCount, color: '#ef4444' },
+                        { name: 'Abstain', value: abstainCount, color: '#eab308' },
                     ];
 
                     return (
@@ -231,8 +240,11 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                                         <CardTitle className="text-lg">{res.title}</CardTitle>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-2xl font-bold">{stat.total_votes}</span>
-                                        <span className="text-xs text-muted-foreground block">{t("admin_voting_results_total_votes")}</span>
+                                        <span className="text-2xl font-bold">{Number(totalWeightedVotes).toLocaleString()}</span>
+                                        <span className="text-xs text-muted-foreground block">{t("admin_voting_results_weighted_label")}</span>
+                                        <span className="text-[10px] text-muted-foreground block mt-1">
+                                            {t("admin_voting_results_from_label")} {totalVoteCount} {t("admin_voting_results_sh_label")}
+                                        </span>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -258,15 +270,15 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                                 <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border/50 text-center">
                                     <div>
                                         <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_for")}</p>
-                                        <p className="font-bold text-emerald-500">{stat.for_count}</p>
+                                        <p className="font-bold text-emerald-500">{stat.for_count.toLocaleString()}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_against")}</p>
-                                        <p className="font-bold text-red-500">{stat.against_count}</p>
+                                        <p className="font-bold text-red-500">{stat.against_count.toLocaleString()}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_abstain")}</p>
-                                        <p className="font-bold text-yellow-500">{stat.abstain_count}</p>
+                                        <p className="font-bold text-yellow-500">{stat.abstain_count.toLocaleString()}</p>
                                     </div>
                                 </div>
                             </CardContent>

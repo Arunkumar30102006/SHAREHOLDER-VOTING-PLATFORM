@@ -422,8 +422,8 @@ const VotingDashboard = () => {
   return (
     <div className="min-h-screen bg-background relative selection:bg-primary/20">
       <SEO
-        title="Voting Dashboard - Cast Your Secure Vote"
-        description="Active voting session. Cast your vote securely on the immutable ledger."
+        title="Weighted Voting Dashboard"
+        description="Official e-voting session. Cast your weighted votes securely as per your shareholding on the record date."
         canonical="/voting-dashboard"
       />
       <Navbar />
@@ -440,6 +440,12 @@ const VotingDashboard = () => {
                 <span className="text-foreground font-medium truncate max-w-[200px]">{shareholder?.companies?.company_name}</span>
                 <ChevronRight className="w-4 h-4" />
                 <span className="text-foreground">{t("voting_dash_title")}</span>
+                {session?.record_date && (
+                  <div className="ml-4 flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+                    <Clock className="w-3 h-3" />
+                    Record Date: {new Date(session.record_date).toLocaleDateString()}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-4">
@@ -540,6 +546,7 @@ const VotingDashboard = () => {
                 totalResolutions={votingItems.length}
                 votedResolutions={totalVoted}
                 shareholderShares={shareholder?.shares_held || 0}
+                recordDate={session?.record_date}
               />
             </div>
           )}

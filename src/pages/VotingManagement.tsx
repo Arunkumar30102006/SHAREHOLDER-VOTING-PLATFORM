@@ -68,6 +68,7 @@ const sessionSchema = z.object({
   meetingPassword: z.string().optional(),
   meetingPlatform: z.string().optional(),
   votingInstructions: z.string().optional(),
+  recordDate: z.string().min(1, "Record date is required"),
 });
 
 interface Nominee {
@@ -98,6 +99,8 @@ interface VotingSession {
   meeting_end_date: string | null;
   auto_start_done?: boolean;
   auto_end_done?: boolean;
+  record_date: string | null;
+  status: string | null;
 }
 
 export interface ResolutionResult {
@@ -156,6 +159,7 @@ const VotingManagement = () => {
     meetingStartDate: "",
     meetingEndDate: "",
     votingInstructions: "",
+    recordDate: "",
   });
 
   const [nomineeForm, setNomineeForm] = useState({
@@ -391,6 +395,7 @@ const VotingManagement = () => {
         meetingStartDate: data.meeting_start_date ? toLocalISOString(data.meeting_start_date) : (data.start_date ? toLocalISOString(data.start_date) : ""),
         meetingEndDate: data.meeting_end_date ? toLocalISOString(data.meeting_end_date) : (data.end_date ? toLocalISOString(data.end_date) : ""),
         votingInstructions: data.voting_instructions || "",
+        recordDate: data.record_date ? toLocalISOString(data.record_date) : "",
       });
       await loadNominees(data.id);
     }
@@ -428,11 +433,12 @@ const VotingManagement = () => {
       return {
         ...res,
         stats: {
-          for: forVotes,
-          against: againstVotes,
-          abstain: abstainVotes,
-          total: resVotes.length,
-          winner: forVotes > againstVotes // Simple logic for "Passed"
+          for: resVotes.filter(v => v.vote_value === "FOR").reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
+          against: resVotes.filter(v => v.vote_value === "AGAINST").reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
+          abstain: resVotes.filter(v => v.vote_value === "ABSTAIN").reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
+          total: resVotes.reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
+          winner: resVotes.filter(v => v.vote_value === "FOR").reduce((acc, v) => acc + (v.weighted_votes || 1), 0) > 
+                  resVotes.filter(v => v.vote_value === "AGAINST").reduce((acc, v) => acc + (v.weighted_votes || 1), 0)
         }
       };
     });
@@ -527,6 +533,7 @@ const VotingManagement = () => {
         voting_instructions: validatedData.votingInstructions || null,
         auto_start_done: false,
         auto_end_done: false,
+        record_date: new Date(validatedData.recordDate).toISOString(),
       };
 
       if (votingSession) {
@@ -557,7 +564,8 @@ const VotingManagement = () => {
         toast.error(err.errors[0].message);
       } else {
         console.error("Error saving session:", err);
-        toast.error("Failed to save voting session");
+        const errorMessage = (err as any).message || (err as any).details || "Failed to save voting session";
+        toast.error(`Error: ${errorMessage}`);
       }
     } finally {
       setIsSaving(false);
@@ -1374,6 +1382,23 @@ const VotingManagement = () => {
                             required
                           />
                         </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="recordDate">Record Date (Cut-off for Shareholding)</Label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <Input
+                            id="recordDate"
+                            name="recordDate"
+                            type="datetime-local"
+                            value={sessionForm.recordDate}
+                            onChange={handleSessionInputChange}
+                            className="pl-11"
+                            required
+                          />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Only shareholders as of this date are eligible to vote with their respective holding.</p>
                       </div>
                     </div>
 

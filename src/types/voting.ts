@@ -39,6 +39,8 @@ export interface VotingSession {
     is_meeting_emails_sent?: boolean;
     auto_start_done?: boolean;
     auto_end_done?: boolean;
+    record_date?: string;
+    status?: 'draft' | 'published' | 'open' | 'closed' | 'completed';
 }
 
 export interface Resolution {
@@ -55,6 +57,7 @@ export interface VoteRecord {
     vote_value: VoteType;
     vote_hash: string;
     leaf_index?: number | null;
+    weighted_votes?: number;
     created_at: string;
 }
 
@@ -63,6 +66,7 @@ export interface ResolutionStats {
     for_count: number;
     against_count: number;
     abstain_count: number;
-    total_votes: number;
+    total_weighted_votes: number;
+    total_vote_count: number;
     last_updated: string;
 }
