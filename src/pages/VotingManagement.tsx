@@ -564,7 +564,8 @@ const VotingManagement = () => {
         toast.error(err.errors[0].message);
       } else {
         console.error("Error saving session:", err);
-        const errorMessage = (err as any).message || (err as any).details || "Failed to save voting session";
+        const errWithProps = err as { message?: string; details?: string };
+        const errorMessage = errWithProps.message || errWithProps.details || "Failed to save voting session";
         toast.error(`Error: ${errorMessage}`);
       }
     } finally {

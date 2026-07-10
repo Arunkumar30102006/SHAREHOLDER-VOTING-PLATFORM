@@ -69,7 +69,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                     table: 'votes',
                 },
                 (payload) => {
-                    const newVote = payload.new as { resolution_id: string, vote_value: string };
+                    const newVote = payload.new as { resolution_id: string, vote_value: string, weighted_votes?: number };
 
                     setStats((prevStats) => {
                         const resolutionId = newVote.resolution_id;
@@ -88,12 +88,12 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
                         const updatedStat = { ...currentStat };
                         updatedStat.total_vote_count += 1;
-                        updatedStat.total_weighted_votes += (payload.new as any).weighted_votes || 1;
+                        updatedStat.total_weighted_votes += newVote.weighted_votes || 1;
 
                         const voteValue = newVote.vote_value.toUpperCase();
-                        if (voteValue === 'FOR') updatedStat.for_count += (payload.new as any).weighted_votes || 1;
-                        else if (voteValue === 'AGAINST') updatedStat.against_count += (payload.new as any).weighted_votes || 1;
-                        else if (voteValue === 'ABSTAIN') updatedStat.abstain_count += (payload.new as any).weighted_votes || 1;
+                        if (voteValue === 'FOR') updatedStat.for_count += newVote.weighted_votes || 1;
+                        else if (voteValue === 'AGAINST') updatedStat.against_count += newVote.weighted_votes || 1;
+                        else if (voteValue === 'ABSTAIN') updatedStat.abstain_count += newVote.weighted_votes || 1;
 
                         return {
                             ...prevStats,
