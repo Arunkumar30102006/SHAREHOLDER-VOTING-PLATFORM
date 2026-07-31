@@ -1,8 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import prerender from "@prerenderer/rollup-plugin";
-import PuppeteerRenderer from "@prerenderer/renderer-puppeteer";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -11,22 +9,7 @@ export default defineConfig(({ mode }) => ({
     port: 5173,
     strictPort: false,
   },
-  plugins: [
-    react(),
-    mode === 'production' && prerender({
-      routes: [
-        '/',
-        '/about',
-        '/features',
-        '/pricing',
-        '/contact'
-      ],
-      renderer: new PuppeteerRenderer({
-        renderAfterTime: 5000,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      })
-    })
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
