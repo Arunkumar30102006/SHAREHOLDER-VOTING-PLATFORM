@@ -19,9 +19,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-                <Vote className="w-6 h-6 text-secondary-foreground" />
-              </div>
+              <img src="/logo.png" alt="Vote India Secure Logo" className="h-12 w-12 object-contain mix-blend-screen rounded-xl" />
               <div>
                 <h2 className="text-xl font-bold">E-Vote India</h2>
                 <p className="text-xs text-muted-foreground">Secure Shareholder Voting</p>

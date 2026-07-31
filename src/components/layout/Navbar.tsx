@@ -94,11 +94,8 @@ const Navbar = () => {
           {/* Left: Logo & Mode Toggle */}
           <div className="flex items-center gap-6 z-20 justify-self-start">
             <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <Vote className="w-5 h-5 text-white" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#020817]"></div>
-              </div>
-              <div className="hidden 2xl:flex flex-col">
+              <img src="/logo.png" alt="Vote India Secure Logo" className="h-10 w-10 object-contain mix-blend-screen rounded-xl" />
+              <div className="hidden sm:flex flex-col">
                 <span className="text-xl font-bold tracking-tight text-white leading-none">
                   E-Vote <span className="text-blue-500">India</span>
                 </span>
