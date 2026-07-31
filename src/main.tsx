@@ -5,6 +5,14 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 console.log("Main.tsx: Starting execution");
 
+window.addEventListener('error', (e) => {
+    console.error('Global Error:', e.error || e.message);
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+    console.error('Unhandled Promise Rejection:', e.reason);
+});
+
 const rootElement = document.getElementById("root");
 console.log("Main.tsx: Root element found:", !!rootElement);
 

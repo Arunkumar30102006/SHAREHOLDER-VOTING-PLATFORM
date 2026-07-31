@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import prerender from "@prerenderer/rollup-plugin";
-import JSDOMRenderer from "@prerenderer/renderer-jsdom";
+import PuppeteerRenderer from "@prerenderer/renderer-puppeteer";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -21,8 +21,9 @@ export default defineConfig(({ mode }) => ({
         '/pricing',
         '/contact'
       ],
-      renderer: new JSDOMRenderer({
-        renderAfterDocumentEvent: 'custom-render-trigger',
+      renderer: new PuppeteerRenderer({
+        renderAfterTime: 5000,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
       })
     })
   ],
