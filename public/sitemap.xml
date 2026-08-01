@@ -3,63 +3,56 @@
 
   <url>
     <loc>https://www.shareholdervoting.in/</loc>
-    <lastmod>2026-03-28</lastmod>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://www.shareholdervoting.in/about/</loc>
-    <lastmod>2026-03-28</lastmod>
+    <loc>https://www.shareholdervoting.in/about</loc>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://www.shareholdervoting.in/how-it-works/</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://www.shareholdervoting.in/features/</loc>
-    <lastmod>2026-03-28</lastmod>
+    <loc>https://www.shareholdervoting.in/contact</loc>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://www.shareholdervoting.in/pricing/</loc>
-    <lastmod>2026-03-28</lastmod>
+    <loc>https://www.shareholdervoting.in/security</loc>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://www.shareholdervoting.in/faq/</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://www.shareholdervoting.in/contact/</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://www.shareholdervoting.in/privacy-policy/</loc>
-    <lastmod>2026-03-28</lastmod>
+    <loc>https://www.shareholdervoting.in/privacy-policy</loc>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
-    <loc>https://www.shareholdervoting.in/terms-of-service/</loc>
-    <lastmod>2026-03-28</lastmod>
+    <loc>https://www.shareholdervoting.in/terms-of-service</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <url>
+    <loc>https://www.shareholdervoting.in/sebi-compliance</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://www.shareholdervoting.in/data-protection</loc>
+    <lastmod>2026-08-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

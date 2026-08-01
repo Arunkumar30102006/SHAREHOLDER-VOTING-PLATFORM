@@ -114,9 +114,154 @@
           transform: rotate(360deg);
         }
       }
+
+      /* Static SEO content - visible to crawlers, overlaid by spinner for users */
+      .seo-static-content {
+        background-color: #0d1b2a;
+        color: #e0e0e0;
+        font-family: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        padding: 0;
+        margin: 0;
+      }
+      .seo-static-content header {
+        padding: 16px 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .seo-static-content header img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+      }
+      .seo-static-content header span {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #ffffff;
+      }
+      .seo-static-content main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 24px;
+      }
+      .seo-static-content h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 16px;
+        line-height: 1.2;
+      }
+      .seo-static-content h1 span {
+        background: linear-gradient(90deg, #60a5fa, #22d3ee, #2dd4bf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .seo-static-content h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-top: 32px;
+        margin-bottom: 16px;
+      }
+      .seo-static-content p {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 16px;
+      }
+      .seo-static-content ul, .seo-static-content ol {
+        padding-left: 24px;
+        margin-bottom: 16px;
+      }
+      .seo-static-content li {
+        margin-bottom: 8px;
+        line-height: 1.6;
+        color: rgba(255,255,255,0.8);
+      }
+      .seo-static-content li strong {
+        color: #60a5fa;
+      }
+      .seo-static-content nav {
+        margin-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .seo-static-content nav a {
+        color: #fa8c16;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .seo-static-content nav a:hover {
+        text-decoration: underline;
+      }
+      .seo-static-content footer {
+        margin-top: 48px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.5);
+        font-size: 0.875rem;
+      }
     </style>
+
+    <!-- Loading Spinner (overlays static content, position: fixed) -->
     <div class="app-loader">
       <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Static SEO Content: visible to crawlers, replaced by React on JS load -->
+    <div class="seo-static-content">
+      <header>
+        <img src="/logo.png" alt="Vote India Secure Logo" width="40" height="40" />
+        <span>Vote India Secure</span>
+      </header>
+
+      <main>
+        <h1>Secure E-Voting for <span>India's Future</span></h1>
+        <p>Vote India Secure is the trusted, SEBI-compliant electronic voting platform for Indian companies, shareholders, and organizations. End-to-end encrypted, transparent, and tamper-proof.</p>
+
+        <h2>Key Features</h2>
+        <ul>
+          <li><strong>SEBI Compliant:</strong> Fully compliant with SEBI (LODR) Regulations for e-voting at AGMs, EGMs, and Postal Ballots.</li>
+          <li><strong>End-to-End Encryption:</strong> Military-grade encryption ensures every vote is secure and tamper-proof.</li>
+          <li><strong>Shareholder Authentication:</strong> Verify shareholders via PAN, DPID/Client ID, and Folio Number.</li>
+          <li><strong>Real-time Results:</strong> Live vote counting with transparent, auditable results.</li>
+          <li><strong>AI-Powered Analytics:</strong> Advanced analytics dashboard for companies and scrutinizers.</li>
+          <li><strong>Multi-language Support:</strong> Available in English, Hindi, Tamil, Telugu, and more.</li>
+          <li><strong>QR Code Verification:</strong> Unique QR codes for vote verification and audit trails.</li>
+          <li><strong>PDF Reports:</strong> Automated scrutinizer report generation in compliance with Companies Act 2013.</li>
+        </ul>
+
+        <h2>How It Works</h2>
+        <ol>
+          <li>Company registers and creates a voting event (AGM/EGM/Postal Ballot).</li>
+          <li>Shareholders are authenticated securely using PAN and DPID.</li>
+          <li>Shareholders cast their votes through the secure platform.</li>
+          <li>Votes are encrypted and counted in real-time.</li>
+          <li>Scrutinizer verifies and publishes the results.</li>
+        </ol>
+
+        <h2>Why Choose Vote India Secure?</h2>
+        <p>With over 10 million votes cast, 500+ companies onboarded, and 99.9% uptime, Vote India Secure is India's most trusted e-voting platform. We provide a seamless, secure, and compliant voting experience for AGMs, EGMs, and postal ballots.</p>
+
+        <h2>Quick Links</h2>
+        <nav>
+          <a href="/about">About Us</a>
+          <a href="/contact">Contact</a>
+          <a href="/security">Security</a>
+          <a href="/privacy-policy">Privacy Policy</a>
+          <a href="/terms-of-service">Terms of Service</a>
+          <a href="/sebi-compliance">SEBI Compliance</a>
+          <a href="/data-protection">Data Protection</a>
+        </nav>
+
+        <footer>
+          <p>Contact us at <a href="mailto:support@shareholdervoting.in" style="color: #fa8c16;">support@shareholdervoting.in</a></p>
+          <p>&copy; 2026 Vote India Secure. All rights reserved.</p>
+        </footer>
+      </main>
     </div>
   </div>
 

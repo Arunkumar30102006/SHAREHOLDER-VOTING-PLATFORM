@@ -1,5 +1,5 @@
 # robots.txt for shareholdervoting.in
-# Last updated: March 2026
+# Last updated: August 2026
 
 # ─── Allow all major search engines ───
 User-agent: Googlebot
@@ -30,10 +30,17 @@ Disallow: /admin/
 Disallow: /admin-panel/
 Disallow: /dashboard/
 Disallow: /company-dashboard/
+Disallow: /company-login/
+Disallow: /company-register/
 Disallow: /scrutiniser/
 Disallow: /voter/
 Disallow: /vote/
 Disallow: /cast-vote/
+Disallow: /voting-dashboard/
+Disallow: /voting-management/
+Disallow: /shareholder-login/
+Disallow: /shareholder-analysis/
+Disallow: /ai-power-suite/
 Disallow: /api/
 Disallow: /api/v1/
 Disallow: /api/v2/
@@ -61,7 +68,6 @@ Disallow: /dev/
 Disallow: /wp-admin/
 Disallow: /cgi-bin/
 Disallow: /*.json$
-Disallow: /*.xml$
 Disallow: /*.csv$
 Disallow: /*.sql$
 Disallow: /*.env$
@@ -70,17 +76,13 @@ Disallow: /*.bak$
 
 # ─── Allow important public pages explicitly ───
 User-agent: *
-Allow: /about/
-Allow: /contact/
-Allow: /privacy-policy/
-Allow: /terms-of-service/
-Allow: /grievance/
-Allow: /how-it-works/
-Allow: /features/
-Allow: /pricing/
-Allow: /faq/
-Allow: /blog/
-Allow: /news/
+Allow: /about
+Allow: /contact
+Allow: /security
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /sebi-compliance
+Allow: /data-protection
 Allow: /sitemap.xml
 
 # ─── Sitemap location ───

@@ -16,7 +16,7 @@ export const SEO = ({
     canonical,
     type = 'website',
     name = 'Vote India Secure',
-    image = '/og-image.png',
+    image = '/og-image.jpg',
     schema
 }: SEOProps) => {
     const siteUrl = window.location.origin;
