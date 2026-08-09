@@ -1,4 +1,4 @@
-import { Code2, Github, GraduationCap, Rocket, Sparkles, ExternalLink } from "lucide-react";
+import { Code2, Github, GraduationCap, Rocket, Sparkles, ExternalLink, Shield } from "lucide-react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
