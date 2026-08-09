@@ -32,10 +32,9 @@ export default defineConfig(({ mode }) => ({
         '/sebi-compliance',
         '/data-protection',
       ],
-      renderer: '@prerenderer/renderer-puppeteer',
+      renderer: '@prerenderer/renderer-jsdom',
       rendererOptions: {
         renderAfterTime: 5000, // Wait 5s for content to render
-        headless: true,
       },
     }),
   ].filter(Boolean),
