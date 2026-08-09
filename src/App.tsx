@@ -31,7 +31,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const About = lazy(() => import("./pages/About"));
 const Features = lazy(() => import("./pages/Features"));
 const Pricing = lazy(() => import("./pages/Pricing"));
-const LiveDemo = lazy(() => import("./pages/LiveDemo"));
+const Demo = lazy(() => import("./pages/LiveDemo"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Security = lazy(() => import("./pages/Security"));
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
@@ -87,7 +87,7 @@ const App = () => {
                     <Route path="/about" element={<About />} />
                     <Route path="/features" element={<Features />} />
                     <Route path="/pricing" element={<Pricing />} />
-                    <Route path="/live-demo" element={<LiveDemo />} />
+                    <Route path="/demo" element={<Demo />} />
                     <Route path="/security" element={<Security />} />
                     <Route path="/contact" element={<Contact />} />
 

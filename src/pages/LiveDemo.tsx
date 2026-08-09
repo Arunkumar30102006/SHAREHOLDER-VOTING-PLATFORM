@@ -494,7 +494,7 @@ const LiveDemo = () => {
       <SEO
         title="Live Demo — Experience E-Voting in Action"
         description="Try a simulated AGM voting experience. Login as a demo shareholder, view resolutions, cast votes, and see the complete e-voting flow."
-        canonical="/live-demo"
+        canonical="/demo"
       />
       <Navbar />
       <main className="container mx-auto px-4 pt-28 pb-16 md:py-20">

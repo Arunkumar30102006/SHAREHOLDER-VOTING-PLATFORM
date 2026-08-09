@@ -44,7 +44,7 @@ const PillNav: React.FC<PillNavProps> = ({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
     const tlRefs = useRef<Array<gsap.core.Timeline | null>>([]);
-    const activeTweenRefs = useRef<Array<gsap.core.Tween | null>>([]);
+    const activeTweenRefs = useRef<Array<gsap.core.Tween | gsap.core.Timeline | null>>([]);
     const logoImgRef = useRef<HTMLImageElement | null>(null);
     const logoTweenRef = useRef<gsap.core.Tween | null>(null);
     const hamburgerRef = useRef<HTMLButtonElement | null>(null);
@@ -298,7 +298,8 @@ const PillNav: React.FC<PillNavProps> = ({
                         style={{ gap: 'var(--pill-gap)' }}
                     >
                         {items.map((item, i) => {
-                            const isActive = activeHref === item.href;
+                            const normalize = (p?: string) => (p || '').replace(/\/$/, '') || '/';
+                            const isActive = normalize(activeHref) === normalize(item.href);
 
                             // Styles
                             // Active: Background = pillColor, Text = pillTextColor
@@ -434,7 +435,8 @@ const PillNav: React.FC<PillNavProps> = ({
             >
                 <ul className="flex flex-col p-2 gap-1">
                     {items.map(item => {
-                        const isActive = activeHref === item.href;
+                        const normalize = (p?: string) => (p || '').replace(/\/$/, '') || '/';
+                        const isActive = normalize(activeHref) === normalize(item.href);
                         const linkClasses = `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                             ? 'bg-orange-500/10 text-orange-500' // Active in mobile
                             : 'text-slate-300 hover:bg-white/5 hover:text-white'
@@ -442,7 +444,7 @@ const PillNav: React.FC<PillNavProps> = ({
 
                         const handleItemClick = (e: React.MouseEvent) => {
                             item.onClick?.(e);
-                            setIsMobileMenuOpen(false);
+                            if (isMobileMenuOpen) toggleMobileMenu();
                         }
 
                         return (

@@ -71,10 +71,15 @@ const HeroSection = () => {
 
             {/* CTA Buttons — 3 buttons: Live Demo (primary), Register, Shareholder Login */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
-              <Link to="/live-demo">
+              <Link to="/demo">
                 <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2 shadow-lg shadow-emerald-500/20">
                   <Play className="w-5 h-5" />
                   Try Live Demo
+                </Button>
+              </Link>
+              <Link to="/contact" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'hero' })}>
+                <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2 border-white/20 hover:bg-white/5 bg-primary/10 text-white">
+                  Request Demo
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
@@ -92,33 +97,42 @@ const HeroSection = () => {
               </Link>
             </div>
 
-            {/* Trust Indicators — Redesigned with icons + meaningful labels */}
+            {/* Trust Indicators */}
             <div className="flex flex-wrap items-center justify-center gap-6 mt-12 animate-fade-in-up delay-500">
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                  <Vote className="w-5 h-5 text-blue-400" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-white">10M+ Capacity</p>
-                  <p className="text-[10px] text-slate-500">Votes per session</p>
-                </div>
-              </div>
               <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
                 <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                   <Shield className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-bold text-white">SEBI Compliant</p>
-                  <p className="text-[10px] text-slate-500">Regulation 44 ready</p>
+                  <p className="text-sm font-bold text-white">SEBI</p>
+                  <p className="text-[10px] text-slate-500">LODR Regulation 44</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-white">MCA</p>
+                  <p className="text-[10px] text-slate-500">Ministry of Corporate Affairs</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
                 <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-purple-400" />
+                  <Vote className="w-5 h-5 text-purple-400" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-bold text-white">Enterprise Ready</p>
-                  <p className="text-[10px] text-slate-500">Production-grade security</p>
+                  <p className="text-sm font-bold text-white">Companies Act 2013</p>
+                  <p className="text-[10px] text-slate-500">Section 108 Compliant</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-orange-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-white">AES-256</p>
+                  <p className="text-[10px] text-slate-500">End-to-End Encryption</p>
                 </div>
               </div>
             </div>

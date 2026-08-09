@@ -5,30 +5,23 @@ const steps = [
   {
     step: 1,
     icon: Building2,
-    titleKey: "hiw_1_title",
-    descKey: "hiw_1_desc",
+    titleKey: "Register",
+    descKey: "Companies register and configure the voting event.",
     color: "from-primary to-navy-500",
   },
   {
     step: 2,
     icon: Users,
-    titleKey: "hiw_2_title",
-    descKey: "hiw_2_desc",
+    titleKey: "Authenticate",
+    descKey: "Shareholders are securely authenticated via PAN & DPID.",
     color: "from-secondary to-saffron-600",
   },
   {
     step: 3,
     icon: Vote,
-    titleKey: "hiw_3_title",
-    descKey: "hiw_3_desc",
+    titleKey: "Vote",
+    descKey: "Cast votes securely on our tamper-proof encrypted ledger.",
     color: "from-accent to-emerald-400",
-  },
-  {
-    step: 4,
-    icon: FileCheck,
-    titleKey: "hiw_4_title",
-    descKey: "hiw_4_desc",
-    color: "from-primary to-secondary",
   },
 ];
 
@@ -65,7 +58,7 @@ const HowItWorksSection = () => {
           {/* Connection Line */}
           <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-accent transform -translate-y-1/2 z-0" />
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step, index) => (
               <div
                 key={step.step}
@@ -85,10 +78,10 @@ const HowItWorksSection = () => {
 
                   {/* Content */}
                   <h3 className="text-xl font-bold text-foreground mb-3">
-                    {t(step.titleKey)}
+                    {step.titleKey}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    {t(step.descKey)}
+                    {step.descKey}
                   </p>
                 </div>
 

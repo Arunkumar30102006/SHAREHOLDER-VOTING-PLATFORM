@@ -22,6 +22,9 @@ export default defineConfig(({ mode }) => ({
       routes: [
         '/',
         '/about',
+        '/features',
+        '/pricing',
+        '/demo',
         '/contact',
         '/security',
         '/privacy-policy',
@@ -29,16 +32,10 @@ export default defineConfig(({ mode }) => ({
         '/sebi-compliance',
         '/data-protection',
       ],
-      renderer: '@prerenderer/renderer-jsdom',
+      renderer: '@prerenderer/renderer-puppeteer',
       rendererOptions: {
         renderAfterTime: 5000, // Wait 5s for content to render
-      },
-      postProcess(renderedRoute) {
-        // Fix SPA routing — ensure all prerendered pages still work with client-side routing
-        renderedRoute.html = renderedRoute.html.replace(
-          /<script type="module"/g,
-          '<script type="module" defer'
-        );
+        headless: true,
       },
     }),
   ].filter(Boolean),
