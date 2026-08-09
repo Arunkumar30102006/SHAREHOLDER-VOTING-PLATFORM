@@ -505,7 +505,7 @@ const VotingDashboard = () => {
                           {session.meeting_password && (
                             <p className="flex items-center gap-2">
                               <Shield className="w-4 h-4" />
-                              {t("voting_dash_password")} <span className="font-mono bg-background px-1 rounded">{session.meeting_password}</span>
+                              {t("voting_dash_password")} <span className="font-mono bg-background px-1 rounded" title={session.meeting_password}>{"•".repeat(session.meeting_password.length)}</span>
                             </p>
                           )}
                         </div>

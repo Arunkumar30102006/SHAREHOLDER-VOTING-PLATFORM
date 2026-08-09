@@ -6,9 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ScrollToTop from "./components/ScrollToTop";
-import WebsiteFeedback from "./components/feedback/WebsiteFeedback";
-import { VoteAssistant } from "./components/ai/VoteAssistant";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+
+// Lazy-load floating widgets (not needed for first paint)
+const WebsiteFeedback = lazy(() => import("./components/feedback/WebsiteFeedback"));
+const VoteAssistant = lazy(() => import("./components/ai/VoteAssistant").then(m => ({ default: m.VoteAssistant })));
 
 import GlobalErrorBoundary from "./components/layout/GlobalErrorBoundary";
 import "./i18n/config"; // Initialize i18n
@@ -27,6 +29,9 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy Load Public/Legal Pages
 const About = lazy(() => import("./pages/About"));
+const Features = lazy(() => import("./pages/Features"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const LiveDemo = lazy(() => import("./pages/LiveDemo"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Security = lazy(() => import("./pages/Security"));
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
@@ -80,6 +85,9 @@ const App = () => {
 
                     {/* Public Pages */}
                     <Route path="/about" element={<About />} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/live-demo" element={<LiveDemo />} />
                     <Route path="/security" element={<Security />} />
                     <Route path="/contact" element={<Contact />} />
 

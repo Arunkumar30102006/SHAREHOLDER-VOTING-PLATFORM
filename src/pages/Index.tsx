@@ -3,6 +3,7 @@ import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import HowItWorksSection from "@/components/home/HowItWorksSection";
+import BuiltBySection from "@/components/home/BuiltBySection";
 import CTASection from "@/components/home/CTASection";
 
 import { SEO } from "@/components/layout/SEO";
@@ -21,6 +22,7 @@ const Index = () => {
           <HeroSection />
           <FeaturesSection />
           <HowItWorksSection />
+          <BuiltBySection />
           <CTASection />
         </main>
         <Footer />

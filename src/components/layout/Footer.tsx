@@ -19,10 +19,10 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4">
-              <img src="/logo.png" alt="Vote India Secure Logo" className="h-12 w-12 object-contain mix-blend-screen rounded-xl" />
+              <img src="/logo.png" alt="Shareholder Voting Logo" width={48} height={48} className="h-12 w-12 object-contain mix-blend-screen rounded-xl" loading="lazy" />
               <div>
-                <h2 className="text-xl font-bold">E-Vote India</h2>
-                <p className="text-xs text-muted-foreground">Secure Shareholder Voting</p>
+                <h2 className="text-xl font-bold">ShareholderVoting.in</h2>
+                <p className="text-xs text-muted-foreground">Powered by Vote India Secure</p>
               </div>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -58,8 +58,8 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-3">
-              {["Home", "About Us", "Security", "Contact Us", "Company Registration", "Shareholder Login", "How It Works"].map((item, index) => {
-                const paths = ["/", "/about", "/security", "/contact", "/company-register", "/shareholder-login", "/#how-it-works"];
+              {["Home", "About Us", "Features", "Pricing", "Security", "Contact Us", "Company Registration", "Shareholder Login"].map((item, index) => {
+                const paths = ["/", "/about", "/features", "/pricing", "/security", "/contact", "/company-register", "/shareholder-login"];
                 return (
                   <li key={item}>
                     <Link to={paths[index]} className="text-sm text-foreground/80 hover:text-secondary transition-colors">

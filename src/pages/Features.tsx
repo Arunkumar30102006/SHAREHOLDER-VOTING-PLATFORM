@@ -1,0 +1,295 @@
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import {
+  Shield, Lock, Eye, Fingerprint, FileCheck, Globe, Mail, Calendar,
+  ArrowRight, CheckCircle2, Vote, Smartphone, BarChart3, QrCode, FileText
+} from "lucide-react";
+import { SEO } from "@/components/layout/SEO";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { motion } from "motion/react";
+
+const mainFeatures = [
+  {
+    icon: Lock,
+    title: "End-to-End Encryption",
+    description: "All voting data is encrypted from your device to our servers using AES-256 encryption. Votes are cryptographically sealed, ensuring no tampering is possible at any stage of the process.",
+    details: [
+      "AES-256 bit encryption at rest and in transit",
+      "Cryptographic vote hashing with SHA-256",
+      "Secure session management with auto-expiry",
+      "Zero-knowledge proof architecture"
+    ],
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    icon: Fingerprint,
+    title: "Two-Factor Authentication",
+    description: "Every shareholder is verified through a multi-step authentication flow combining unique credentials with OTP verification, preventing unauthorized access.",
+    details: [
+      "Unique per-session login credentials",
+      "Email-based OTP verification",
+      "Auto-invalidation after vote submission",
+      "Rate-limited login attempts"
+    ],
+    color: "from-orange-500 to-amber-500",
+  },
+  {
+    icon: Eye,
+    title: "Immutable Audit Trails",
+    description: "Every vote is recorded with tamper-proof logs, timestamps, and cryptographic hashes. Scrutinizers get independent access to verify the entire voting process.",
+    details: [
+      "Complete audit history for every action",
+      "Merkle tree anchored verification",
+      "Tamper-proof timestamp recording",
+      "Independent scrutinizer portal"
+    ],
+    color: "from-emerald-500 to-green-500",
+  },
+  {
+    icon: Shield,
+    title: "SEBI LODR Compliant",
+    description: "Built in adherence to SEBI (LODR) Regulations 2015 and Companies Act 2013, including Regulation 44 for mandatory e-voting at general meetings.",
+    details: [
+      "Regulation 44 — e-voting requirements",
+      "Section 108 — Companies Act compliance",
+      "Rule 20 — Management & Administration Rules",
+      "Scrutinizer report generation"
+    ],
+    color: "from-blue-600 to-indigo-500",
+  },
+  {
+    icon: FileCheck,
+    title: "Automated Reports",
+    description: "Generate SEBI-compliant scrutinizer reports in PDF format with a single click, including vote breakdowns, audit trails, and compliance attestations.",
+    details: [
+      "One-click PDF report generation",
+      "Weighted vote calculation engine",
+      "Resolution-wise breakdown",
+      "Companies Act 2013 format compliance"
+    ],
+    color: "from-purple-500 to-violet-500",
+  },
+  {
+    icon: Globe,
+    title: "Multi-Language Support",
+    description: "Access the platform in multiple Indian languages to ensure every shareholder can participate comfortably regardless of language preference.",
+    details: [
+      "English, Hindi, Tamil, Telugu support",
+      "Dynamic language switching",
+      "Localized UI components",
+      "Accessible to all shareholders"
+    ],
+    color: "from-teal-500 to-cyan-500",
+  },
+  {
+    icon: Smartphone,
+    title: "Multi-Device Access",
+    description: "Vote securely from any device — desktop, tablet, or mobile. Responsive design ensures a seamless experience across all screen sizes.",
+    details: [
+      "Fully responsive web application",
+      "Progressive Web App (PWA) enabled",
+      "Works on all modern browsers",
+      "Optimized for low-bandwidth connections"
+    ],
+    color: "from-pink-500 to-rose-500",
+  },
+  {
+    icon: Mail,
+    title: "Automated Email System",
+    description: "Shareholders receive credentials, meeting invitations, and voting reminders automatically. Companies can track delivery status in real-time.",
+    details: [
+      "Credential delivery via email",
+      "AGM/EGM meeting invitations",
+      "Voting reminder notifications",
+      "Delivery status tracking"
+    ],
+    color: "from-amber-500 to-orange-500",
+  },
+  {
+    icon: Calendar,
+    title: "Flexible Scheduling",
+    description: "Companies can configure custom voting windows with automatic start and end times, supporting AGMs, EGMs, and Postal Ballot events.",
+    details: [
+      "Custom voting window configuration",
+      "AGM / EGM / Postal Ballot support",
+      "Automatic session activation & closure",
+      "Timezone-aware scheduling"
+    ],
+    color: "from-indigo-500 to-blue-500",
+  },
+  {
+    icon: BarChart3,
+    title: "AI-Powered Analytics",
+    description: "Advanced analytics dashboard powered by AI for document summarization, sentiment analysis, and shareholder engagement insights.",
+    details: [
+      "AI document summarizer",
+      "Shareholder sentiment analysis",
+      "Participation trend tracking",
+      "Executive insight generation"
+    ],
+    color: "from-cyan-500 to-teal-500",
+  },
+  {
+    icon: QrCode,
+    title: "QR Code Verification",
+    description: "Every vote generates a unique QR code that can be scanned to verify the cryptographic integrity of the vote on the immutable ledger.",
+    details: [
+      "Unique QR per vote receipt",
+      "Scan to verify vote integrity",
+      "Cryptographic hash validation",
+      "Portable verification proof"
+    ],
+    color: "from-green-500 to-emerald-500",
+  },
+  {
+    icon: FileText,
+    title: "Proxy Voting & Delegation",
+    description: "Shareholders who can't attend can delegate their voting rights to a trusted proxy. The platform manages the full delegation workflow securely.",
+    details: [
+      "Digital proxy appointment",
+      "Secure delegation workflow",
+      "Proxy vote tracking",
+      "Compliance with Section 105"
+    ],
+    color: "from-rose-500 to-pink-500",
+  },
+];
+
+const Features = () => {
+  return (
+    <div className="min-h-screen relative">
+      <SEO
+        title="Features — Enterprise E-Voting Capabilities"
+        description="Explore the complete feature set of ShareholderVoting.in — from end-to-end encryption and SEBI compliance to AI analytics and automated reporting."
+        canonical="/features"
+      />
+      <Navbar />
+      <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          {/* Hero */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center space-y-4 md:space-y-6 mb-16"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium shadow-sm">
+              <Shield className="w-4 h-4 text-blue-400" />
+              <span>Platform Capabilities</span>
+            </div>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
+              Everything You Need for{" "}
+              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-300 bg-clip-text text-transparent">
+                Secure E-Voting
+              </span>
+            </h1>
+            <p className="text-base md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto">
+              A comprehensive platform built to handle every aspect of corporate electronic voting — from shareholder
+              authentication to scrutinizer reports, fully aligned with SEBI regulations.
+            </p>
+          </motion.div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+            {mainFeatures.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+                className="group relative bg-[#0d1b2a]/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-1 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg mb-5 group-hover:scale-110 transition-transform duration-300`}>
+                    <feature.icon className="w-6 h-6 text-white" />
+                  </div>
+
+                  {/* Title & Description */}
+                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-relaxed mb-4">
+                    {feature.description}
+                  </p>
+
+                  {/* Details List */}
+                  <ul className="space-y-2">
+                    {feature.details.map((detail) => (
+                      <li key={detail} className="flex items-start gap-2 text-xs text-slate-500">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* SEBI Compliance Callout */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-[#020817]/60 backdrop-blur-2xl rounded-3xl p-8 md:p-12 border border-white/10 mb-16 relative group overflow-hidden"
+          >
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10 text-center max-w-3xl mx-auto">
+              <Vote className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                Designed for SEBI Compliance
+              </h2>
+              <p className="text-slate-400 leading-relaxed mb-6">
+                Every feature is built with Indian corporate regulations in mind — including SEBI (LODR) Regulations 2015
+                Regulation 44, Companies Act 2013 Section 108, and Rule 20 of the Companies (Management and Administration) Rules, 2014.
+              </p>
+              <Link to="/sebi-compliance">
+                <Button variant="outline" className="gap-2 border-white/10 hover:bg-white/5">
+                  View Compliance Details
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              Ready to Get Started?
+            </h2>
+            <p className="text-slate-400 mb-8 max-w-xl mx-auto">
+              Register your company in minutes and start conducting secure, compliant shareholder voting.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/company-register">
+                <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2">
+                  Register Your Company
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2">
+                  Request a Demo
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default Features;

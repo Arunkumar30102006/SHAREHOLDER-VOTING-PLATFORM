@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import BlurText from "@/components/ui/BlurText";
-import { ArrowRight, Building2, CheckCircle2, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, ShieldCheck, Users, Play, Shield, Vote, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { AnalyticsEvents, trackEvent } from "@/lib/analytics";
 import { useTranslation } from "react-i18next";
@@ -17,7 +17,6 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-      {/* Animated Background */}
       {/* Solid Background - Uses Global Theme */}
       <div className="absolute inset-0 -z-10 bg-transparent" />
 
@@ -70,38 +69,57 @@ const HeroSection = () => {
               ))}
             </div>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons — 3 buttons: Live Demo (primary), Register, Shareholder Login */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
-              <Link to="/company-register" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'hero' })}>
-                <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2">
-                  <Building2 className="w-5 h-5" />
-                  {t("register_company")}
+              <Link to="/live-demo">
+                <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2 shadow-lg shadow-emerald-500/20">
+                  <Play className="w-5 h-5" />
+                  Try Live Demo
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
+              <Link to="/company-register" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'hero' })}>
+                <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2 border-white/20 hover:bg-white/5">
+                  <Building2 className="w-5 h-5" />
+                  {t("register_company")}
+                </Button>
+              </Link>
               <Link to="/shareholder-login" onClick={() => trackEvent(AnalyticsEvents.LOGIN_CLICK, { type: 'shareholder', location: 'hero' })}>
-                <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2">
+                <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2 border-white/20 hover:bg-white/5">
                   <Users className="w-5 h-5" />
                   {t("shareholder_login")}
                 </Button>
               </Link>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="flex items-center justify-center gap-8 mt-12 animate-fade-in-up delay-500">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-foreground">10M+</p>
-                <p className="text-sm text-muted-foreground">Votes Cast</p>
+            {/* Trust Indicators — Redesigned with icons + meaningful labels */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-12 animate-fade-in-up delay-500">
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <Vote className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-white">10M+ Capacity</p>
+                  <p className="text-[10px] text-slate-500">Votes per session</p>
+                </div>
               </div>
-              <div className="w-px h-12 bg-border" />
-              <div className="text-center">
-                <p className="text-3xl font-bold text-foreground">500+</p>
-                <p className="text-sm text-muted-foreground">Companies</p>
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-white">SEBI Compliant</p>
+                  <p className="text-[10px] text-slate-500">Regulation 44 ready</p>
+                </div>
               </div>
-              <div className="w-px h-12 bg-border" />
-              <div className="text-center">
-                <p className="text-3xl font-bold text-foreground">99.9%</p>
-                <p className="text-sm text-muted-foreground">Uptime</p>
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-white">Enterprise Ready</p>
+                  <p className="text-[10px] text-slate-500">Production-grade security</p>
+                </div>
               </div>
             </div>
           </div>

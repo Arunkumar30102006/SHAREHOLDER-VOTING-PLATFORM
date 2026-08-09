@@ -1675,6 +1675,7 @@ const VotingManagement = () => {
                         <Input
                           id="meetingPassword"
                           name="meetingPassword"
+                          type="password"
                           value={sessionForm.meetingPassword}
                           onChange={handleSessionInputChange}
                           placeholder="Enter meeting password"

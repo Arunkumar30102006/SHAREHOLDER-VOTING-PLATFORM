@@ -1,7 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { fileURLToPath } from "url";
 import prerender from "@prerenderer/rollup-plugin";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -35,7 +39,6 @@ export default defineConfig(({ mode }) => ({
           /<script type="module"/g,
           '<script type="module" defer'
         );
-        return renderedRoute;
       },
     }),
   ].filter(Boolean),
@@ -51,7 +54,8 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           react: ['react', 'react-dom'],
           supabase: ['@supabase/supabase-js'],
-          ui: ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+          ui: ['motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+          animation: ['gsap'],
         },
       },
     },

@@ -1,0 +1,16 @@
+# ShareholderVoting
+
+ShareholderVoting is a secure, SEBI-compliant electronic voting platform for Indian companies, shareholders, and organizations. It provides end-to-end encrypted e-voting for AGMs, EGMs, and postal ballots.
+
+## Website
+
+- https://www.shareholdervoting.in/
+- https://www.shareholdervoting.in/about
+- https://www.shareholdervoting.in/features
+- https://www.shareholdervoting.in/pricing
+- https://www.shareholdervoting.in/security
+- https://www.shareholdervoting.in/contact
+- https://www.shareholdervoting.in/privacy-policy
+- https://www.shareholdervoting.in/terms-of-service
+- https://www.shareholdervoting.in/sebi-compliance
+- https://www.shareholdervoting.in/data-protection

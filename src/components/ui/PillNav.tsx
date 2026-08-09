@@ -56,57 +56,64 @@ const PillNav: React.FC<PillNavProps> = ({
     // GSAP Layout Effect
     useEffect(() => {
         const layout = () => {
-            circleRefs.current.forEach(circle => {
-                if (!circle?.parentElement) return;
-
+            // PHASE 1: Batch all DOM reads (getBoundingClientRect) first to avoid layout thrashing
+            const measurements: Array<{ circle: HTMLSpanElement; pill: HTMLElement; w: number; h: number; index: number; label: HTMLElement | null; white: HTMLElement | null } | null> = [];
+            circleRefs.current.forEach((circle, i) => {
+                if (!circle?.parentElement) { measurements.push(null); return; }
                 const pill = circle.parentElement as HTMLElement;
                 const rect = pill.getBoundingClientRect();
                 const { width: w, height: h } = rect;
-                if (w === 0 || h === 0) return;
-
-                // Geometry for the hover circle expansion
-                const R = ((w * w) / 4 + h * h) / (2 * h);
-                const D = Math.ceil(2 * R) + 2;
-                const delta = Math.ceil(R - Math.sqrt(Math.max(0, R * R - (w * w) / 4))) + 1;
-                const originY = D - delta;
-
-                circle.style.width = `${D}px`;
-                circle.style.height = `${D}px`;
-                circle.style.bottom = `-${delta}px`;
-
-                gsap.set(circle, {
-                    xPercent: -50,
-                    scale: 0,
-                    transformOrigin: `50% ${originY}px`
-                });
-
+                if (w === 0 || h === 0) { measurements.push(null); return; }
                 const label = pill.querySelector<HTMLElement>('.pill-label');
                 const white = pill.querySelector<HTMLElement>('.pill-label-hover');
-
-                if (label) gsap.set(label, { y: 0 });
-                if (white) gsap.set(white, { y: h + 12, opacity: 0 });
-
                 const index = circleRefs.current.indexOf(circle);
-                if (index === -1) return;
+                measurements.push({ circle, pill, w, h, index, label, white });
+            });
 
-                tlRefs.current[index]?.kill();
-                const tl = gsap.timeline({ paused: true });
+            // PHASE 2: Batch all DOM writes in rAF to avoid forced reflow
+            requestAnimationFrame(() => {
+                measurements.forEach(m => {
+                    if (!m) return;
+                    const { circle, w, h, index, label, white } = m;
 
-                // Hover Animation
-                tl.to(circle, { scale: 1.2, xPercent: -50, duration: 0.4, ease: "power2.out", overwrite: 'auto' }, 0); // Faster duration
+                    // Geometry for the hover circle expansion
+                    const R = ((w * w) / 4 + h * h) / (2 * h);
+                    const D = Math.ceil(2 * R) + 2;
+                    const delta = Math.ceil(R - Math.sqrt(Math.max(0, R * R - (w * w) / 4))) + 1;
+                    const originY = D - delta;
 
-                if (label) {
-                    // Move default label up
-                    tl.to(label, { y: -(h + 8), duration: 0.4, ease: "power2.out", overwrite: 'auto' }, 0);
-                }
+                    circle.style.width = `${D}px`;
+                    circle.style.height = `${D}px`;
+                    circle.style.bottom = `-${delta}px`;
 
-                if (white) {
-                    // Bring hover label up
-                    gsap.set(white, { y: Math.ceil(h + 10), opacity: 0 });
-                    tl.to(white, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out", overwrite: 'auto' }, 0);
-                }
+                    gsap.set(circle, {
+                        xPercent: -50,
+                        scale: 0,
+                        transformOrigin: `50% ${originY}px`
+                    });
 
-                tlRefs.current[index] = tl;
+                    if (label) gsap.set(label, { y: 0 });
+                    if (white) gsap.set(white, { y: h + 12, opacity: 0 });
+
+                    if (index === -1) return;
+
+                    tlRefs.current[index]?.kill();
+                    const tl = gsap.timeline({ paused: true });
+
+                    // Hover Animation
+                    tl.to(circle, { scale: 1.2, xPercent: -50, duration: 0.4, ease: "power2.out", overwrite: 'auto' }, 0);
+
+                    if (label) {
+                        tl.to(label, { y: -(h + 8), duration: 0.4, ease: "power2.out", overwrite: 'auto' }, 0);
+                    }
+
+                    if (white) {
+                        gsap.set(white, { y: Math.ceil(h + 10), opacity: 0 });
+                        tl.to(white, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out", overwrite: 'auto' }, 0);
+                    }
+
+                    tlRefs.current[index] = tl;
+                });
             });
         };
 
@@ -287,7 +294,6 @@ const PillNav: React.FC<PillNavProps> = ({
                     }}
                 >
                     <ul
-                        role="menubar"
                         className="list-none flex items-center m-0 p-1 h-full rounded-full"
                         style={{ gap: 'var(--pill-gap)' }}
                     >

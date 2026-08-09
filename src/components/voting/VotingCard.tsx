@@ -140,8 +140,11 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                                     </Tooltip>
                                                                 </TooltipProvider>
                                                             </div>
-                                                            <div className="p-3 bg-black/20 font-mono text-[10px] break-all rounded-md border border-border/50 select-all text-primary/80">
-                                                                {item.voteHash || t("voting_card_gen_hash")}
+                                                            <div 
+                                                                className="p-3 bg-black/20 font-mono text-[10px] break-all rounded-md border border-border/50 text-primary/80" 
+                                                                title={item.voteHash || ""}
+                                                            >
+                                                                {item.voteHash ? `${item.voteHash.substring(0, 8)}...${item.voteHash.substring(item.voteHash.length - 8)}` : t("voting_card_gen_hash")}
                                                             </div>
                                                         </div>
 
@@ -158,8 +161,11 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                                 </div>
                                                                 <div className="space-y-1.5">
                                                                     <Label className="text-[10px] text-muted-foreground uppercase">{t("voting_card_merkle_root")}</Label>
-                                                                    <div className="p-2 bg-emerald-500/5 font-mono text-[10px] break-all rounded border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                                                                        {item.anchorRoot}
+                                                                    <div 
+                                                                        className="p-2 bg-emerald-500/5 font-mono text-[10px] break-all rounded border border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                                                        title={item.anchorRoot}
+                                                                    >
+                                                                        {item.anchorRoot.substring(0, 8)}...{item.anchorRoot.substring(item.anchorRoot.length - 8)}
                                                                     </div>
                                                                 </div>
                                                                 {item.merkleProof && (

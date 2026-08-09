@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
+import { Building2, ArrowRight, Shield, CheckCircle2, Play } from "lucide-react";
 import { trackEvent, AnalyticsEvents } from "@/lib/analytics";
 import { useTranslation } from "react-i18next";
 
@@ -55,18 +55,30 @@ const CTASection = () => {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <Link to="/company-register" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'cta_section' })}>
-            <Button
-              variant="default"
-              size="xl"
-              className="gap-3 text-lg px-10 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-            >
-              <Building2 className="w-6 h-6" />
-              {t("cta_btn")}
-              <ArrowRight className="w-6 h-6" />
-            </Button>
-          </Link>
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/live-demo">
+              <Button
+                variant="hero"
+                size="xl"
+                className="gap-3 text-lg px-10 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+              >
+                <Play className="w-6 h-6" />
+                Try Live Demo
+                <ArrowRight className="w-6 h-6" />
+              </Button>
+            </Link>
+            <Link to="/company-register" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'cta_section' })}>
+              <Button
+                variant="outline"
+                size="xl"
+                className="gap-3 text-lg px-10 border-white/20 hover:bg-white/5 hover:-translate-y-1 transition-all duration-300"
+              >
+                <Building2 className="w-6 h-6" />
+                {t("cta_btn")}
+              </Button>
+            </Link>
+          </div>
 
           {/* Trust Text */}
           <p className="text-sm text-muted-foreground mt-6">
