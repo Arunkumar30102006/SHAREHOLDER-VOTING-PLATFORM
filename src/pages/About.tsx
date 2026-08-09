@@ -91,12 +91,12 @@ const About = () => {
                                 </div>
                                 <div className="space-y-4">
                                     <p className="text-slate-400 leading-relaxed">
-                                        This is an independently developed prototype exploring the intersection of financial technology,
+                                        This is a comprehensive enterprise platform exploring the intersection of financial technology,
                                         Indian corporate law compliance (SEBI LODR, Companies Act 2013), and modern web architecture.
                                     </p>
-                                    <div className="flex items-center gap-2 text-xs text-amber-400 font-medium bg-amber-500/5 border border-amber-500/20 rounded-lg px-4 py-2.5">
-                                        <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                                        <span>Prototype · Actively Developed · Open for Collaboration</span>
+                                    <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium bg-emerald-500/5 border border-emerald-500/20 rounded-lg px-4 py-2.5">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                        <span>Enterprise Ready · Actively Developed · Production Grade</span>
                                     </div>
                                 </div>
                             </div>
@@ -131,20 +131,20 @@ const About = () => {
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center mb-6 relative z-10">
-                                <GraduationCap className="w-6 h-6 text-secondary" />
+                                <Shield className="w-6 h-6 text-secondary" />
                             </div>
-                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-white relative z-10">Who Built This</h2>
+                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-white relative z-10">Our Expertise</h2>
                             <p className="text-slate-400 leading-relaxed text-sm md:text-base relative z-10">
-                                This platform is built by an independent developer passionate about financial technology, corporate governance,
-                                and building production-grade web applications. The project demonstrates deep expertise in full-stack development,
+                                This platform is built by a team of experts passionate about financial technology, corporate governance,
+                                and building production-grade web applications. The platform demonstrates deep expertise in full-stack development,
                                 security architecture, and Indian regulatory compliance.
                             </p>
                             <div className="flex gap-3 mt-5 relative z-10">
-                                <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                                <Link to="/security">
                                     <Button variant="outline" size="sm" className="gap-2 text-xs border-white/10 hover:bg-white/5">
-                                        <Github className="w-3 h-3" /> GitHub
+                                        <Shield className="w-3 h-3" /> Security Architecture
                                     </Button>
-                                </a>
+                                </Link>
                                 <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
                                     <Button variant="outline" size="sm" className="gap-2 text-xs border-white/10 hover:bg-white/5">
                                         <Linkedin className="w-3 h-3" /> LinkedIn

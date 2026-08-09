@@ -43,7 +43,7 @@ const BuiltBySection = () => {
               </span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              This platform is an independently built prototype demonstrating how modern technology
+              This platform is an enterprise-grade solution demonstrating how modern technology
               can transform corporate governance in India.
             </p>
           </motion.div>
@@ -71,7 +71,7 @@ const BuiltBySection = () => {
                 </p>
                 <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium">
                   <Sparkles className="w-4 h-4" />
-                  <span>Prototype · Actively Developed · Open for Feedback</span>
+                  <span>Enterprise Ready · Actively Developed · Production Grade</span>
                 </div>
               </div>
             </motion.div>
@@ -87,11 +87,11 @@ const BuiltBySection = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10">
                 <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center mb-5">
-                  <GraduationCap className="w-6 h-6 text-secondary" />
+                  <Shield className="w-6 h-6 text-secondary" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Built By</h3>
+                <h3 className="text-xl font-bold text-white mb-3">Enterprise Architecture</h3>
                 <p className="text-slate-400 leading-relaxed text-sm mb-4">
-                  Developed as an independent project exploring the intersection of financial technology,
+                  Developed as a comprehensive platform addressing the intersection of financial technology,
                   corporate law compliance, and modern web architecture. Built from the ground up with
                   production-grade security patterns and real-world regulatory awareness.
                 </p>
@@ -102,12 +102,12 @@ const BuiltBySection = () => {
                       Learn About Our Platform
                     </Button>
                   </Link>
-                  <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                  <Link to="/security">
                     <Button variant="outline" size="sm" className="gap-2 text-xs border-white/10 hover:bg-white/5">
-                      <Github className="w-3 h-3" />
-                      View Source
+                      <Shield className="w-3 h-3" />
+                      Security Architecture
                     </Button>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </motion.div>
