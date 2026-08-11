@@ -8,6 +8,9 @@ import { Suspense, lazy } from "react";
 import ScrollToTop from "./components/ScrollToTop";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
 // Lazy-load floating widgets (not needed for first paint)
 const WebsiteFeedback = lazy(() => import("./components/feedback/WebsiteFeedback"));
 const VoteAssistant = lazy(() => import("./components/ai/VoteAssistant").then(m => ({ default: m.VoteAssistant })));
@@ -31,7 +34,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const About = lazy(() => import("./pages/About"));
 const Features = lazy(() => import("./pages/Features"));
 const Pricing = lazy(() => import("./pages/Pricing"));
-const Demo = lazy(() => import("./pages/LiveDemo"));
+const Demo = lazy(() => import("./pages/Demo"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Security = lazy(() => import("./pages/Security"));
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
@@ -54,7 +57,6 @@ import { HelmetProvider } from 'react-helmet-async';
 import ProtectedAdminRoute from "@/components/auth/ProtectedAdminRoute";
 
 const App = () => {
-  console.log("Vote India Secure - Performance Optimized v2.0");
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -65,42 +67,54 @@ const App = () => {
               <Sonner />
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <ScrollToTop />
-                <WebsiteFeedback />
-                <VoteAssistant />
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/company-register" element={<CompanyRegister />} />
-                    <Route path="/company-login" element={<CompanyLogin />} />
-                    <Route path="/shareholder-login" element={<ShareholderLogin />} />
-                    <Route path="/voting-dashboard" element={<VotingDashboard />} />
-                    <Route path="/shareholder-analysis" element={<ShareholderAnalysis />} />
-
-                    {/* Protected Admin Routes */}
-                    <Route element={<ProtectedAdminRoute />}>
-                      <Route path="/company-dashboard" element={<CompanyDashboard />} />
-                      <Route path="/voting-management" element={<VotingManagement />} />
-                      <Route path="/ai-power-suite" element={<AIPowerSuite />} />
-                    </Route>
-
-                    {/* Public Pages */}
-                    <Route path="/about" element={<About />} />
-                    <Route path="/features" element={<Features />} />
-                    <Route path="/pricing" element={<Pricing />} />
-                    <Route path="/demo" element={<Demo />} />
-                    <Route path="/security" element={<Security />} />
-                    <Route path="/contact" element={<Contact />} />
-
-                    {/* Legal Routes */}
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    <Route path="/terms-of-service" element={<TermsOfService />} />
-                    <Route path="/sebi-compliance" element={<SebiCompliance />} />
-                    <Route path="/data-protection" element={<DataProtection />} />
-
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                
+                <Suspense fallback={null}>
+                  <WebsiteFeedback />
+                  <VoteAssistant />
                 </Suspense>
+
+                <div className="flex flex-col min-h-screen">
+                  <Navbar />
+                  
+                  <main className="flex-grow">
+                    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>}>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/company-register" element={<CompanyRegister />} />
+                        <Route path="/company-login" element={<CompanyLogin />} />
+                        <Route path="/shareholder-login" element={<ShareholderLogin />} />
+                        <Route path="/voting-dashboard" element={<VotingDashboard />} />
+                        <Route path="/shareholder-analysis" element={<ShareholderAnalysis />} />
+
+                        {/* Protected Admin Routes */}
+                        <Route element={<ProtectedAdminRoute />}>
+                          <Route path="/company-dashboard" element={<CompanyDashboard />} />
+                          <Route path="/voting-management" element={<VotingManagement />} />
+                          <Route path="/ai-power-suite" element={<AIPowerSuite />} />
+                        </Route>
+
+                        {/* Public Pages */}
+                        <Route path="/about" element={<About />} />
+                        <Route path="/features" element={<Features />} />
+                        <Route path="/pricing" element={<Pricing />} />
+                        <Route path="/demo" element={<Demo />} />
+                        <Route path="/security" element={<Security />} />
+                        <Route path="/contact" element={<Contact />} />
+
+                        {/* Legal Routes */}
+                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                        <Route path="/terms-of-service" element={<TermsOfService />} />
+                        <Route path="/sebi-compliance" element={<SebiCompliance />} />
+                        <Route path="/data-protection" element={<DataProtection />} />
+
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </main>
+
+                  <Footer />
+                </div>
               </BrowserRouter>
             </TooltipProvider>
           </HelmetProvider>

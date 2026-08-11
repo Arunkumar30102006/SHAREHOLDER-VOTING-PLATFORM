@@ -131,11 +131,10 @@ const Pricing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`relative rounded-2xl p-8 border backdrop-blur-xl shadow-2xl overflow-hidden group transition-all duration-500 hover:-translate-y-2 ${
-                  tier.highlight
+                className={`relative rounded-2xl p-8 border backdrop-blur-xl shadow-2xl overflow-hidden group transition-all duration-500 hover:-translate-y-2 ${tier.highlight
                     ? "bg-[#0d1b2a]/60 border-primary/40 ring-1 ring-primary/20"
                     : "bg-[#0d1b2a]/40 border-white/10"
-                }`}
+                  }`}
               >
                 {tier.highlight && (
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500" />

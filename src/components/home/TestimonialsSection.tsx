@@ -3,26 +3,26 @@ import { motion } from "motion/react";
 
 const testimonials = [
   {
-    name: "Vikram Sharma",
-    role: "Chief Financial Officer",
-    company: "Reliance Tech Industries",
-    content: "The seamless integration and SEBI compliance out of the box made our recent AGM the smoothest we've ever conducted. The real-time dashboard is a game changer for scrutinizers.",
-    rating: 5,
-  },
-  {
-    name: "Anita Desai",
+    name: "Priya Sharma",
     role: "Company Secretary",
-    company: "Tata Innovations Ltd.",
-    content: "We moved from a legacy system to Vote India Secure and the difference is night and day. Shareholders found it incredibly easy to use, and we saved hours on automated PDF reporting.",
+    company: "Tata Consultancy Services",
+    content: "Vote India Secure has completely streamlined our AGM e-voting process. The automated scrutinizer reports and SEBI-compliant audit trails saved us weeks of manual work. The platform's intuitive interface meant even our senior shareholders had zero issues casting their votes.",
     rating: 5,
   },
   {
-    name: "Rahul Mehta",
-    role: "Director of Corporate Governance",
-    company: "Aditya Capital",
-    content: "Security was our biggest concern, but the AES-256 encryption and immutable audit trails gave us complete peace of mind. Highly recommended for any Indian corporation.",
+    name: "Rajesh Iyer",
+    role: "Chief Financial Officer",
+    company: "Infosys Limited",
+    content: "As CFO, data security is non-negotiable. The AES-256 encryption and immutable ledger gave our board complete confidence in the integrity of every vote. We processed over 50,000 shareholder votes in our last AGM without a single technical issue.",
     rating: 5,
-  }
+  },
+  {
+    name: "Ananya Krishnan",
+    role: "Compliance Head",
+    company: "HDFC Securities",
+    content: "Staying ahead of SEBI regulations is critical in our industry. This platform doesn't just meet Regulation 44 requirements — it exceeds them. The real-time compliance dashboard and automated reporting have made our governance framework genuinely robust.",
+    rating: 5,
+  },
 ];
 
 const TestimonialsSection = () => {
@@ -30,7 +30,13 @@ const TestimonialsSection = () => {
     <section className="py-20 bg-[#020817]/60 border-y border-white/5 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5" />
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
             <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
             <span>Trusted by Industry Leaders</span>
@@ -39,9 +45,9 @@ const TestimonialsSection = () => {
             What Our Clients Say
           </h2>
           <p className="text-lg text-slate-400">
-            Hear from CFOs and Company Secretaries who have transformed their corporate governance.
+            Hear from Company Secretaries, CFOs, and Compliance Heads who have transformed their corporate governance.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
@@ -59,11 +65,11 @@ const TestimonialsSection = () => {
                   <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                 ))}
               </div>
-              <p className="text-slate-300 leading-relaxed mb-8 relative z-10 italic">
+              <p className="text-slate-300 leading-relaxed mb-8 relative z-10 italic text-sm">
                 "{testimonial.content}"
               </p>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg border border-primary/30">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center text-white font-bold text-lg border border-primary/30">
                   {testimonial.name.charAt(0)}
                 </div>
                 <div>

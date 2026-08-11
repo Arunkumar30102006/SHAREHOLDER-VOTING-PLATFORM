@@ -295,11 +295,10 @@ const StepResolutions = ({ onNext, onBack }: { onNext: () => void; onBack: () =>
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ${
-                      voted === "FOR" ? "bg-emerald-500/20 text-emerald-400" :
-                      voted === "AGAINST" ? "bg-red-500/20 text-red-400" :
-                      "bg-slate-500/20 text-slate-400"
-                    }`}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ${voted === "FOR" ? "bg-emerald-500/20 text-emerald-400" :
+                        voted === "AGAINST" ? "bg-red-500/20 text-red-400" :
+                          "bg-slate-500/20 text-slate-400"
+                      }`}
                   >
                     <CheckCircle2 className="w-3 h-3" />
                     {voted === "FOR" ? "Voted FOR" : voted === "AGAINST" ? "Voted AGAINST" : "ABSTAINED"}
@@ -468,11 +467,10 @@ const ProgressBar = ({ step }: { step: number }) => {
     <div className="flex items-center justify-center gap-2 mb-10">
       {steps.map((s, i) => (
         <div key={s.label} className="flex items-center gap-2">
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
-            i < step ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
-            i === step ? "bg-primary/20 text-primary border border-primary/30" :
-            "bg-white/5 text-slate-500 border border-white/10"
-          }`}>
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${i < step ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
+              i === step ? "bg-primary/20 text-primary border border-primary/30" :
+                "bg-white/5 text-slate-500 border border-white/10"
+            }`}>
             <s.icon className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">{s.label}</span>
           </div>

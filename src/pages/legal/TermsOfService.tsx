@@ -1,110 +1,158 @@
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import { Gavel, AlertTriangle, FileCheck, ShieldAlert } from "lucide-react";
+import { useState, useEffect } from "react";
 import { SEO } from "@/components/layout/SEO";
+import { FileText, ChevronRight } from "lucide-react";
 
-const TermsOfService = () => {
-    return (
-        <div className="min-h-screen relative">
-            <SEO
-                title="Terms of Service"
-                description="Review the terms and conditions for using ShareholderVoting.in's secure e-voting platform."
-                canonical="/terms-of-service"
-            />
-            <Navbar />
-            <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 max-w-4xl">
-                <div className="space-y-8 bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-large">
-                    <div className="text-center space-y-3 border-b border-white/10 pb-6">
-                        <h1 className="text-2xl md:text-3xl font-bold text-primary">Terms of Service</h1>
-                        <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Effective Date: February 24, 2026</p>
-                    </div>
+const sections = [
+  { id: "acceptance", title: "1. Acceptance of Terms" },
+  { id: "eligibility", title: "2. Eligibility" },
+  { id: "use-platform", title: "3. Use of Platform" },
+  { id: "prohibited", title: "4. Prohibited Actions" },
+  { id: "limitation", title: "5. Limitation of Liability" },
+  { id: "governing-law", title: "6. Governing Law & Dispute Resolution" },
+];
 
-                    <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
+export default function TermsOfService() {
+  const [activeSection, setActiveSection] = useState("acceptance");
 
-                        <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg flex gap-3 text-destructive dark:text-red-400">
-                            <ShieldAlert className="w-6 h-6 flex-shrink-0 mt-0.5" />
-                            <div className="text-sm">
-                                <strong>IMPORTANT DISCLAIMER:</strong> ShareholderVoting.in is a private technology platform. We are NOT an official government entity, SEBI, NSDL, or CDSL. We provide software tools for corporate governance. Users must independently verify the legal validity of their voting processes.
-                            </div>
-                        </div>
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 150;
+      for (const section of sections) {
+        const element = document.getElementById(section.id);
+        if (element && element.offsetTop <= scrollPosition) {
+          setActiveSection(section.id);
+        }
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-                        <section>
-                            <h2 className="text-lg font-semibold flex items-center gap-2">
-                                <Gavel className="w-5 h-5 text-primary" />
-                                1. Acceptance of Terms
-                            </h2>
-                            <p className="text-sm md:text-base text-muted-foreground">
-                                By accessing or using the ShareholderVoting.in website and services, you agree to be bound by these Terms of Service. If you do not agree, strictly do not use our services.
-                            </p>
-                        </section>
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      window.scrollTo({ top: element.offsetTop - 100, behavior: "smooth" });
+    }
+  };
 
-                        <section>
-                            <h2 className="text-lg font-semibold flex items-center gap-2">
-                                <FileCheck className="w-5 h-5 text-primary" />
-                                2. Services Provided
-                            </h2>
-                            <p className="text-sm md:text-base text-muted-foreground">
-                                ShareholderVoting.in provides a Software-as-a-Service (SaaS) platform for:
-                            </p>
-                            <ul className="list-disc pl-6 space-y-1.5 text-sm md:text-base text-muted-foreground">
-                                <li>Company registration and dashboard management.</li>
-                                <li>Shareholder and director nomination management.</li>
-                                <li>Electronic voting facilitation.</li>
-                            </ul>
-                            <p className="text-muted-foreground mt-2">
-                                We act purely as an intermediary technology provider and do not influence voting outcomes or advise on corporate decisions.
-                            </p>
-                        </section>
+  return (
+    <div className="min-h-screen relative pt-28 pb-20">
+      <SEO
+        title="Terms of Service | Vote India Secure"
+        description="Terms of service and user agreement for Vote India Secure platform."
+        canonical="/terms-of-service"
+      />
 
-                        <section>
-                            <h2 className="text-lg font-semibold flex items-center gap-2">
-                                <AlertTriangle className="w-5 h-5 text-primary" />
-                                3. User Responsibilities
-                            </h2>
-                            <p className="text-sm md:text-base text-muted-foreground">
-                                <strong>Companies:</strong> Are responsible for the accuracy of shareholder data, meeting notices, and compliance with applicable laws (e.g., Companies Act, 2013).<br />
-                                <strong>Shareholders:</strong> Are responsible for maintaining the confidentiality of their login credentials and voting securely.
-                            </p>
-                        </section>
-
-                        <section>
-                            <h2 className="text-xl font-semibold">4. Limitation of Liability</h2>
-                            <p className="text-sm md:text-base text-muted-foreground">
-                                To the fullest extent permitted by law, ShareholderVoting.in shall not be liable for any indirect, incidental, special, or consequential damages arising out of:
-                            </p>
-                            <ul className="list-disc pl-6 space-y-1.5 text-sm md:text-base text-muted-foreground">
-                                <li>Service interruptions or technical failures.</li>
-                                <li>Inaccurate data provided by companies.</li>
-                                <li>Unauthorized access due to user negligence.</li>
-                            </ul>
-                        </section>
-
-                        <section>
-                            <h2 className="text-xl font-semibold">5. Account Termination</h2>
-                            <p className="text-sm md:text-base text-muted-foreground">
-                                We reserve the right to suspend or terminate accounts that violate these terms, engage in fraudulent activity, or compromise the security of the platform.
-                            </p>
-                        </section>
-
-                        <section>
-                            <h2 className="text-xl font-semibold">6. Governing Law</h2>
-                            <p className="text-sm md:text-base text-muted-foreground">
-                                These terms are governed by the laws of India. Any disputes are subject to the exclusive jurisdiction of the courts in Mumbai, Maharashtra.
-                            </p>
-                        </section>
-
-                        <section>
-                            <h2 className="text-xl font-semibold">7. Contact</h2>
-                            <p className="text-sm md:text-base text-muted-foreground">
-                                Questions about these Terms should be sent to: <a href="mailto:legal@shareholdervoting.in" className="text-primary hover:underline">legal@shareholdervoting.in</a>
-                            </p>
-                        </section>
-                    </div>
-                </div>
-            </main>
-            <Footer />
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="mb-12 border-b border-white/10 pb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 text-sm font-medium mb-4">
+            <FileText className="w-4 h-4" /> Legal & Terms
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Terms of Service</h1>
+          <p className="text-slate-400">Last updated: January 2026</p>
         </div>
-    );
-};
 
-export default TermsOfService;
+        <div className="flex flex-col md:flex-row gap-12 relative">
+          {/* Sticky Sidebar */}
+          <aside className="md:w-1/4 hidden md:block">
+            <div className="sticky top-28 bg-[#020817]/60 backdrop-blur-md border border-white/10 p-6 rounded-xl">
+              <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-xs">Table of Contents</h3>
+              <nav className="space-y-1">
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => scrollToSection(section.id)}
+                    className={`block w-full text-left text-sm py-2 px-3 rounded-lg transition-colors flex items-center justify-between ${
+                      activeSection === section.id
+                        ? "bg-blue-500/20 text-blue-400 font-medium"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    }`}
+                  >
+                    {section.title}
+                    {activeSection === section.id && <ChevronRight className="w-4 h-4" />}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <div className="md:w-3/4 max-w-3xl prose prose-invert prose-blue">
+            <section id="acceptance" className="mb-12 scroll-mt-28">
+              <h2 className="text-2xl font-bold text-white mb-4">1. Acceptance of Terms</h2>
+              <p className="text-slate-300 leading-relaxed mb-4">
+                By accessing and using the Vote India Secure platform (the "Platform"), you agree to be bound by these Terms of Service. These terms constitute a legally binding agreement between you (whether an individual shareholder, a corporate entity, or a scrutinizer) and Vote India Secure Technologies Private Limited.
+              </p>
+              <p className="text-slate-300 leading-relaxed">
+                If you do not agree to these terms, please do not use our Platform.
+              </p>
+            </section>
+
+            <section id="eligibility" className="mb-12 scroll-mt-28">
+              <h2 className="text-2xl font-bold text-white mb-4">2. Eligibility</h2>
+              <p className="text-slate-300 leading-relaxed mb-4">To use this Platform, you must:</p>
+              <ul className="list-disc pl-6 text-slate-300 space-y-2 mb-4">
+                <li>Be at least 18 years of age (or the legal age of majority in your jurisdiction).</li>
+                <li>Be a verified shareholder as per the records of the Depository (NSDL/CDSL) on the relevant cut-off date.</li>
+                <li>Provide accurate, current, and complete identity information during the authentication process.</li>
+              </ul>
+            </section>
+
+            <section id="use-platform" className="mb-12 scroll-mt-28">
+              <h2 className="text-2xl font-bold text-white mb-4">3. Use of Platform</h2>
+              <p className="text-slate-300 leading-relaxed mb-4">
+                The Platform is provided strictly for the purpose of facilitating electronic voting for Annual General Meetings (AGMs), Extraordinary General Meetings (EGMs), and postal ballots in compliance with the Companies Act, 2013 and SEBI regulations.
+              </p>
+              <p className="text-slate-300 leading-relaxed mb-4">
+                As a user, you agree that:
+              </p>
+              <ul className="list-disc pl-6 text-slate-300 space-y-2">
+                <li>Your voting credentials (OTP, passwords) are strictly confidential and must not be shared with any third party.</li>
+                <li>Votes once cast and submitted cannot be modified, withdrawn, or reversed, as per statutory guidelines.</li>
+                <li>You are solely responsible for ensuring you cast your vote before the closing time of the voting window as defined by the company.</li>
+              </ul>
+            </section>
+
+            <section id="prohibited" className="mb-12 scroll-mt-28">
+              <h2 className="text-2xl font-bold text-white mb-4">4. Prohibited Actions</h2>
+              <p className="text-slate-300 leading-relaxed mb-4">Users are strictly prohibited from engaging in the following activities:</p>
+              <ul className="list-disc pl-6 text-slate-300 space-y-2">
+                <li>Attempting to bypass, disable, or interfere with security-related features of the Platform.</li>
+                <li>Impersonating another shareholder, scrutinizer, or company official.</li>
+                <li>Using automated scripts, bots, or scrapers to cast votes or extract data.</li>
+                <li>Attempting to reverse-engineer the cryptographic hashing or encryption mechanisms.</li>
+                <li>Uploading malicious code, viruses, or attempting Denial of Service (DoS) attacks.</li>
+              </ul>
+              <p className="text-slate-300 leading-relaxed mt-4 font-medium text-red-400">
+                Violation of these terms may result in immediate suspension of access and reporting to relevant law enforcement agencies under the Information Technology Act, 2000.
+              </p>
+            </section>
+
+            <section id="limitation" className="mb-12 scroll-mt-28">
+              <h2 className="text-2xl font-bold text-white mb-4">5. Limitation of Liability</h2>
+              <p className="text-slate-300 leading-relaxed mb-4">
+                While we guarantee an uptime of 99.99% and employ enterprise-grade security, Vote India Secure shall not be liable for:
+              </p>
+              <ul className="list-disc pl-6 text-slate-300 space-y-2">
+                <li>Inability to vote due to incorrect records provided by the RTA or Depositories.</li>
+                <li>Network failures, ISP outages, or device-level issues on the user's end.</li>
+                <li>Indirect, incidental, or consequential damages arising from the use or inability to use the Platform.</li>
+              </ul>
+            </section>
+
+            <section id="governing-law" className="mb-12 scroll-mt-28">
+              <h2 className="text-2xl font-bold text-white mb-4">6. Governing Law & Dispute Resolution</h2>
+              <p className="text-slate-300 leading-relaxed mb-4">
+                These Terms shall be governed by and construed in accordance with the laws of the Republic of India.
+              </p>
+              <p className="text-slate-300 leading-relaxed">
+                Any dispute, controversy, or claim arising out of or relating to these Terms, or the breach thereof, shall be subject to the exclusive jurisdiction of the competent courts located in <strong>Mumbai, Maharashtra, India</strong>.
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

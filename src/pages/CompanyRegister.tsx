@@ -1,947 +1,714 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { useState, ChangeEvent, FormEvent } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  CheckCircle2, XCircle, ChevronRight, Upload, X, AlertCircle, Building2,
+  FileText, ShieldCheck, FileKey, CheckSquare, UploadCloud, UserCircle, Loader2
+} from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SEO } from "@/components/layout/SEO";
-import { env } from "@/config/env";
-import {
-  Building2,
-  Mail,
-  Phone,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle2,
-  Shield,
-  Users,
-  Lock,
-  Eye,
-  EyeOff,
-  Loader2,
-  Briefcase
-} from "lucide-react";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { z } from "zod";
-import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
-import {
-  countries,
-  indianStates,
-  districtsMap,
-} from "@/lib/locationData";
+type ValidationRule = {
+  regex?: RegExp;
+  message: string;
+  custom?: (val: any, allData: any) => boolean;
+};
 
-const step1Schema = z.object({
-  companyName: z.string().min(2, "Company name is required").max(200),
-  cin: z.string().min(10, "Valid CIN is required").max(25),
-  registeredAddress: z.string().min(5, "Building/Street is required").max(500),
-  country: z.string().min(1, "Country is required"),
-  state: z.string().min(1, "State is required"),
-  district: z.string().min(1, "District is required"), // Replaces City for validation
-  area: z.string().min(2, "Area is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Valid 6-digit PIN code required"),
-});
+const STEPS = [
+  { id: 1, title: "Company Details", icon: Building2 },
+  { id: 2, title: "Admin Account", icon: UserCircle },
+  { id: 3, title: "Compliance & CS", icon: ShieldCheck },
+  { id: 4, title: "Documents", icon: UploadCloud },
+  { id: 5, title: "Review & Submit", icon: CheckSquare }
+];
 
-const step2Schema = z.object({
-  contactName: z.string().min(2, "Name is required").max(100),
-  contactEmail: z.string().email("Valid email required").max(255),
-  contactPhone: z.string().min(10, "Valid phone number required").max(15),
-  designation: z.string().min(2, "Designation is required").max(100),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const COMPANY_TYPES = [
+  "Public Limited Company",
+  "Private Limited Company",
+  "One Person Company (OPC)",
+  "Limited Liability Partnership (LLP)",
+  "Section 8 Company (NGO)",
+  "Government Company"
+];
 
-type Step = 1 | 2 | 3;
+const RTAS = [
+  "KFin Technologies Ltd",
+  "Link Intime India Pvt Ltd",
+  "Bigshare Services Pvt Ltd",
+  "Cameo Corporate Services Ltd",
+  "Niche Technologies Pvt Ltd",
+  "Self-managed (no RTA)"
+];
 
-const CompanyRegister = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+const EXCHANGES = [
+  { id: "bse", label: "BSE (Bombay Stock Exchange)" },
+  { id: "nse", label: "NSE (National Stock Exchange)" },
+  { id: "mse", label: "MSE (Metropolitan Stock Exchange)" },
+  { id: "none", label: "Not Listed" }
+];
 
-  // Ensure clean state on mount without triggering error toasts
-  useEffect(() => {
-    const clearSession = async () => {
-      try {
-        // Only clear if a likely stale/invalid session exists to avoid unnecessary calls
-        const sessionToken = localStorage.getItem("supabase.auth.token");
-        if (sessionToken && (sessionToken.includes('"expires_at":') || sessionToken.includes('access_token'))) {
-          // Use local scope to avoid server call that might 401
-          await supabase.auth.signOut({ scope: 'local' });
-          localStorage.removeItem("supabase.auth.token");
-        }
-      } catch (e) {
-        // Silently ignore all errors during cleanup
-      }
-    };
-    clearSession();
-  }, []);
+// Extracted Components to prevent re-mounting and losing focus
+const InputField = ({ label, name, type = "text", placeholder = "", helper = "", required = false, prefix = "", disabled = false, value, onChange, onBlur, error, valid }: any) => (
+  <div className="space-y-1 w-full">
+    <label className="text-sm font-medium text-slate-300">
+      {label} {required && <span className="text-red-400">*</span>}
+    </label>
+    <div className="relative">
+      {prefix && (
+        <span className="absolute left-4 top-3 text-slate-400 font-medium">{prefix}</span>
+      )}
+      <input
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        className={`w-full h-11 bg-[#020817]/50 border text-white rounded-xl text-sm transition-all outline-none ${prefix ? 'pl-10 pr-10' : 'px-4'} ${
+          error ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 
+          valid ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 
+          'border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+        }`}
+        disabled={disabled}
+        max={type === 'date' ? new Date().toISOString().split('T')[0] : undefined}
+      />
+      {valid && <CheckCircle2 className="w-4 h-4 text-emerald-500 absolute right-4 top-3.5" />}
+      {error && <XCircle className="w-4 h-4 text-red-500 absolute right-4 top-3.5" />}
+    </div>
+    {(helper || error) && (
+      <p className={`text-xs ${error ? 'text-red-400' : 'text-slate-500'}`}>
+        {error || helper}
+      </p>
+    )}
+  </div>
+);
 
-  const [formData, setFormData] = useState({
+const SelectField = ({ label, name, options, helper = "", required = false, value, onChange, onBlur, error, valid }: any) => (
+  <div className="space-y-1 w-full">
+    <label className="text-sm font-medium text-slate-300">
+      {label} {required && <span className="text-red-400">*</span>}
+    </label>
+    <div className="relative">
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        className={`w-full h-11 px-4 bg-[#020817]/50 border text-white rounded-xl text-sm transition-all outline-none appearance-none ${
+          error ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 
+          valid ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 
+          'border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+        }`}
+      >
+        <option value="" disabled className="text-slate-500">Select an option</option>
+        {options.map((opt: string) => (
+          <option key={opt} value={opt} className="bg-[#0d1b2a]">{opt}</option>
+        ))}
+      </select>
+      <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-3.5 rotate-90 pointer-events-none" />
+    </div>
+    {(helper || error) && (
+      <p className={`text-xs ${error ? 'text-red-400' : 'text-slate-500'}`}>
+        {error || helper}
+      </p>
+    )}
+  </div>
+);
+
+const FileUpload = ({ label, name, accept, maxSize, helper, required = false, file, onFileChange, onRemove }: any) => (
+  <div className="space-y-2 p-4 rounded-xl border border-white/10 bg-white/5">
+    <label className="text-sm font-medium text-white block">
+      {label} {required && <span className="text-red-400">*</span>}
+    </label>
+    <p className="text-xs text-slate-400 mb-3">{helper}</p>
+    
+    {!file ? (
+      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all">
+        <Upload className="w-6 h-6 text-slate-400 mb-2" />
+        <span className="text-xs text-slate-400">Click to upload ({maxSize}MB max)</span>
+        <input 
+          type="file" 
+          className="hidden" 
+          accept={accept}
+          onChange={(e) => onFileChange(name, e.target.files?.[0] || null, maxSize, accept.split(','))} 
+        />
+      </label>
+    ) : (
+      <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <FileText className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="truncate">
+            <p className="text-sm text-emerald-400 font-medium truncate">{file.name}</p>
+            <p className="text-xs text-emerald-500/70">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+          </div>
+        </div>
+        <button onClick={() => onRemove(name)} className="p-1 hover:bg-emerald-500/20 rounded-lg transition-colors">
+          <X className="w-4 h-4 text-emerald-400" />
+        </button>
+      </div>
+    )}
+  </div>
+);
+
+export default function CompanyRegister() {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState<any>({
     companyName: "",
     cin: "",
-    registeredAddress: "",
+    pan: "",
+    gstin: "",
+    companyType: "",
+    doi: "",
+    exchanges: [] as string[],
+    isin: "",
+    authorizedCapital: "",
+    paidUpCapital: "",
+    address: "",
     country: "India",
+    pinCode: "",
+    area: "",
     state: "",
     district: "",
-    area: "",
-    pincode: "",
-    contactName: "",
-    contactEmail: "",
-    contactPhone: "",
-    designation: "",
-    password: "",
-    confirmPassword: "",
-    otp: "",
+    
+    adminName: "",
+    adminDesignation: "",
+    adminEmail: "",
+    adminPhone: "",
+    adminPassword: "",
+    adminConfirmPassword: "",
+    
+    csName: "",
+    csMemNumber: "",
+    csEmail: "",
+    csPhone: "",
+    sebiEmail: "",
+    sebiRegNumber: "",
+    rtaName: "",
+    rtaRegNumber: "",
+
+    declaration: false,
+    consent: false
   });
 
-  const fetchPincodeData = async (pincode: string) => {
-    if (pincode.length !== 6) return;
+  const [files, setFiles] = useState<Record<string, File | null>>({
+    certInc: null,
+    boardRes: null,
+    panCard: null,
+    shareholders: null,
+    authLetter: null
+  });
 
-    setIsLoading(true);
-    try {
-      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
-      const data = await response.json();
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [regId, setRegId] = useState("");
 
-      if (data[0].Status === "Success") {
-        const postOffice = data[0].PostOffice[0];
-        setFormData(prev => ({
-          ...prev,
-          state: postOffice.State,
-          district: postOffice.District,
-          // Area could be multiple, we'll suggest the first one or let them keep typing
-          area: prev.area || postOffice.Name
-        }));
-        setErrors(prev => ({ ...prev, pincode: "" }));
-        toast.success("Address auto-filled from PIN code");
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev: any) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev: any) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleExchangeChange = (id: string, checked: boolean) => {
+    setFormData((prev: any) => {
+      let newExchanges = [...prev.exchanges];
+      if (id === "none" && checked) {
+        newExchanges = ["none"];
+      } else if (checked) {
+        newExchanges = newExchanges.filter(e => e !== "none");
+        newExchanges.push(id);
       } else {
-        setErrors(prev => ({ ...prev, pincode: "Invalid PIN code for India" }));
+        newExchanges = newExchanges.filter(e => e !== id);
       }
-    } catch (error) {
-      console.error("PIN Lookup Error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+      return { ...prev, exchanges: newExchanges };
+    });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-
-    // Auto-fetch address when 6 digits entered for pincode
-    if (name === "pincode" && value.length === 6 && /^\d+$/.test(value) && formData.country === "India") {
-      fetchPincodeData(value);
+  const handleFileChange = (name: string, file: File | null, maxSize: number, allowedTypes: string[]) => {
+    if (!file) {
+      setFiles(prev => ({ ...prev, [name]: null }));
+      return;
     }
-
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    const ext = file.name.split('.').pop()?.toLowerCase() || "";
+    if (!allowedTypes.includes(ext) && !allowedTypes.some(t => file.type.includes(t))) {
+      alert(`Invalid file type. Allowed: ${allowedTypes.join(", ")}`);
+      return;
+    }
+    if (file.size > maxSize * 1024 * 1024) {
+      alert(`File too large. Maximum size is ${maxSize}MB`);
+      return;
+    }
+    setFiles(prev => ({ ...prev, [name]: file }));
   };
 
-  const warmEdgeFunction = async () => {
-    try {
-      // Trigger a preflight request to wake up the edge function (mitigate cold starts)
-      await fetch(`${env.SUPABASE_URL}/functions/v1/send-email-otp`, {
-        method: "OPTIONS",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": env.SUPABASE_ANON_KEY
-        }
+  const handleFileRemove = (name: string) => {
+    setFiles(prev => ({ ...prev, [name]: null }));
+  };
+
+  const handleBlur = (field: string) => setTouched(prev => ({ ...prev, [field]: true }));
+
+  const rules: Record<string, ValidationRule> = {
+    companyName: { custom: v => v.length > 2, message: "Required" },
+    cin: { regex: /^[LUu]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{2,3}[0-9]{6}$/, message: "Invalid CIN format" },
+    pan: { regex: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, message: "Invalid PAN format (e.g., AABCT1234D)" },
+    gstin: { regex: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: "Invalid GSTIN format" },
+    companyType: { custom: v => v !== "", message: "Select company type" },
+    doi: { custom: v => v !== "", message: "Select date of incorporation" },
+    isin: { regex: /^IN[A-Z0-9]{10}$/, message: "Invalid ISIN format (e.g., INE009A01021)" },
+    authorizedCapital: { custom: v => Number(v.replace(/,/g, '')) > 0, message: "Required" },
+    paidUpCapital: { custom: (v, all) => Number(v.replace(/,/g, '')) > 0 && Number(v.replace(/,/g, '')) <= Number(all.authorizedCapital.replace(/,/g, '')), message: "Must be ≤ Authorized Capital" },
+    address: { custom: v => v.length > 5, message: "Address too short" },
+    pinCode: { regex: /^[1-9][0-9]{5}$/, message: "Invalid PIN code" },
+    state: { custom: v => v !== "", message: "Required" },
+    
+    adminName: { custom: v => v.length > 2, message: "Required" },
+    adminDesignation: { custom: v => v.length > 2, message: "Required" },
+    adminEmail: { regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" },
+    adminPhone: { regex: /^(\+91)?[6-9][0-9]{9}$/, message: "Invalid phone number" },
+    adminPassword: { custom: v => v.length >= 8, message: "Minimum 8 characters" },
+    adminConfirmPassword: { custom: (v, all) => v === all.adminPassword && v.length > 0, message: "Passwords do not match" },
+    
+    csName: { custom: v => v.length > 2, message: "Required" },
+    csMemNumber: { regex: /^[AaFf][0-9]{5}$/, message: "Format: A12345 or F12345" },
+    csEmail: { regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" },
+    csPhone: { regex: /^(\+91)?[6-9][0-9]{9}$/, message: "Invalid phone number" },
+    sebiEmail: { regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" },
+    rtaName: { custom: v => v !== "", message: "Select RTA" },
+    rtaRegNumber: { custom: v => v.length > 3, message: "Required" }
+  };
+
+  const getError = (field: string) => {
+    if (!touched[field]) return "";
+    const val = formData[field];
+    const rule = rules[field];
+    if (!rule) return "";
+    
+    if (field === "gstin" && !val) return ""; 
+    if (field === "isin" && (!formData.exchanges.includes("bse") && !formData.exchanges.includes("nse"))) return "";
+    if (field === "rtaRegNumber" && formData.rtaName === "Self-managed (no RTA)") return "";
+    if (field === "sebiRegNumber") return "";
+
+    if (rule.regex && !rule.regex.test(val)) return rule.message;
+    if (rule.custom && !rule.custom(val, formData)) return rule.message;
+    return "";
+  };
+
+  const isValid = (field: string) => touched[field] && !getError(field) && formData[field];
+
+  const checkStepValidity = (s: number) => {
+    if (s === 1) {
+      const required = ["companyName", "cin", "pan", "companyType", "doi", "authorizedCapital", "paidUpCapital", "address", "pinCode", "state"];
+      if (formData.exchanges.includes("bse") || formData.exchanges.includes("nse")) required.push("isin");
+      if (formData.gstin && getError("gstin")) return false;
+      return required.every(f => {
+        const val = formData[f];
+        const rule = rules[f];
+        if (!val) return false;
+        if (rule.regex && !rule.regex.test(val)) return false;
+        if (rule.custom && !rule.custom(val, formData)) return false;
+        return true;
+      }) && formData.exchanges.length > 0;
+    }
+    if (s === 2) {
+      const required = ["adminName", "adminDesignation", "adminEmail", "adminPhone", "adminPassword", "adminConfirmPassword"];
+      return required.every(f => {
+        const val = formData[f];
+        const rule = rules[f];
+        if (!val) return false;
+        if (rule.regex && !rule.regex.test(val)) return false;
+        if (rule.custom && !rule.custom(val, formData)) return false;
+        return true;
       });
-      console.log("OTP function warmed up");
-    } catch (err) {
-      // Silently fail as this is just an optimization
     }
-  };
-
-  const validateStep1 = () => {
-    try {
-      step1Schema.parse({
-        companyName: formData.companyName.trim(),
-        cin: formData.cin.trim(),
-        registeredAddress: formData.registeredAddress.trim(),
-        country: formData.country.trim(),
-        state: formData.state.trim(),
-        district: formData.district.trim(),
-        area: formData.area.trim(),
-        pincode: formData.pincode.trim(),
+    if (s === 3) {
+      const required = ["csName", "csMemNumber", "csEmail", "csPhone", "sebiEmail", "rtaName"];
+      if (formData.rtaName && formData.rtaName !== "Self-managed (no RTA)") required.push("rtaRegNumber");
+      return required.every(f => {
+        const val = formData[f];
+        const rule = rules[f];
+        if (!val) return false;
+        if (rule.regex && !rule.regex.test(val)) return false;
+        if (rule.custom && !rule.custom(val, formData)) return false;
+        return true;
       });
-      return true;
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        err.errors.forEach((error) => {
-          if (error.path[0]) {
-            fieldErrors[error.path[0] as string] = error.message;
-          }
-        });
-        setErrors(fieldErrors);
-      }
-      return false;
     }
-  };
-
-  const nextStep = async () => {
-    if (step === 1 && validateStep1()) {
-      setStep(2);
-    } else if (step === 2) {
-      // Validate step 2 before sending OTP
-      try {
-        step2Schema.parse({
-          contactName: formData.contactName.trim(),
-          contactEmail: formData.contactEmail.trim().toLowerCase(),
-          contactPhone: formData.contactPhone.trim(),
-          designation: formData.designation.trim(),
-          password: formData.password,
-          confirmPassword: formData.confirmPassword,
-        });
-
-        // Send OTP
-        setIsLoading(true);
-        const { data, error: functionError } = await supabase.functions.invoke("send-email-otp", {
-          body: {
-            email: formData.contactEmail,
-            name: formData.contactName
-          },
-          headers: {
-            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-          }
-        });
-
-        if (functionError || !data?.success) {
-          toast.error(data?.message || functionError?.message || "Failed to send verification code.");
-          setIsLoading(false);
-          return;
-        }
-
-        toast.success("Verification code sent to your email.");
-        setStep(3);
-      } catch (err) {
-        if (err instanceof z.ZodError) {
-          const fieldErrors: Record<string, string> = {};
-          err.errors.forEach((error) => {
-            if (error.path[0]) {
-              fieldErrors[error.path[0] as string] = error.message;
-            }
-          });
-          setErrors(fieldErrors);
-        }
-      } finally {
-        setIsLoading(false);
-      }
+    if (s === 4) {
+      return !!files.certInc && !!files.boardRes && !!files.panCard && !!files.authLetter;
     }
+    return false;
   };
 
-  const prevStep = () => {
-    if (step > 1) setStep((step - 1) as 1 | 2 | 3);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submitForm = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
-
+    if (!formData.declaration || !formData.consent) return;
+    setIsSubmitting(true);
+    
     try {
-      // Step 3 already implies previous validation, but let's verify OTP
-      if (step === 3) {
-        const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-email-otp", {
-          body: {
-            email: formData.contactEmail,
-            code: formData.otp
-          },
-          headers: {
-            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-          }
-        });
-
-        if (verifyError || !verifyData?.success) {
-          toast.error(verifyData?.message || verifyError?.message || "Invalid Verification Code");
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // 1. Create auth user
+      // 1. Sign up admin user
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.contactEmail.trim().toLowerCase(),
-        password: formData.password,
+        email: formData.adminEmail,
+        password: formData.adminPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/company-dashboard`,
-        },
+          data: {
+            full_name: formData.adminName,
+          }
+        }
       });
 
-      if (authError) {
-        if (authError.message.includes("already registered")) {
-          toast.error("This email is already registered. Please login instead.");
-        } else {
-          toast.error(authError.message);
-        }
-        setIsLoading(false);
-        return;
-      }
+      if (authError) throw new Error(authError.message);
+      
+      const userId = authData.user?.id;
+      if (!userId) throw new Error("Could not create user account");
 
-      if (!authData.user) {
-        toast.error("Failed to create account");
-        setIsLoading(false);
-        return;
-      }
-
-      // 2. Create company record
-      const companyId = crypto.randomUUID();
-
-      const { error: companyError } = await supabase
+      // 2. Insert Company
+      const { data: companyData, error: companyError } = await supabase
         .from("companies")
         .insert({
-          id: companyId,
-          company_name: formData.companyName.trim(),
-          cin_number: formData.cin.trim().toUpperCase(),
-          registered_address: `${formData.registeredAddress.trim()}, ${formData.area.trim()}, ${formData.district.trim()}, ${formData.state.trim()}, ${formData.country.trim()} - ${formData.pincode.trim()}`,
-          contact_email: formData.contactEmail.trim().toLowerCase(),
-          contact_phone: formData.contactPhone.trim(),
-        });
+          company_name: formData.companyName,
+          cin_number: formData.cin,
+          pan_number: formData.pan,
+          gstin: formData.gstin || null,
+          company_type: formData.companyType,
+          date_of_incorporation: formData.doi,
+          exchanges: formData.exchanges,
+          isin_number: formData.isin || null,
+          authorized_capital: parseFloat(formData.authorizedCapital.replace(/,/g, '')),
+          paid_up_capital: parseFloat(formData.paidUpCapital.replace(/,/g, '')),
+          registered_address: formData.address,
+          country: formData.country,
+          state: formData.state,
+          district: formData.district || null,
+          pin_code: formData.pinCode,
+          contact_email: formData.adminEmail,
+          contact_phone: formData.adminPhone,
+          cs_name: formData.csName,
+          cs_membership_number: formData.csMemNumber,
+          cs_email: formData.csEmail,
+          cs_phone: formData.csPhone,
+          sebi_email: formData.sebiEmail,
+          sebi_reg_number: formData.sebiRegNumber || null,
+          rta_name: formData.rtaName,
+          rta_reg_number: formData.rtaRegNumber || null,
+        })
+        .select()
+        .single();
 
-      if (companyError) {
-        console.error("Company creation error:", companyError);
-        if (companyError.code === "23505") {
-          toast.error("A company with this CIN is already registered");
-        } else {
-          toast.error("Failed to register company. Please try again.");
-        }
-        // Sign out the user since registration failed
-        await supabase.auth.signOut();
-        setIsLoading(false);
-        return;
-      }
+      if (companyError) throw new Error(companyError.message);
 
-      // 3. Create company_admin record
+      // 3. Insert Admin record
       const { error: adminError } = await supabase
         .from("company_admins")
         .insert({
-          user_id: authData.user.id,
-          company_id: companyId,
-          full_name: formData.contactName.trim(),
+          user_id: userId,
+          company_id: companyData.id,
+          name: formData.adminName,
+          designation: formData.adminDesignation,
+          email: formData.adminEmail,
+          phone: formData.adminPhone,
+          role: "admin"
         });
 
-      if (adminError) {
-        console.error("Admin record creation error:", adminError);
-        toast.error("Failed to set up admin access");
-        setIsLoading(false);
-        return;
-      }
+      if (adminError) throw new Error(adminError.message);
 
-      // 4. Create user role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: authData.user.id,
-          role: "company_admin",
-        });
-
-      if (roleError) {
-        console.error("Role creation error:", roleError);
-      }
-
-      // 5. Send Welcome Email
-      // Note: We don't block navigation on this, just log if it fails
-      supabase.functions.invoke("send-welcome-email", {
-        body: {
-          email: formData.contactEmail,
-          companyName: formData.companyName,
-          cin: formData.cin,
-          adminName: formData.contactName,
-          address: `${formData.registeredAddress}, ${formData.area}, ${formData.district}, ${formData.state}, ${formData.country} - ${formData.pincode}`,
-          phone: formData.contactPhone
-        },
-        headers: {
-          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-        }
-      }).then(({ error }) => {
-        if (error) console.error("Failed to send welcome email:", error);
-      });
-
-      toast.success("Company registered successfully!");
-      navigate("/company-dashboard");
-
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        err.errors.forEach((error) => {
-          if (error.path[0]) {
-            fieldErrors[error.path[0] as string] = error.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+      setRegId(`VIS-CO-${Math.floor(Math.random() * 900000) + 100000}`);
+      toast.success("Registration successful!");
+      setIsSuccess(true);
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast.error("Registration failed: " + error.message);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const stepInfo = [
-    { number: 1, title: t("company_reg_step1_title"), icon: Building2 },
-    { number: 2, title: t("company_reg_step2_title"), icon: Users },
-    { number: 3, title: t("company_reg_step3_title"), icon: Shield },
-  ];
-
   return (
-    <div className="min-h-screen relative">
-      <SEO
-        title="Register Your Company"
-        description="Join India's most secure e-voting platform. Register your company today for transparent and compliant shareholder voting."
-        canonical="/company-register"
-      />
+    <div className="min-h-screen relative pt-28 pb-20 bg-[#0d1b2a]">
+      <SEO title="Company Registration | Vote India Secure" description="Register your company on Vote India Secure." canonical="/company-register" />
       <Navbar />
 
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4">
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
-              <Building2 className="w-4 h-4 text-orange-400" />
-              <span>{t("company_reg_badge")}</span>
+      <main className="container mx-auto px-4 max-w-4xl">
+        {!isSuccess ? (
+          <>
+            <div className="text-center mb-10">
+              <h1 className="text-3xl font-bold text-white mb-2">Company Registration</h1>
+              <p className="text-slate-400 text-sm">Register your company to conduct SEBI-compliant electronic voting.</p>
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              {t("company_reg_title_1")}{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {t("company_reg_title_2")}
-              </span>
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {t("company_reg_subtitle")}
-            </p>
-          </div>
 
-          {/* Progress Steps */}
-          <div className="max-w-md mx-auto mb-12">
-            <div className="flex items-center justify-between">
-              {stepInfo.map((info, index) => (
-                <div key={info.number} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${step >= info.number
-                        ? "bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-medium"
-                        : "bg-muted text-muted-foreground"
-                        }`}
-                    >
-                      {step > info.number ? (
-                        <CheckCircle2 className="w-6 h-6" />
-                      ) : (
-                        <info.icon className="w-5 h-5" />
-                      )}
-                    </div>
-                    <span className={`text-sm mt-2 font-medium ${step >= info.number ? "text-foreground" : "text-muted-foreground"
-                      }`}>
-                      {info.title}
-                    </span>
+            {/* Stepper */}
+            <div className="flex items-center justify-between mb-12 overflow-x-auto pb-4 hide-scrollbar">
+              {STEPS.map((s, i) => (
+                <div key={s.id} className="flex items-center flex-shrink-0">
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                    s.id < step ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" :
+                    s.id === step ? "bg-blue-500/20 border-blue-500/40 text-blue-400" :
+                    "bg-white/5 border-white/10 text-slate-500"
+                  }`}>
+                    <s.icon className="w-4 h-4" />
+                    <span className="text-xs font-bold">{s.title}</span>
                   </div>
-                  {index < stepInfo.length - 1 && (
-                    <div className={`hidden sm:block w-24 lg:w-32 h-1 mx-4 rounded-full transition-all duration-300 ${step > info.number ? "bg-gradient-to-r from-primary to-secondary" : "bg-muted"
-                      }`} />
+                  {i < STEPS.length - 1 && (
+                    <div className={`w-8 sm:w-12 h-px mx-2 ${s.id < step ? "bg-emerald-500/50" : "bg-white/10"}`} />
                   )}
                 </div>
               ))}
             </div>
-          </div>
 
-          <Card className="max-w-2xl mx-auto shadow-large border-white/10 bg-card/10 backdrop-blur-md">
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="text-2xl">
-                {step === 1 && t("company_reg_step1_title")}
-                {step === 2 && t("company_reg_step2_title")}
-                {step === 3 && t("company_reg_step3_title")}
-              </CardTitle>
-              <CardDescription>
-                {step === 1 && t("company_reg_step1_desc")}
-                {step === 2 && t("company_reg_step2_desc")}
-                {step === 3 && t("company_reg_step3_desc")}
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              <form onSubmit={handleSubmit} autoComplete="off">
-                {/* Step 1: Company Details */}
+            <div className="bg-[#020817]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+              <AnimatePresence mode="wait">
+                
+                {/* STEP 1 */}
                 {step === 1 && (
-                  <div className="space-y-4 animate-fade-in-up">
-                    <div className="space-y-2">
-                      <Label htmlFor="companyName">{t("company_reg_name_label")}</Label>
-                      <Input
-                        id="companyName"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Tata Consultancy Services Ltd."
-                        className={errors.companyName ? "border-destructive" : ""}
-                        required
-                      />
-                      {errors.companyName && <p className="text-sm text-destructive">{errors.companyName}</p>}
+                  <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-blue-400" /> Company Details
+                    </h2>
+                    
+                    <div className="grid md:grid-cols-2 gap-5 mb-8">
+                      <InputField label="Company Name" name="companyName" required value={formData.companyName} onChange={handleChange} onBlur={() => handleBlur("companyName")} error={getError("companyName")} valid={isValid("companyName")} />
+                      <InputField label="Corporate Identification Number (CIN)" name="cin" placeholder="L12345MH2000PLC123456" required helper="21-digit alphanumeric CIN" value={formData.cin} onChange={handleChange} onBlur={() => handleBlur("cin")} error={getError("cin")} valid={isValid("cin")} />
+                      
+                      <InputField label="PAN of Company" name="pan" placeholder="AABCT1234D" required helper="Company PAN as registered with Income Tax Department" value={formData.pan} onChange={handleChange} onBlur={() => handleBlur("pan")} error={getError("pan")} valid={isValid("pan")} />
+                      <InputField label="GSTIN (Optional)" name="gstin" placeholder="27AABCT1234D1ZV" helper="15-digit GST number (leave blank if exempt)" value={formData.gstin} onChange={handleChange} onBlur={() => handleBlur("gstin")} error={getError("gstin")} valid={isValid("gstin")} />
+                      
+                      <SelectField label="Type of Company" name="companyType" options={COMPANY_TYPES} required value={formData.companyType} onChange={handleChange} onBlur={() => handleBlur("companyType")} error={getError("companyType")} valid={isValid("companyType")} />
+                      <InputField label="Date of Incorporation" name="doi" type="date" required helper="As per MCA records" value={formData.doi} onChange={handleChange} onBlur={() => handleBlur("doi")} error={getError("doi")} valid={isValid("doi")} />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="cin">{t("company_reg_cin_label")}</Label>
-                      <Input
-                        id="cin"
-                        name="cin"
-                        value={formData.cin}
-                        onChange={handleInputChange}
-                        placeholder="e.g., L22210TN1995PLC028771"
-                        className={errors.cin ? "border-destructive" : ""}
-                        required
-                      />
-                      {errors.cin && <p className="text-sm text-destructive">{errors.cin}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="registeredAddress">{t("company_reg_address_label")}</Label>
-                      <Input
-                        id="registeredAddress"
-                        name="registeredAddress"
-                        value={formData.registeredAddress}
-                        onChange={handleInputChange}
-                        placeholder="Building, Street, Area"
-                        className={errors.registeredAddress ? "border-destructive" : ""}
-                        required
-                      />
-                      {errors.registeredAddress && <p className="text-sm text-destructive">{errors.registeredAddress}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="country">{t("company_reg_country_label")}</Label>
-                      <select
-                        id="country"
-                        name="country"
-                        value={formData.country}
-                        onChange={(e) => {
-                          setFormData(prev => ({ ...prev, country: e.target.value, state: "", district: "" }));
-                        }}
-                        className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.country ? "border-destructive" : ""}`}
-                      >
-                        <option value="" disabled>{t("company_reg_country_ph")}</option>
-                        {countries.map(c => (
-                          <option key={c.value} value={c.value}>{c.label}</option>
+                    <div className="mb-8">
+                      <label className="text-sm font-medium text-slate-300 block mb-3">Registered Stock Exchange (if listed) <span className="text-red-400">*</span></label>
+                      <div className="grid grid-cols-2 gap-3 mb-1">
+                        {EXCHANGES.map(ex => (
+                          <label key={ex.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                            formData.exchanges.includes(ex.id) ? 'bg-blue-500/10 border-blue-500/30' : 'bg-[#020817]/50 border-white/10 hover:border-white/20'
+                          } ${(ex.id !== 'none' && formData.exchanges.includes('none')) ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <input
+                              type="checkbox"
+                              checked={formData.exchanges.includes(ex.id)}
+                              onChange={(e) => handleExchangeChange(ex.id, e.target.checked)}
+                              className="w-4 h-4 rounded border-white/20 bg-black/50 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                            />
+                            <span className="text-sm text-slate-200">{ex.label}</span>
+                          </label>
                         ))}
-                      </select>
-                      {errors.country && <p className="text-sm text-destructive">{errors.country}</p>}
+                      </div>
+                      <p className="text-xs text-slate-500">Select all exchanges where company is listed</p>
                     </div>
 
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* PIN Code - Moved up for better flow */}
-                      <div className="space-y-2">
-                        <Label htmlFor="pincode">{t("company_reg_pincode_label")}</Label>
-                        <div className="relative">
-                          <Input
-                            id="pincode"
-                            name="pincode"
-                            value={formData.pincode}
-                            onChange={handleInputChange}
-                            placeholder="400001"
-                            maxLength={6}
-                            className={`tracking-widest font-mono ${errors.pincode ? "border-destructive lg:ring-destructive" : ""}`}
-                            required
-                          />
-                          {isLoading && formData.pincode.length === 6 && (
-                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
-                          )}
-                        </div>
-                        {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
+                    {(formData.exchanges.includes("bse") || formData.exchanges.includes("nse")) && (
+                      <div className="mb-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                        <InputField label="ISIN Number" name="isin" placeholder="INE009A01021" required helper="International Securities Identification Number" value={formData.isin} onChange={handleChange} onBlur={() => handleBlur("isin")} error={getError("isin")} valid={isValid("isin")} />
                       </div>
+                    )}
 
-                      {/* Area */}
-                      <div className="space-y-2">
-                        <Label htmlFor="area">{t("company_reg_area_label")}</Label>
-                        <Input
-                          id="area"
-                          name="area"
-                          value={formData.area}
-                          onChange={handleInputChange}
-                          placeholder="e.g., Andheri West"
-                          className={errors.area ? "border-destructive" : ""}
-                          required
-                        />
-                        {errors.area && <p className="text-sm text-destructive">{errors.area}</p>}
+                    <div className="grid md:grid-cols-2 gap-5 mb-8 border-t border-white/5 pt-6">
+                      <InputField label="Authorized Share Capital" name="authorizedCapital" prefix="₹" placeholder="10,00,00,000" required helper="In Indian Rupees (INR)" value={formData.authorizedCapital} onChange={handleChange} onBlur={() => handleBlur("authorizedCapital")} error={getError("authorizedCapital")} valid={isValid("authorizedCapital")} />
+                      <InputField label="Paid-up Share Capital" name="paidUpCapital" prefix="₹" placeholder="5,00,00,000" required helper="Must be ≤ Authorized Share Capital" value={formData.paidUpCapital} onChange={handleChange} onBlur={() => handleBlur("paidUpCapital")} error={getError("paidUpCapital")} valid={isValid("paidUpCapital")} />
+                    </div>
+
+                    <div className="border-t border-white/5 pt-6 space-y-5">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Registered Address</h3>
+                      <InputField label="Full Address" name="address" required value={formData.address} onChange={handleChange} onBlur={() => handleBlur("address")} error={getError("address")} valid={isValid("address")} />
+                      <div className="grid grid-cols-2 gap-5">
+                        <InputField label="Country" name="country" disabled value={formData.country} onChange={handleChange} onBlur={() => handleBlur("country")} error={getError("country")} valid={isValid("country")} />
+                        <InputField label="State" name="state" required value={formData.state} onChange={handleChange} onBlur={() => handleBlur("state")} error={getError("state")} valid={isValid("state")} />
+                        <InputField label="District" name="district" value={formData.district} onChange={handleChange} onBlur={() => handleBlur("district")} error={getError("district")} valid={isValid("district")} />
+                        <InputField label="PIN Code" name="pinCode" placeholder="400001" required value={formData.pinCode} onChange={handleChange} onBlur={() => handleBlur("pinCode")} error={getError("pinCode")} valid={isValid("pinCode")} />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* State Selection */}
-                      <div className="space-y-2">
-                        <Label htmlFor="state">{t("company_reg_state_label")}</Label>
-                        {formData.country === "India" ? (
-                          <>
-                            <select
-                              id="state"
-                              name="state"
-                              value={indianStates.includes(formData.state) ? formData.state : (formData.state ? "Other" : "")}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === "Other") {
-                                  setFormData(prev => ({ ...prev, state: "Other", district: "" }));
-                                } else {
-                                  setFormData(prev => ({ ...prev, state: val, district: "" }));
-                                }
-                              }}
-                              className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.state ? "border-destructive" : ""}`}
-                            >
-                              <option value="" disabled>{t("company_reg_state_ph")}</option>
-                              {indianStates.map(s => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
-                              <option value="Other">{t("company_reg_other")}</option>
-                            </select>
-
-                            {(!indianStates.includes(formData.state) && formData.state !== "" && formData.state !== "Other") || formData.state === "Other" ? (
-                              <Input
-                                name="state"
-                                value={formData.state === "Other" ? "" : formData.state}
-                                onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                                placeholder={t("company_reg_type_state")}
-                                className="mt-2"
-                                autoFocus
-                              />
-                            ) : null}
-                          </>
-                        ) : (
-                          <Input
-                            id="state"
-                            name="state"
-                            value={formData.state}
-                            onChange={handleInputChange}
-                            placeholder="Enter State"
-                            className={errors.state ? "border-destructive" : ""}
-                          />
-                        )}
-                        {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
-                      </div>
-
-                      {/* District Selection */}
-                      <div className="space-y-2">
-                        <Label htmlFor="district">{t("company_reg_district_label")}</Label>
-                        {formData.country === "India" && (indianStates.includes(formData.state) || formData.state === "Other" || formData.state === "") ? (
-                          <>
-                            {districtsMap[formData.state] ? (
-                              <select
-                                id="district"
-                                name="district"
-                                value={districtsMap[formData.state]?.includes(formData.district) ? formData.district : (formData.district ? "Other" : "")}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (val === "Other") {
-                                    setFormData(prev => ({ ...prev, district: "Other" }));
-                                  } else {
-                                    setFormData(prev => ({ ...prev, district: val }));
-                                  }
-                                }}
-                                className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.district ? "border-destructive" : ""}`}
-                              >
-                                <option value="" disabled>{t("company_reg_district_ph")}</option>
-                                {districtsMap[formData.state].map(d => (
-                                  <option key={d} value={d}>{d}</option>
-                                ))}
-                                <option value="Other">{t("company_reg_other")}</option>
-                              </select>
-                            ) : (
-                              <Input
-                                id="district"
-                                name="district"
-                                value={formData.district}
-                                onChange={handleInputChange}
-                                placeholder={t("company_reg_enter_district")}
-                                className={errors.district ? "border-destructive" : ""}
-                              />
-                            )}
-
-                            {formData.district === "Other" && (
-                              <Input
-                                name="district"
-                                value={formData.district === "Other" ? "" : formData.district}
-                                onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
-                                placeholder={t("company_reg_type_district")}
-                                className="mt-2"
-                                autoFocus
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <Input
-                            id="district"
-                            name="district"
-                            value={formData.district}
-                            onChange={handleInputChange}
-                            placeholder={t("company_reg_enter_district")}
-                            className={errors.district ? "border-destructive" : ""}
-                          />
-                        )}
-                        {errors.district && <p className="text-sm text-destructive">{errors.district}</p>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 2: Admin Account */}
-                {step === 2 && (
-                  <div className="space-y-4 animate-fade-in-up">
-                    <div className="space-y-2">
-                      <Label htmlFor="contactName">{t("company_reg_contact_name_label")}</Label>
-                      <div className="relative">
-                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="contactName"
-                          name="contactName"
-                          value={formData.contactName}
-                          onChange={handleInputChange}
-                          placeholder="Full Name"
-                          className={`pl-11 ${errors.contactName ? "border-destructive" : ""}`}
-                          required
-                          disabled={isLoading}
-                        />
-                      </div>
-                      {errors.contactName && <p className="text-sm text-destructive">{errors.contactName}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="designation">{t("company_reg_designation_label")}</Label>
-                      <Input
-                        id="designation"
-                        name="designation"
-                        value={formData.designation}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Company Secretary"
-                        className={errors.designation ? "border-destructive" : ""}
-                        required
-                        disabled={isLoading}
-                      />
-                      {errors.designation && <p className="text-sm text-destructive">{errors.designation}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="contactEmail">{t("company_reg_email_label")}</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="contactEmail"
-                          name="contactEmail"
-                          type="email"
-                          value={formData.contactEmail}
-                          onChange={handleInputChange}
-                          onFocus={warmEdgeFunction}
-                          placeholder="admin@company.com"
-                          className={`pl-11 ${errors.contactEmail ? "border-destructive" : ""}`}
-                          required
-                          disabled={isLoading}
-                        />
-                      </div>
-                      {errors.contactEmail && <p className="text-sm text-destructive">{errors.contactEmail}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="contactPhone">{t("company_reg_phone_label")}</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="contactPhone"
-                          name="contactPhone"
-                          type="tel"
-                          value={formData.contactPhone}
-                          onChange={handleInputChange}
-                          placeholder="+91 9876543210"
-                          className={`pl-11 ${errors.contactPhone ? "border-destructive" : ""}`}
-                          required
-                          disabled={isLoading}
-                          autoComplete="off"
-                        />
-                      </div>
-                      {errors.contactPhone && <p className="text-sm text-destructive">{errors.contactPhone}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password">{t("company_reg_pass_label")}</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          placeholder={t("company_reg_pass_ph")}
-                          className={`pl-11 pr-11 ${errors.password ? "border-destructive" : ""}`}
-                          required
-                          disabled={isLoading}
-                          autoComplete="new-password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                      {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">{t("company_reg_confirm_pass_label")}</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          type={showPassword ? "text" : "password"}
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                          placeholder={t("company_reg_confirm_pass_ph")}
-                          className={`pl-11 ${errors.confirmPassword ? "border-destructive" : ""}`}
-                          required
-                          disabled={isLoading}
-                          autoComplete="new-password"
-                        />
-                      </div>
-                      {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
-                    </div>
-
-                    {/* Security Notice */}
-                    <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
-                      <Shield className="w-5 h-5 text-accent mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{t("company_reg_secure_title")}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("company_reg_secure_desc")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Verification */}
-                {step === 3 && (
-                  <div className="space-y-6 animate-fade-in-up">
-                    <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 text-center space-y-4">
-                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Mail className="w-8 h-8 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground">{t("company_reg_check_email_title")}</h3>
-                        <p className="text-muted-foreground mt-1">
-                          {t("company_reg_check_email_desc")}
-                          <br />
-                          <span className="font-medium text-foreground">{formData.contactEmail}</span>
-                        </p>
-                      </div>
-
-                      <div className="max-w-xs mx-auto space-y-2 text-left">
-                        <Label htmlFor="otp" className="text-center block">{t("company_reg_otp_label")}</Label>
-                        <Input
-                          id="otp"
-                          name="otp"
-                          type="text"
-                          maxLength={6}
-                          value={formData.otp}
-                          onChange={handleInputChange}
-                          placeholder="000000"
-                          className="text-center text-2xl tracking-[0.5em] font-mono h-14"
-                          autoComplete="one-time-code"
-                          required
-                        />
-                        <p className="text-xs text-muted-foreground text-center">
-                          {t("company_reg_otp_expires_desc")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Security Badge - Requested by User */}
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/5 border border-accent/20">
-                        <Shield className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{t("company_reg_bank_sec_title")}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {t("company_reg_bank_sec_desc")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 p-4 rounded-xl bg-saffron/10 border border-saffron/20">
-                        <Lock className="w-5 h-5 text-saffron shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{t("company_reg_verified_title")}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {t("company_reg_verified_desc")}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between mt-8 pt-6 border-t border-border">
-                  {step > 1 ? (
-                    <Button type="button" variant="ghost" onClick={prevStep} className="gap-2" disabled={isLoading}>
-                      <ArrowLeft className="w-4 h-4" />
-                      {t("company_reg_btn_prev")}
-                    </Button>
-                  ) : (
-                    <Link to="/">
-                      <Button type="button" variant="ghost" className="gap-2">
-                        <ArrowLeft className="w-4 h-4" />
-                        {t("company_reg_btn_back")}
+                    <div className="mt-8 flex justify-end">
+                      <Button size="lg" className="px-8" disabled={!checkStepValidity(1)} onClick={() => setStep(2)}>
+                        Next: Admin Account <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
-                    </Link>
-                  )}
+                    </div>
+                  </motion.div>
+                )}
 
-                  {step < 3 ? (
-                    <Button type="button" variant="saffron" onClick={nextStep} className="gap-2" disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          {step === 2 ? t("company_reg_btn_sending_otp") : t("company_reg_btn_verifying")}
-                        </>
-                      ) : (
-                        <>
-                          {step === 2 ? t("company_reg_btn_verify_email") : t("company_reg_btn_next")}
-                          <ArrowRight className="w-4 h-4" />
-                        </>
+                {/* STEP 2 */}
+                {step === 2 && (
+                  <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <UserCircle className="w-5 h-5 text-blue-400" /> Platform Admin Account
+                    </h2>
+                    <p className="text-sm text-slate-400 mb-6">This account will have full administrative access to create voting events.</p>
+                    
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <InputField label="Full Name" name="adminName" required value={formData.adminName} onChange={handleChange} onBlur={() => handleBlur("adminName")} error={getError("adminName")} valid={isValid("adminName")} />
+                      <InputField label="Designation" name="adminDesignation" placeholder="e.g. Chief Financial Officer" required value={formData.adminDesignation} onChange={handleChange} onBlur={() => handleBlur("adminDesignation")} error={getError("adminDesignation")} valid={isValid("adminDesignation")} />
+                      <InputField label="Official Email" name="adminEmail" type="email" required value={formData.adminEmail} onChange={handleChange} onBlur={() => handleBlur("adminEmail")} error={getError("adminEmail")} valid={isValid("adminEmail")} />
+                      <InputField label="Mobile Number" name="adminPhone" placeholder="+91" required value={formData.adminPhone} onChange={handleChange} onBlur={() => handleBlur("adminPhone")} error={getError("adminPhone")} valid={isValid("adminPhone")} />
+                      <InputField label="Password" name="adminPassword" type="password" required value={formData.adminPassword} onChange={handleChange} onBlur={() => handleBlur("adminPassword")} error={getError("adminPassword")} valid={isValid("adminPassword")} />
+                      <InputField label="Confirm Password" name="adminConfirmPassword" type="password" required value={formData.adminConfirmPassword} onChange={handleChange} onBlur={() => handleBlur("adminConfirmPassword")} error={getError("adminConfirmPassword")} valid={isValid("adminConfirmPassword")} />
+                    </div>
+
+                    <div className="mt-8 flex justify-between">
+                      <Button variant="outline" size="lg" onClick={() => setStep(1)} className="border-white/10">Back</Button>
+                      <Button size="lg" className="px-8" disabled={!checkStepValidity(2)} onClick={() => setStep(3)}>
+                        Next: Compliance <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* STEP 3 */}
+                {step === 3 && (
+                  <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-blue-400" /> Scrutinizer & Compliance Details
+                    </h2>
+                    
+                    <div className="grid md:grid-cols-2 gap-6 mb-8">
+                      <InputField label="Name of Company Secretary (CS)" name="csName" placeholder="CS Priya Sharma" required helper="Practising CS who will act as scrutinizer" value={formData.csName} onChange={handleChange} onBlur={() => handleBlur("csName")} error={getError("csName")} valid={isValid("csName")} />
+                      <InputField label="CS Membership Number" name="csMemNumber" placeholder="A54321" required helper="ICSI Certificate of Practice number" value={formData.csMemNumber} onChange={handleChange} onBlur={() => handleBlur("csMemNumber")} error={getError("csMemNumber")} valid={isValid("csMemNumber")} />
+                      <InputField label="CS Email Address" name="csEmail" type="email" required value={formData.csEmail} onChange={handleChange} onBlur={() => handleBlur("csEmail")} error={getError("csEmail")} valid={isValid("csEmail")} />
+                      <InputField label="CS Phone Number" name="csPhone" placeholder="+91" required value={formData.csPhone} onChange={handleChange} onBlur={() => handleBlur("csPhone")} error={getError("csPhone")} valid={isValid("csPhone")} />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-white/5 mb-8">
+                      <InputField label="Registered Email for SEBI" name="sebiEmail" type="email" required helper="This email is used for all regulatory filings" value={formData.sebiEmail} onChange={handleChange} onBlur={() => handleBlur("sebiEmail")} error={getError("sebiEmail")} valid={isValid("sebiEmail")} />
+                      <InputField label="SEBI Registration Number (Optional)" name="sebiRegNumber" placeholder="INZ000123456" helper="Leave blank if not a SEBI-registered intermediary" value={formData.sebiRegNumber} onChange={handleChange} onBlur={() => handleBlur("sebiRegNumber")} error={getError("sebiRegNumber")} valid={isValid("sebiRegNumber")} />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+                      <SelectField label="Registrar & Transfer Agent (RTA)" name="rtaName" options={RTAS} required helper="Your company's share transfer agent" value={formData.rtaName} onChange={handleChange} onBlur={() => handleBlur("rtaName")} error={getError("rtaName")} valid={isValid("rtaName")} />
+                      {formData.rtaName && formData.rtaName !== "Self-managed (no RTA)" && (
+                        <InputField label="RTA Registration Number" name="rtaRegNumber" placeholder="INR000000221" required value={formData.rtaRegNumber} onChange={handleChange} onBlur={() => handleBlur("rtaRegNumber")} error={getError("rtaRegNumber")} valid={isValid("rtaRegNumber")} />
                       )}
-                    </Button>
-                  ) : (
-                    <Button type="submit" variant="hero" className="gap-2" disabled={isLoading}>
-                      {isLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="w-4 h-4" />
-                      )}
-                      {t("company_reg_btn_complete")}
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                    </div>
 
+                    <div className="mt-8 flex justify-between">
+                      <Button variant="outline" size="lg" onClick={() => setStep(2)} className="border-white/10">Back</Button>
+                      <Button size="lg" className="px-8" disabled={!checkStepValidity(3)} onClick={() => setStep(4)}>
+                        Next: Documents <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
 
-          {/* Login Link */}
-          <div className="text-center mt-6">
-            <p className="text-muted-foreground">
-              {t("company_reg_already")}{" "}
-              <Link to="/company-login" className="text-primary hover:underline font-medium">
-                {t("company_reg_login_link")}
-              </Link>
+                {/* STEP 4 */}
+                {step === 4 && (
+                  <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <UploadCloud className="w-5 h-5 text-blue-400" /> Document Upload
+                    </h2>
+                    <p className="text-sm text-slate-400 mb-6">Upload mandatory documents for verification. All files are securely encrypted.</p>
+
+                    <div className="space-y-4 mb-8">
+                      <FileUpload label="Certificate of Incorporation" name="certInc" accept=".pdf" maxSize={5} required helper="Issued by Ministry of Corporate Affairs (MCA)" file={files.certInc} onFileChange={handleFileChange} onRemove={handleFileRemove} />
+                      <FileUpload label="Board Resolution for E-Voting" name="boardRes" accept=".pdf" maxSize={5} required helper="Board resolution authorizing use of e-voting platform" file={files.boardRes} onFileChange={handleFileChange} onRemove={handleFileRemove} />
+                      <FileUpload label="Company PAN Card" name="panCard" accept=".pdf,.jpg,.png" maxSize={2} required helper="Scanned copy of official PAN card" file={files.panCard} onFileChange={handleFileChange} onRemove={handleFileRemove} />
+                      <FileUpload label="Authorized Signatory Letter" name="authLetter" accept=".pdf" maxSize={2} required helper="Letter authorizing the admin to register on behalf of the company" file={files.authLetter} onFileChange={handleFileChange} onRemove={handleFileRemove} />
+                      <FileUpload label="List of Shareholders (Optional)" name="shareholders" accept=".xlsx,.csv" maxSize={10} helper="You can upload this later from your Company Portal" file={files.shareholders} onFileChange={handleFileChange} onRemove={handleFileRemove} />
+                    </div>
+
+                    <div className="mt-8 flex justify-between">
+                      <Button variant="outline" size="lg" onClick={() => setStep(3)} className="border-white/10">Back</Button>
+                      <Button size="lg" className="px-8" disabled={!checkStepValidity(4)} onClick={() => setStep(5)}>
+                        Review & Submit <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* STEP 5 */}
+                {step === 5 && (
+                  <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <CheckSquare className="w-5 h-5 text-blue-400" /> Review & Declaration
+                    </h2>
+
+                    <div className="bg-black/20 rounded-xl p-5 mb-6 space-y-6">
+                      <div>
+                        <h3 className="text-sm font-bold text-white border-b border-white/10 pb-2 mb-3">Company Details</h3>
+                        <div className="grid grid-cols-2 gap-y-2 text-sm">
+                          <span className="text-slate-500">Name:</span><span className="text-white">{formData.companyName}</span>
+                          <span className="text-slate-500">CIN:</span><span className="text-white">{formData.cin}</span>
+                          <span className="text-slate-500">PAN:</span><span className="text-white">{formData.pan}</span>
+                          <span className="text-slate-500">Type:</span><span className="text-white">{formData.companyType}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white border-b border-white/10 pb-2 mb-3">Admin Account</h3>
+                        <div className="grid grid-cols-2 gap-y-2 text-sm">
+                          <span className="text-slate-500">Admin:</span><span className="text-white">{formData.adminName} ({formData.adminDesignation})</span>
+                          <span className="text-slate-500">Email:</span><span className="text-white">{formData.adminEmail}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white border-b border-white/10 pb-2 mb-3">Compliance Details</h3>
+                        <div className="grid grid-cols-2 gap-y-2 text-sm">
+                          <span className="text-slate-500">Scrutinizer (CS):</span><span className="text-white">{formData.csName} ({formData.csMemNumber})</span>
+                          <span className="text-slate-500">RTA:</span><span className="text-white">{formData.rtaName}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 mb-8">
+                      <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
+                        <input type="checkbox" name="declaration" checked={formData.declaration} onChange={handleChange} className="mt-1 w-5 h-5 rounded border-white/20 bg-black/50 text-blue-500 focus:ring-offset-0" />
+                        <span className="text-sm text-slate-300 leading-relaxed">
+                          I hereby declare that the information provided is true and accurate to the best of my knowledge. I am authorized to register this company on the e-voting platform. I agree to the Terms of Service and SEBI Compliance guidelines.
+                        </span>
+                      </label>
+
+                      <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
+                        <input type="checkbox" name="consent" checked={formData.consent} onChange={handleChange} className="mt-1 w-5 h-5 rounded border-white/20 bg-black/50 text-blue-500 focus:ring-offset-0" />
+                        <span className="text-sm text-slate-300 leading-relaxed">
+                          I consent to Vote India Secure processing company and shareholder data in accordance with the Privacy Policy and IT Act 2000.
+                        </span>
+                      </label>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <Button variant="outline" size="lg" onClick={() => setStep(4)} className="border-white/10" disabled={isSubmitting}>Back</Button>
+                      <Button size="lg" className="px-8 bg-emerald-600 hover:bg-emerald-700 text-white" disabled={!formData.declaration || !formData.consent || isSubmitting} onClick={submitForm}>
+                        {isSubmitting ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Submitting securely...</> : "Submit Registration"}
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+              </AnimatePresence>
+            </div>
+          </>
+        ) : (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-20">
+            <div className="w-24 h-24 mx-auto mb-6 relative">
+              <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping" />
+              <div className="relative w-full h-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center rounded-full">
+                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+              </div>
+            </div>
+            
+            <h2 className="text-3xl font-bold text-white mb-2">Registration Submitted!</h2>
+            <p className="text-slate-400 mb-8 max-w-md mx-auto">
+              Your registration is under review. You will receive a confirmation email within 24-48 hours.
             </p>
-          </div>
-        </div>
-      </main >
 
+            <div className="bg-[#020817]/60 border border-white/10 rounded-2xl p-6 inline-block mb-8">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Company Registration ID</p>
+              <p className="text-2xl font-mono font-bold text-white">{regId}</p>
+            </div>
+
+            <div>
+              <Link to="/company-login">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  Go to Company Portal <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </main>
       <Footer />
-    </div >
+    </div>
   );
-};
-
-export default CompanyRegister;
+}
