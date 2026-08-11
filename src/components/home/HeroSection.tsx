@@ -16,8 +16,13 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-transparent" />
+    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-[#020817]">
+      {/* Dynamic Glowing Background Orbs */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-600/20 blur-[120px] animate-pulse" />
+        <div className="absolute top-[20%] -right-[10%] w-[40%] h-[60%] rounded-full bg-teal-600/10 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[50%] rounded-full bg-cyan-600/15 blur-[120px] animate-pulse" style={{ animationDelay: '4s' }} />
+      </div>
 
       <div className="container mx-auto px-4 py-12 md:py-20">
         <div className="flex flex-col items-center justify-center text-center">

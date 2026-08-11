@@ -14,22 +14,12 @@ import {
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from "react-i18next";
+import { DashboardMetrics } from "@/types";
 
 // Chart Colors
 const COLORS = ['#8b5cf6', '#3b82f6', '#ec4899', '#10b981'];
 
-interface DashboardMetrics {
-    shareholder_name: string;
-    login_id: string;
-    total_shares: number;
-    shareholding_percentage: number;
-    total_votes_cast: number;
-    total_resolutions: number;
-    participation_rate: number;
-    voting_distribution: { name: string; value: number }[];
-    participation_trend: { session: string; votes: number }[];
-    shareholding_comparison: { category: string; amount: number }[];
-}
+
 
 export const ShareholderAnalysis = () => {
     const navigate = useNavigate();
@@ -216,8 +206,10 @@ export const ShareholderAnalysis = () => {
             </div>
 
             {/* AI Insight Section */}
-            <Card className="bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border-indigo-500/30 shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+            <div className="relative group animate-fade-in-up">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 animate-gradient-slow" />
+                <Card className="relative bg-[#020817]/90 backdrop-blur-xl border-white/10 shadow-2xl rounded-2xl overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl -mr-32 -mt-32"></div>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-indigo-300">
                         <Sparkles className="h-5 w-5" /> AI Engagement Insights
@@ -239,17 +231,20 @@ export const ShareholderAnalysis = () => {
                         </div>
                     )}
                 </CardContent>
-            </Card>
+                </Card>
+            </div>
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* Voting Distribution Pie Chart */}
-                <Card className="bg-white/5 border-white/10">
-                    <CardHeader>
-                        <CardTitle className="text-lg">{t("sh_analysis_dist")}</CardTitle>
-                        <CardDescription>{t("sh_analysis_dist_desc")}</CardDescription>
-                    </CardHeader>
+                <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/50 to-cyan-500/50 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500" />
+                    <Card className="relative h-full bg-[#020817]/80 backdrop-blur-xl border-white/10 rounded-2xl">
+                        <CardHeader>
+                            <CardTitle className="text-lg text-white">{t("sh_analysis_dist")}</CardTitle>
+                            <CardDescription className="text-white/60">{t("sh_analysis_dist_desc")}</CardDescription>
+                        </CardHeader>
                     <CardContent className="h-[300px] flex justify-center items-center">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -274,14 +269,17 @@ export const ShareholderAnalysis = () => {
                             </PieChart>
                         </ResponsiveContainer>
                     </CardContent>
-                </Card>
+                    </Card>
+                </div>
 
                 {/* Participation Trend Line Chart */}
-                <Card className="bg-white/5 border-white/10">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Engagement Timeline</CardTitle>
-                        <CardDescription>Votes cast per active voting session</CardDescription>
-                    </CardHeader>
+                <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/50 to-pink-500/50 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500" />
+                    <Card className="relative h-full bg-[#020817]/80 backdrop-blur-xl border-white/10 rounded-2xl">
+                        <CardHeader>
+                            <CardTitle className="text-lg text-white">Engagement Timeline</CardTitle>
+                            <CardDescription className="text-white/60">Votes cast per active voting session</CardDescription>
+                        </CardHeader>
                     <CardContent className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={metrics.participation_trend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
@@ -295,14 +293,17 @@ export const ShareholderAnalysis = () => {
                             </LineChart>
                         </ResponsiveContainer>
                     </CardContent>
-                </Card>
+                    </Card>
+                </div>
 
                 {/* Shareholding Comparison Bar Chart */}
-                <Card className="bg-white/5 border-white/10 lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Shareholding Benchmarks</CardTitle>
-                        <CardDescription>Comparing your portfolio size against the company average</CardDescription>
-                    </CardHeader>
+                <div className="relative group lg:col-span-2">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/50 via-indigo-500/50 to-purple-500/50 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500" />
+                    <Card className="relative h-full bg-[#020817]/80 backdrop-blur-xl border-white/10 rounded-2xl">
+                        <CardHeader>
+                            <CardTitle className="text-lg text-white">Shareholding Benchmarks</CardTitle>
+                            <CardDescription className="text-white/60">Comparing your portfolio size against the company average</CardDescription>
+                        </CardHeader>
                     <CardContent className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={metrics.shareholding_comparison} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} layout="vertical">
@@ -323,7 +324,8 @@ export const ShareholderAnalysis = () => {
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
-                </Card>
+                    </Card>
+                </div>
             </div>
         </div>
     );

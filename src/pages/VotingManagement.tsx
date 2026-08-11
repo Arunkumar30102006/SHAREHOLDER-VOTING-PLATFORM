@@ -47,6 +47,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTranslation } from "react-i18next";
 import { MerkleTree } from "@/lib/merkle";
 import { generateVoteHash, simulateBlockchainTransaction } from "@/lib/blockchain";
+import { Nominee, VotingSession, ResolutionResult, AnchorData, Company, Shareholder } from "@/types";
 
 const nomineeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -71,68 +72,7 @@ const sessionSchema = z.object({
   recordDate: z.string().min(1, "Record date is required"),
 });
 
-interface Nominee {
-  id: string;
-  nominee_name: string;
-  nominee_email: string;
-  designation: string | null;
-  qualification: string | null;
-  experience_years: number | null;
-  bio: string | null;
-  is_email_sent: boolean;
-  created_at: string;
-}
 
-interface VotingSession {
-  id: string;
-  title: string;
-  description: string | null;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-  meeting_link: string | null;
-  meeting_password: string | null;
-  meeting_platform: string | null;
-  voting_instructions: string | null;
-  is_meeting_emails_sent: boolean;
-  meeting_start_date: string | null;
-  meeting_end_date: string | null;
-  auto_start_done?: boolean;
-  auto_end_done?: boolean;
-  record_date: string | null;
-  status: string | null;
-}
-
-export interface ResolutionResult {
-  id: string;
-  title: string;
-  description: string | null;
-  stats: {
-    for: number;
-    against: number;
-    abstain: number;
-    total: number;
-    winner: boolean;
-  };
-}
-
-export interface AnchorData {
-  created_at: string;
-  transaction_id: string;
-  [key: string]: unknown;
-}
-
-interface Company {
-  id: string;
-  company_name: string;
-}
-
-interface Shareholder {
-  id: string;
-  shareholder_name: string;
-  email: string;
-  shares_held: number;
-}
 
 const VotingManagement = () => {
   const navigate = useNavigate();
@@ -1127,67 +1067,83 @@ const VotingManagement = () => {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
-              {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="border-border/50">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <Users className="w-6 h-6 text-primary" />
+              {/* Premium Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Card 1: Shareholders */}
+                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/10">
+                          <Users className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="text-3xl font-bold text-white">{shareholders.length}</p>
+                          <p className="text-sm text-cyan-200/70">{t("voting_management_stat_shareholders")}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-3xl font-bold text-foreground">{shareholders.length}</p>
-                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_shareholders")}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                <Card className="border-border/50">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
-                        <UserPlus className="w-6 h-6 text-secondary" />
+                {/* Card 2: Nominees */}
+                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/10">
+                          <UserPlus className="w-6 h-6 text-orange-400" />
+                        </div>
+                        <div>
+                          <p className="text-3xl font-bold text-white">{nominees.length}</p>
+                          <p className="text-sm text-amber-200/70">{t("voting_management_stat_nominees")}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-3xl font-bold text-foreground">{nominees.length}</p>
-                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_nominees")}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                <Card className="border-border/50">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                        <Mail className="w-6 h-6 text-accent" />
+                {/* Card 3: Email Status */}
+                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/10">
+                          <Mail className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-white mt-1 leading-tight">
+                            {votingSession?.is_meeting_emails_sent ? t("voting_management_stat_email_sent") : t("voting_management_stat_email_pending")}
+                          </p>
+                          <p className="text-sm text-pink-200/70 mt-1">{t("voting_management_stat_email_status")}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-3xl font-bold text-foreground">
-                          {votingSession?.is_meeting_emails_sent ? t("voting_management_stat_email_sent") : t("voting_management_stat_email_pending")}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_email_status")}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                <Card className="border-border/50">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <Vote className="w-6 h-6 text-primary" />
+                {/* Card 4: Session Status */}
+                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/10">
+                          <Vote className="w-6 h-6 text-teal-400" />
+                        </div>
+                        <div>
+                          <p className={`${sessionStatus.status.length > 20 ? 'text-sm mt-1' : sessionStatus.status.length > 12 ? 'text-lg mt-1' : 'text-2xl mt-1'} font-bold text-white leading-tight`}>
+                            {sessionStatus.status}
+                          </p>
+                          <p className="text-sm text-emerald-200/70 mt-1">{t("voting_management_stat_session_status")}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className={`${sessionStatus.status.length > 20 ? 'text-lg' : sessionStatus.status.length > 12 ? 'text-xl' : 'text-3xl'} font-bold text-foreground leading-tight`}>
-                          {sessionStatus.status}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{t("voting_management_stat_session_status")}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
               {/* Voting Procedure Info */}

@@ -60,6 +60,15 @@ const ProtectedAdminRoute = () => {
         return <Navigate to="/company-login" replace />;
     }
 
+    // Enforce 2-Step OTP Verification
+    const is2FaVerified = sessionStorage.getItem("company_2fa_verified") === "true";
+    if (!is2FaVerified) {
+        toast.error("Security check failed. Please complete the login verification.");
+        // Sign out to clear the partial session
+        supabase.auth.signOut();
+        return <Navigate to="/company-login" replace />;
+    }
+
     return <Outlet />;
 };
 

@@ -70,12 +70,14 @@ ALTER TABLE public.company_admins ENABLE ROW LEVEL SECURITY;
 -- --------------------------------------------------------
 
 -- Policy: Anyone can insert a company (needed for the public registration form)
+DROP POLICY IF EXISTS "Allow public registration of companies" ON public.companies;
 CREATE POLICY "Allow public registration of companies" 
 ON public.companies FOR INSERT 
 TO public, anon, authenticated 
 WITH CHECK (true);
 
 -- Policy: Company admins can view their own company
+DROP POLICY IF EXISTS "Admins can view their company" ON public.companies;
 CREATE POLICY "Admins can view their company" 
 ON public.companies FOR SELECT 
 TO authenticated 
@@ -88,6 +90,7 @@ USING (
 );
 
 -- Policy: Company admins can update their own company
+DROP POLICY IF EXISTS "Admins can update their company" ON public.companies;
 CREATE POLICY "Admins can update their company" 
 ON public.companies FOR UPDATE 
 TO authenticated 
@@ -104,19 +107,146 @@ USING (
 -- --------------------------------------------------------
 
 -- Policy: Public can insert during registration
+DROP POLICY IF EXISTS "Allow public registration of admins" ON public.company_admins;
 CREATE POLICY "Allow public registration of admins" 
 ON public.company_admins FOR INSERT 
 TO public, anon, authenticated 
 WITH CHECK (true);
 
 -- Policy: Admins can view their own record
+DROP POLICY IF EXISTS "Admins can view their own record" ON public.company_admins;
 CREATE POLICY "Admins can view their own record" 
 ON public.company_admins FOR SELECT 
 TO authenticated 
 USING (user_id = auth.uid());
 
 -- Policy: Admins can update their own record
+DROP POLICY IF EXISTS "Admins can update their own record" ON public.company_admins;
 CREATE POLICY "Admins can update their own record" 
 ON public.company_admins FOR UPDATE 
 TO authenticated 
 USING (user_id = auth.uid());
+
+-- --------------------------------------------------------
+-- SAFE ALTER TABLES (Ensure all columns exist if table was previously created)
+-- --------------------------------------------------------
+
+DO $$ 
+BEGIN 
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS authorized_capital NUMERIC NOT NULL DEFAULT 0;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS paid_up_capital NUMERIC NOT NULL DEFAULT 0;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS cin_number TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS pan_number TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS gstin TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS company_type TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS date_of_incorporation DATE;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS exchanges TEXT[] DEFAULT '{}';
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS isin_number TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS registered_address TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS country TEXT DEFAULT 'India';
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS state TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS district TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS pin_code TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS contact_email TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS contact_phone TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS cs_name TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS cs_membership_number TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS cs_email TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS cs_phone TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS sebi_email TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS sebi_reg_number TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS rta_name TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+    
+    BEGIN
+        ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS rta_reg_number TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    -- company_admins columns
+    BEGIN
+        ALTER TABLE public.company_admins ADD COLUMN IF NOT EXISTS name TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.company_admins ADD COLUMN IF NOT EXISTS designation TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.company_admins ADD COLUMN IF NOT EXISTS email TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.company_admins ADD COLUMN IF NOT EXISTS phone TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.company_admins ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'admin' NOT NULL;
+    EXCEPTION WHEN duplicate_column THEN END;
+END $$;

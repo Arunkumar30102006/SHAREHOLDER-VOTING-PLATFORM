@@ -68,11 +68,10 @@ const InputField = ({ label, name, type = "text", placeholder = "", helper = "",
         value={value}
         onChange={onChange}
         onBlur={onBlur}
-        className={`w-full h-11 bg-[#020817]/50 border text-white rounded-xl text-sm transition-all outline-none ${prefix ? 'pl-10 pr-10' : 'px-4'} ${
-          error ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 
-          valid ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 
-          'border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-        }`}
+        className={`w-full h-11 bg-[#020817]/50 border text-white rounded-xl text-sm transition-all outline-none ${prefix ? 'pl-10 pr-10' : 'px-4'} ${error ? 'border-red-500 focus:ring-1 focus:ring-red-500' :
+            valid ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' :
+              'border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+          }`}
         disabled={disabled}
         max={type === 'date' ? new Date().toISOString().split('T')[0] : undefined}
       />
@@ -98,11 +97,10 @@ const SelectField = ({ label, name, options, helper = "", required = false, valu
         value={value}
         onChange={onChange}
         onBlur={onBlur}
-        className={`w-full h-11 px-4 bg-[#020817]/50 border text-white rounded-xl text-sm transition-all outline-none appearance-none ${
-          error ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 
-          valid ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 
-          'border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-        }`}
+        className={`w-full h-11 px-4 bg-[#020817]/50 border text-white rounded-xl text-sm transition-all outline-none appearance-none ${error ? 'border-red-500 focus:ring-1 focus:ring-red-500' :
+            valid ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' :
+              'border-white/10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+          }`}
       >
         <option value="" disabled className="text-slate-500">Select an option</option>
         {options.map((opt: string) => (
@@ -125,16 +123,16 @@ const FileUpload = ({ label, name, accept, maxSize, helper, required = false, fi
       {label} {required && <span className="text-red-400">*</span>}
     </label>
     <p className="text-xs text-slate-400 mb-3">{helper}</p>
-    
+
     {!file ? (
       <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all">
         <Upload className="w-6 h-6 text-slate-400 mb-2" />
         <span className="text-xs text-slate-400">Click to upload ({maxSize}MB max)</span>
-        <input 
-          type="file" 
-          className="hidden" 
+        <input
+          type="file"
+          className="hidden"
           accept={accept}
-          onChange={(e) => onFileChange(name, e.target.files?.[0] || null, maxSize, accept.split(','))} 
+          onChange={(e) => onFileChange(name, e.target.files?.[0] || null, maxSize, accept.split(','))}
         />
       </label>
     ) : (
@@ -173,14 +171,14 @@ export default function CompanyRegister() {
     area: "",
     state: "",
     district: "",
-    
+
     adminName: "",
     adminDesignation: "",
     adminEmail: "",
     adminPhone: "",
     adminPassword: "",
     adminConfirmPassword: "",
-    
+
     csName: "",
     csMemNumber: "",
     csEmail: "",
@@ -206,6 +204,7 @@ export default function CompanyRegister() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [regId, setRegId] = useState("");
+  const [generatedPassword, setGeneratedPassword] = useState("");
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -237,15 +236,23 @@ export default function CompanyRegister() {
       setFiles(prev => ({ ...prev, [name]: null }));
       return;
     }
-    const ext = file.name.split('.').pop()?.toLowerCase() || "";
-    if (!allowedTypes.includes(ext) && !allowedTypes.some(t => file.type.includes(t))) {
+    
+    // Add dot to match the format in allowedTypes (e.g., '.pdf')
+    const ext = `.${file.name.split('.').pop()?.toLowerCase() || ""}`;
+    
+    // Check if extension matches OR if mime type contains the string (e.g., 'pdf')
+    const isValidType = allowedTypes.includes(ext) || allowedTypes.some(t => file.type.toLowerCase().includes(t.replace('.', '')));
+    
+    if (!isValidType) {
       alert(`Invalid file type. Allowed: ${allowedTypes.join(", ")}`);
       return;
     }
+    
     if (file.size > maxSize * 1024 * 1024) {
       alert(`File too large. Maximum size is ${maxSize}MB`);
       return;
     }
+    
     setFiles(prev => ({ ...prev, [name]: file }));
   };
 
@@ -268,14 +275,14 @@ export default function CompanyRegister() {
     address: { custom: v => v.length > 5, message: "Address too short" },
     pinCode: { regex: /^[1-9][0-9]{5}$/, message: "Invalid PIN code" },
     state: { custom: v => v !== "", message: "Required" },
-    
+
     adminName: { custom: v => v.length > 2, message: "Required" },
     adminDesignation: { custom: v => v.length > 2, message: "Required" },
     adminEmail: { regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" },
     adminPhone: { regex: /^(\+91)?[6-9][0-9]{9}$/, message: "Invalid phone number" },
-    adminPassword: { custom: v => v.length >= 8, message: "Minimum 8 characters" },
-    adminConfirmPassword: { custom: (v, all) => v === all.adminPassword && v.length > 0, message: "Passwords do not match" },
-    
+    adminPassword: { custom: v => v.length >= 8, message: "Password must be at least 8 characters" },
+    adminConfirmPassword: { custom: (v, all) => v === all.adminPassword, message: "Passwords do not match" },
+
     csName: { custom: v => v.length > 2, message: "Required" },
     csMemNumber: { regex: /^[AaFf][0-9]{5}$/, message: "Format: A12345 or F12345" },
     csEmail: { regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" },
@@ -290,8 +297,8 @@ export default function CompanyRegister() {
     const val = formData[field];
     const rule = rules[field];
     if (!rule) return "";
-    
-    if (field === "gstin" && !val) return ""; 
+
+    if (field === "gstin" && !val) return "";
     if (field === "isin" && (!formData.exchanges.includes("bse") && !formData.exchanges.includes("nse"))) return "";
     if (field === "rtaRegNumber" && formData.rtaName === "Self-managed (no RTA)") return "";
     if (field === "sebiRegNumber") return "";
@@ -350,9 +357,20 @@ export default function CompanyRegister() {
     e.preventDefault();
     if (!formData.declaration || !formData.consent) return;
     setIsSubmitting(true);
-    
+
     try {
-      // 1. Sign up admin user
+      // 0. Pre-flight check: Ensure CIN doesn't already exist to prevent partial failures
+      const { data: existingCompany } = await supabase
+        .from("companies")
+        .select("id")
+        .eq("cin_number", formData.cin)
+        .maybeSingle();
+
+      if (existingCompany) {
+        throw new Error("A company with this CIN number is already registered. Please use a different CIN.");
+      }
+
+      // 1. Sign up admin user using the custom password
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.adminEmail,
         password: formData.adminPassword,
@@ -363,10 +381,15 @@ export default function CompanyRegister() {
         }
       });
 
-      if (authError) throw new Error(authError.message);
-      
+      if (authError) {
+        if (authError.message.includes("already registered")) {
+          throw new Error("This admin email is already registered in our system. Please use a different email or log in.");
+        }
+        throw new Error(authError.message);
+      }
+
       const userId = authData.user?.id;
-      if (!userId) throw new Error("Could not create user account");
+      if (!userId) throw new Error("Could not create user account. The email might be blocked.");
 
       // 2. Insert Company
       const { data: companyData, error: companyError } = await supabase
@@ -401,10 +424,18 @@ export default function CompanyRegister() {
         .select()
         .single();
 
-      if (companyError) throw new Error(companyError.message);
+      if (companyError) {
+        if (companyError.message.includes("authorized_capital") || companyError.message.includes("schema cache")) {
+           throw new Error("Database schema out of sync. Please run 'supabase_setup.sql' in your Supabase SQL editor and click 'Reload API' in the dashboard.");
+        }
+        if (companyError.message.includes("companies_cin_number_key")) {
+           throw new Error("A company with this CIN number is already registered. Please verify your CIN or contact support.");
+        }
+        throw new Error(companyError.message);
+      }
 
       // 3. Insert Admin record
-      const { error: adminError } = await supabase
+      let { error: adminError } = await supabase
         .from("company_admins")
         .insert({
           user_id: userId,
@@ -416,14 +447,47 @@ export default function CompanyRegister() {
           role: "admin"
         });
 
+      // Fallback for legacy database schemas where the column was named "full_name" instead of "name"
+      if (adminError && adminError.message.includes("full_name")) {
+         const { error: retryError } = await supabase
+           .from("company_admins")
+           .insert({
+             user_id: userId,
+             company_id: companyData.id,
+             name: formData.adminName,
+             full_name: formData.adminName, // Provide both to satisfy legacy NOT NULL constraints
+             designation: formData.adminDesignation,
+             email: formData.adminEmail,
+             phone: formData.adminPhone,
+             role: "admin"
+           });
+         adminError = retryError;
+      }
+
       if (adminError) throw new Error(adminError.message);
 
-      setRegId(`VIS-CO-${Math.floor(Math.random() * 900000) + 100000}`);
-      toast.success("Registration successful!");
+      const newRegId = `VIS-CO-${Math.floor(Math.random() * 900000) + 100000}`;
+      setRegId(newRegId);
+      
+      // Send the real Welcome Email using Supabase Edge Functions (Resend)
+      await supabase.functions.invoke("send-welcome-email", {
+        body: {
+          email: formData.adminEmail,
+          companyName: formData.companyName,
+          cin: formData.cin,
+          adminName: formData.adminName,
+          address: formData.address,
+          phone: formData.adminPhone,
+          regId: newRegId,
+          password: "The password you set during registration"
+        }
+      });
+
+      toast.success("Registration successful! Welcome email sent.");
       setIsSuccess(true);
     } catch (error: any) {
       console.error("Registration error:", error);
-      toast.error("Registration failed: " + error.message);
+      toast.error(error.message, { duration: 8000 });
     } finally {
       setIsSubmitting(false);
     }
@@ -446,11 +510,10 @@ export default function CompanyRegister() {
             <div className="flex items-center justify-between mb-12 overflow-x-auto pb-4 hide-scrollbar">
               {STEPS.map((s, i) => (
                 <div key={s.id} className="flex items-center flex-shrink-0">
-                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
-                    s.id < step ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" :
-                    s.id === step ? "bg-blue-500/20 border-blue-500/40 text-blue-400" :
-                    "bg-white/5 border-white/10 text-slate-500"
-                  }`}>
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${s.id < step ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" :
+                      s.id === step ? "bg-blue-500/20 border-blue-500/40 text-blue-400" :
+                        "bg-white/5 border-white/10 text-slate-500"
+                    }`}>
                     <s.icon className="w-4 h-4" />
                     <span className="text-xs font-bold">{s.title}</span>
                   </div>
@@ -463,21 +526,21 @@ export default function CompanyRegister() {
 
             <div className="bg-[#020817]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
               <AnimatePresence mode="wait">
-                
+
                 {/* STEP 1 */}
                 {step === 1 && (
                   <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                       <Building2 className="w-5 h-5 text-blue-400" /> Company Details
                     </h2>
-                    
+
                     <div className="grid md:grid-cols-2 gap-5 mb-8">
                       <InputField label="Company Name" name="companyName" required value={formData.companyName} onChange={handleChange} onBlur={() => handleBlur("companyName")} error={getError("companyName")} valid={isValid("companyName")} />
                       <InputField label="Corporate Identification Number (CIN)" name="cin" placeholder="L12345MH2000PLC123456" required helper="21-digit alphanumeric CIN" value={formData.cin} onChange={handleChange} onBlur={() => handleBlur("cin")} error={getError("cin")} valid={isValid("cin")} />
-                      
+
                       <InputField label="PAN of Company" name="pan" placeholder="AABCT1234D" required helper="Company PAN as registered with Income Tax Department" value={formData.pan} onChange={handleChange} onBlur={() => handleBlur("pan")} error={getError("pan")} valid={isValid("pan")} />
                       <InputField label="GSTIN (Optional)" name="gstin" placeholder="27AABCT1234D1ZV" helper="15-digit GST number (leave blank if exempt)" value={formData.gstin} onChange={handleChange} onBlur={() => handleBlur("gstin")} error={getError("gstin")} valid={isValid("gstin")} />
-                      
+
                       <SelectField label="Type of Company" name="companyType" options={COMPANY_TYPES} required value={formData.companyType} onChange={handleChange} onBlur={() => handleBlur("companyType")} error={getError("companyType")} valid={isValid("companyType")} />
                       <InputField label="Date of Incorporation" name="doi" type="date" required helper="As per MCA records" value={formData.doi} onChange={handleChange} onBlur={() => handleBlur("doi")} error={getError("doi")} valid={isValid("doi")} />
                     </div>
@@ -486,9 +549,8 @@ export default function CompanyRegister() {
                       <label className="text-sm font-medium text-slate-300 block mb-3">Registered Stock Exchange (if listed) <span className="text-red-400">*</span></label>
                       <div className="grid grid-cols-2 gap-3 mb-1">
                         {EXCHANGES.map(ex => (
-                          <label key={ex.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                            formData.exchanges.includes(ex.id) ? 'bg-blue-500/10 border-blue-500/30' : 'bg-[#020817]/50 border-white/10 hover:border-white/20'
-                          } ${(ex.id !== 'none' && formData.exchanges.includes('none')) ? 'opacity-50 pointer-events-none' : ''}`}>
+                          <label key={ex.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${formData.exchanges.includes(ex.id) ? 'bg-blue-500/10 border-blue-500/30' : 'bg-[#020817]/50 border-white/10 hover:border-white/20'
+                            } ${(ex.id !== 'none' && formData.exchanges.includes('none')) ? 'opacity-50 pointer-events-none' : ''}`}>
                             <input
                               type="checkbox"
                               checked={formData.exchanges.includes(ex.id)}
@@ -539,13 +601,16 @@ export default function CompanyRegister() {
                       <UserCircle className="w-5 h-5 text-blue-400" /> Platform Admin Account
                     </h2>
                     <p className="text-sm text-slate-400 mb-6">This account will have full administrative access to create voting events.</p>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
+
+                    <div className="grid md:grid-cols-2 gap-6 mb-4">
                       <InputField label="Full Name" name="adminName" required value={formData.adminName} onChange={handleChange} onBlur={() => handleBlur("adminName")} error={getError("adminName")} valid={isValid("adminName")} />
                       <InputField label="Designation" name="adminDesignation" placeholder="e.g. Chief Financial Officer" required value={formData.adminDesignation} onChange={handleChange} onBlur={() => handleBlur("adminDesignation")} error={getError("adminDesignation")} valid={isValid("adminDesignation")} />
                       <InputField label="Official Email" name="adminEmail" type="email" required value={formData.adminEmail} onChange={handleChange} onBlur={() => handleBlur("adminEmail")} error={getError("adminEmail")} valid={isValid("adminEmail")} />
                       <InputField label="Mobile Number" name="adminPhone" placeholder="+91" required value={formData.adminPhone} onChange={handleChange} onBlur={() => handleBlur("adminPhone")} error={getError("adminPhone")} valid={isValid("adminPhone")} />
-                      <InputField label="Password" name="adminPassword" type="password" required value={formData.adminPassword} onChange={handleChange} onBlur={() => handleBlur("adminPassword")} error={getError("adminPassword")} valid={isValid("adminPassword")} />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+                      <InputField label="Admin Password" name="adminPassword" type="password" required helper="Minimum 8 characters" value={formData.adminPassword} onChange={handleChange} onBlur={() => handleBlur("adminPassword")} error={getError("adminPassword")} valid={isValid("adminPassword")} />
                       <InputField label="Confirm Password" name="adminConfirmPassword" type="password" required value={formData.adminConfirmPassword} onChange={handleChange} onBlur={() => handleBlur("adminConfirmPassword")} error={getError("adminConfirmPassword")} valid={isValid("adminConfirmPassword")} />
                     </div>
 
@@ -564,7 +629,7 @@ export default function CompanyRegister() {
                     <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                       <ShieldCheck className="w-5 h-5 text-blue-400" /> Scrutinizer & Compliance Details
                     </h2>
-                    
+
                     <div className="grid md:grid-cols-2 gap-6 mb-8">
                       <InputField label="Name of Company Secretary (CS)" name="csName" placeholder="CS Priya Sharma" required helper="Practising CS who will act as scrutinizer" value={formData.csName} onChange={handleChange} onBlur={() => handleBlur("csName")} error={getError("csName")} valid={isValid("csName")} />
                       <InputField label="CS Membership Number" name="csMemNumber" placeholder="A54321" required helper="ICSI Certificate of Practice number" value={formData.csMemNumber} onChange={handleChange} onBlur={() => handleBlur("csMemNumber")} error={getError("csMemNumber")} valid={isValid("csMemNumber")} />
@@ -687,15 +752,34 @@ export default function CompanyRegister() {
                 <CheckCircle2 className="w-12 h-12 text-emerald-400" />
               </div>
             </div>
-            
+
             <h2 className="text-3xl font-bold text-white mb-2">Registration Submitted!</h2>
             <p className="text-slate-400 mb-8 max-w-md mx-auto">
               Your registration is under review. You will receive a confirmation email within 24-48 hours.
             </p>
 
-            <div className="bg-[#020817]/60 border border-white/10 rounded-2xl p-6 inline-block mb-8">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Company Registration ID</p>
-              <p className="text-2xl font-mono font-bold text-white">{regId}</p>
+            <div className="bg-[#020817]/60 border border-white/10 rounded-2xl p-6 inline-block mb-8 max-w-lg w-full">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-4 border-b border-white/10 pb-2">Registration Details</p>
+              
+              <div className="space-y-4 text-left">
+                <div>
+                  <p className="text-xs text-slate-500">Company Registration ID</p>
+                  <p className="text-lg font-mono font-bold text-white">{regId}</p>
+                </div>
+                
+                <div>
+                  <p className="text-xs text-slate-500">Admin Login Email</p>
+                  <p className="text-base font-bold text-blue-400">{formData.adminEmail}</p>
+                </div>
+
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl relative">
+                  <p className="text-xs text-emerald-500 font-bold uppercase mb-1">Secure Password</p>
+                  <p className="text-sm font-bold text-emerald-400">You have successfully set your custom admin password.</p>
+                  <p className="text-xs text-emerald-500/70 mt-2">
+                    Use this password to log in to the Company Portal.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div>

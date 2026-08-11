@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 
+import { env } from "@/config/env";
+
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -22,6 +24,11 @@ const CompanyLogin = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [otp, setOtp] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -36,6 +43,14 @@ const CompanyLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (step === 1) {
+      await handlePasswordLogin();
+    } else {
+      handleOtpVerification();
+    }
+  };
+
+  const handlePasswordLogin = async () => {
     setIsLoading(true);
     setErrors({});
 
@@ -72,8 +87,42 @@ const CompanyLogin = () => {
           return;
         }
 
-        toast.success("Login successful!");
-        navigate("/company-dashboard");
+        // Fetch company name for the email
+        const { data: companyData } = await supabase
+          .from("companies")
+          .select("company_name")
+          .eq("id", adminData.company_id)
+          .single();
+
+        const cName = companyData?.company_name || "Vote India Secure";
+        setCompanyName(cName);
+
+        // Generate OTP
+        const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        setGeneratedOtp(newOtp);
+
+        // Send OTP
+        const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
+          body: {
+            type: 'otp',
+            email: validatedData.email,
+            companyName: cName,
+            otp: newOtp
+          },
+          headers: {
+            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+          }
+        });
+
+        if (emailError) {
+          toast.error("Failed to send OTP email. Please try again.");
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
+        toast.success("OTP sent to your registered email");
+        setStep(2);
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -102,6 +151,23 @@ const CompanyLogin = () => {
     }
   };
 
+  const handleOtpVerification = () => {
+    if (otp === generatedOtp) {
+      sessionStorage.setItem("company_2fa_verified", "true");
+      toast.success("Login successful!");
+      navigate("/company-dashboard");
+    } else {
+      toast.error("Invalid OTP. Please check your email and try again.");
+    }
+  };
+
+  const handleBackToLogin = async () => {
+    await supabase.auth.signOut();
+    setStep(1);
+    setOtp("");
+    setGeneratedOtp("");
+  };
+
 
   return (
     <div className="min-h-screen relative">
@@ -127,97 +193,149 @@ const CompanyLogin = () => {
               </p>
             </div>
 
-            {/* Login Card */}
-            <Card className="shadow-large border-white/10 bg-card/10 backdrop-blur-md animate-fade-in-up">
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-xl flex items-center justify-center gap-2">
-                  <Shield className="w-5 h-5 text-orange-400" />
-                  {t("company_login_secure")}
-                </CardTitle>
-                <CardDescription>
-                  {t("company_login_creds")}
-                </CardDescription>
-              </CardHeader>
+            {/* Login Card with Glowing Animated Border */}
+            <div className="relative group animate-fade-in-up">
+              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 animate-gradient-slow" />
+              
+              <Card className="relative shadow-2xl border-white/10 bg-[#020817]/90 backdrop-blur-xl">
+                <CardHeader className="text-center pb-2">
+                  <CardTitle className="text-xl flex items-center justify-center gap-2">
+                    <Shield className="w-5 h-5 text-orange-400" />
+                    {t("company_login_secure")}
+                  </CardTitle>
+                  <CardDescription>
+                    {t("company_login_creds")}
+                  </CardDescription>
+                </CardHeader>
 
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">{t("company_login_email")}</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder={t("company_login_email_ph")}
-                        className={`pl-11 ${errors.email ? "border-destructive" : ""}`}
-                        required
-                        disabled={isLoading}
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
-                    )}
-                  </div>
+                <CardContent>
+                  {step === 1 ? (
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">{t("company_login_email")}</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-orange-400 transition-colors" />
+                          <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            placeholder={t("company_login_email_ph")}
+                            className={`pl-11 bg-black/40 border-white/10 focus:border-orange-500/50 transition-all ${errors.email ? "border-destructive" : ""}`}
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+                        {errors.email && (
+                          <p className="text-sm text-destructive">{errors.email}</p>
+                        )}
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{t("company_login_password")}</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        placeholder={t("company_login_password_ph")}
-                        className={`pl-11 pr-11 ${errors.password ? "border-destructive" : ""}`}
-                        required
+                      <div className="space-y-2">
+                        <Label htmlFor="password">{t("company_login_password")}</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-orange-400 transition-colors" />
+                          <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            placeholder={t("company_login_password_ph")}
+                            className={`pl-11 pr-11 bg-black/40 border-white/10 focus:border-orange-500/50 transition-all ${errors.password ? "border-destructive" : ""}`}
+                            required
+                            disabled={isLoading}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange-400 transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                        {errors.password && (
+                          <p className="text-sm text-destructive">{errors.password}</p>
+                        )}
+                      </div>
+
+                      <Button
+                        type="submit"
+                        variant="hero"
+                        className="w-full gap-2 mt-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 border-none shadow-lg shadow-orange-500/25"
                         disabled={isLoading}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
+                        {isLoading ? (
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            {t("company_login_signin")}
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up">
+                      <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl mb-6">
+                        <p className="text-sm text-orange-200 text-center">
+                          A 6-digit OTP has been sent to <strong>{formData.email}</strong>.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="otp">Enter Verification Code</Label>
+                        <div className="relative">
+                          <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-orange-400 transition-colors" />
+                          <Input
+                            id="otp"
+                            name="otp"
+                            type="text"
+                            maxLength={6}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                            placeholder="000000"
+                            className="pl-11 text-center tracking-[0.5em] text-lg font-mono bg-black/40 border-white/10 focus:border-orange-500/50 transition-all"
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 mt-6">
+                        <Button
+                          type="submit"
+                          variant="hero"
+                          className="w-full gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 border-none shadow-lg shadow-orange-500/25"
+                          disabled={isLoading || otp.length !== 6}
+                        >
+                          Verify & Login
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={handleBackToLogin}
+                          disabled={isLoading}
+                          className="text-slate-400 hover:text-white"
+                        >
+                          Back to Login
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+
+                  <div className="mt-6 pt-6 border-t border-white/10 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {t("company_login_no_account")}{" "}
+                      <Link to="/company-register" className="text-orange-400 hover:text-orange-300 hover:underline font-medium transition-colors">
+                        {t("company_login_register")}
+                      </Link>
+                    </p>
                   </div>
-
-                  <Button
-                    type="submit"
-                    variant="hero"
-                    className="w-full gap-2"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        {t("company_login_signin")}
-                        <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-
-                <div className="mt-6 pt-6 border-t border-border text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {t("company_login_no_account")}{" "}
-                    <Link to="/company-register" className="text-primary hover:underline font-medium">
-                      {t("company_login_register")}
-                    </Link>
-                  </p>
-                </div>
-
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Security Notice */}
             <div className="mt-6 flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10 animate-fade-in-up shadow-sm" style={{ animationDelay: "0.2s" }}>

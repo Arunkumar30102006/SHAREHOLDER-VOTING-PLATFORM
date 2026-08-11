@@ -256,16 +256,18 @@ const ShareholderLogin = () => {
               </div>
             </div>
 
-            {/* Right Side - Login Form */}
-            <div className="order-1 lg:order-2">
-              <Card className="shadow-large border-white/10 bg-card/10 backdrop-blur-md relative overflow-hidden">
+            {/* Right Side - Login Form with Glowing Animated Border */}
+            <div className="order-1 lg:order-2 relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 animate-gradient-slow" />
+              
+              <Card className="relative shadow-2xl border-white/10 bg-[#020817]/90 backdrop-blur-xl overflow-hidden">
                 {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-secondary/10 to-transparent rounded-bl-full" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-primary/10 to-transparent rounded-tr-full" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-bl-full" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-tr-full" />
 
-                <CardHeader className="text-center relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4 shadow-medium animate-pulse-glow">
-                    <Vote className="w-8 h-8 text-primary-foreground" />
+                <CardHeader className="text-center relative z-10 pb-2">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25 animate-pulse-glow">
+                    <Vote className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl">{t("login_card_title")}</CardTitle>
                   <CardDescription>
@@ -280,7 +282,7 @@ const ShareholderLogin = () => {
                         <div className="space-y-2">
                           <Label htmlFor="userId">{t("login_user_id")}</Label>
                           <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-cyan-400 transition-colors" />
                             <Input
                               id="userId"
                               name="userId"
@@ -288,7 +290,7 @@ const ShareholderLogin = () => {
                               onChange={handleInputChange}
                               onFocus={warmEdgeFunction}
                               placeholder={t("login_user_id_placeholder")}
-                              className="pl-11"
+                              className="pl-11 bg-black/40 border-white/10 focus:border-cyan-500/50 transition-all"
                               required
                             />
                           </div>
@@ -300,7 +302,7 @@ const ShareholderLogin = () => {
                         <div className="space-y-2">
                           <Label htmlFor="password">{t("login_password")}</Label>
                           <div className="relative">
-                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-cyan-400 transition-colors" />
                             <Input
                               id="password"
                               name="password"
@@ -309,13 +311,13 @@ const ShareholderLogin = () => {
                               onChange={handleInputChange}
                               onFocus={warmEdgeFunction}
                               placeholder={t("login_password_placeholder")}
-                              className="pl-11 pr-11"
+                              className="pl-11 pr-11 bg-black/40 border-white/10 focus:border-cyan-500/50 transition-all"
                               required
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-cyan-400 transition-colors"
                             >
                               {showPassword ? (
                                 <EyeOff className="w-5 h-5" />
@@ -327,9 +329,9 @@ const ShareholderLogin = () => {
                         </div>
 
                         {/* Security Notice */}
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20">
-                          <Shield className="w-4 h-4 text-accent flex-shrink-0" />
-                          <p className="text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                          <Shield className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                          <p className="text-xs text-cyan-200/80">
                             {t("login_encrypted_notice")}
                           </p>
                         </div>
@@ -341,12 +343,12 @@ const ShareholderLogin = () => {
                         type="submit"
                         variant="hero"
                         size="lg"
-                        className="w-full gap-2"
+                        className="w-full gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 border-none shadow-lg shadow-blue-500/25 mt-4"
                         disabled={isLoading}
                       >
                         {isLoading ? (
                           <>
-                            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             {t("login_verifying")}
                           </>
                         ) : (
@@ -357,7 +359,7 @@ const ShareholderLogin = () => {
                         )}
                       </Button>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-4 animate-fade-in-up">
                         <div className="space-y-2">
                           <Label htmlFor="otp">{t("login_otp_label")}</Label>
                           <Input
@@ -365,13 +367,13 @@ const ShareholderLogin = () => {
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
                             placeholder={t("login_otp_placeholder")}
-                            className="text-center text-2xl tracking-widest"
+                            className="text-center text-2xl tracking-widest bg-black/40 border-white/10 focus:border-cyan-500/50 transition-all py-6"
                             maxLength={6}
                             autoFocus
                             required
                           />
-                          <p className="text-xs text-center text-muted-foreground">
-                            {t("login_otp_sent")} {maskedPhone}
+                          <p className="text-xs text-center text-muted-foreground mt-2">
+                            {t("login_otp_sent")} <span className="font-semibold text-cyan-400">{maskedPhone}</span>
                           </p>
                         </div>
 
@@ -379,12 +381,12 @@ const ShareholderLogin = () => {
                           type="submit"
                           variant="hero"
                           size="lg"
-                          className="w-full gap-2"
+                          className="w-full gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 border-none shadow-lg shadow-teal-500/25"
                           disabled={isLoading}
                         >
                           {isLoading ? (
                             <>
-                              <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                               {t("login_verifying_otp")}
                             </>
                           ) : (
@@ -401,7 +403,7 @@ const ShareholderLogin = () => {
                             setLoginStep("CREDENTIALS");
                             setOtp("");
                           }}
-                          className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          className="w-full text-sm text-muted-foreground hover:text-white transition-colors py-2"
                         >
                           {t("login_back_btn")}
                         </button>
@@ -410,20 +412,20 @@ const ShareholderLogin = () => {
                   </form>
 
                   {/* Help Link */}
-                  <div className="mt-6 text-center">
+                  <div className="mt-6 pt-6 border-t border-white/10 text-center">
                     <p className="text-sm text-muted-foreground">
                       {t("login_no_creds")}{" "}
-                      <Link to="/contact" className="text-primary font-medium hover:underline">
+                      <Link to="/contact" className="text-cyan-400 font-medium hover:text-cyan-300 hover:underline transition-colors">
                         {t("login_contact")}
                       </Link>
                     </p>
                   </div>
 
                   {/* Company Login Link */}
-                  <div className="mt-4 pt-4 border-t border-border text-center">
+                  <div className="mt-4 text-center">
                     <p className="text-sm text-muted-foreground">
                       {t("login_admin_prompt")}{" "}
-                      <Link to="/company-register" className="text-secondary font-medium hover:underline">
+                      <Link to="/company-register" className="text-blue-400 font-medium hover:text-blue-300 hover:underline transition-colors">
                         {t("login_register_company")}
                       </Link>
                     </p>

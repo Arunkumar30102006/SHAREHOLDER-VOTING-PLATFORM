@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, companyName, cin, adminName, address, phone } = await req.json();
+    const { email, companyName, cin, adminName, address, phone, regId, password } = await req.json();
     const FRONTEND_URL = "https://www.shareholdervoting.in";
 
     if (!email || !companyName) {
@@ -63,6 +63,10 @@ serve(async (req) => {
         
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
+            <td style="padding: 8px 0; color: #94a3b8; font-size: 14px; width: 40%;">Registration ID:</td>
+            <td style="padding: 8px 0; color: #ffffff; font-size: 14px; font-weight: 500;">${regId || "N/A"}</td>
+          </tr>
+          <tr>
             <td style="padding: 8px 0; color: #94a3b8; font-size: 14px; width: 40%;">CIN Number:</td>
             <td style="padding: 8px 0; color: #ffffff; font-size: 14px; font-weight: 500;">${cin}</td>
           </tr>
@@ -75,8 +79,14 @@ serve(async (req) => {
              <td style="padding: 8px 0; color: #ffffff; font-size: 14px; font-weight: 500;">${phone || "N/A"}</td>
           </tr>
         </table>
+
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #334155;">
+            <p style="color: #10b981; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 0 0 5px;">Temporary Password:</p>
+            <p style="color: #34d399; font-size: 18px; font-family: monospace; font-weight: bold; margin: 0; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 6px; display: inline-block;">${password || "N/A"}</p>
+            <p style="color: #64748b; font-size: 12px; margin: 10px 0 0;">⚠️ Please log in and change this password immediately for security purposes.</p>
+        </div>
         
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #1e293b;">
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #1e293b;">
             <p style="color: #94a3b8; font-size: 14px; margin: 0 0 5px;">Registered Address:</p>
             <p style="color: #cbd5e1; font-size: 14px; margin: 0; line-height: 1.5;">${address}</p>
         </div>

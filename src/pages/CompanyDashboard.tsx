@@ -48,6 +48,7 @@ import { Textarea } from "@/components/ui/textarea"; // Ensure we have this or i
 import { Sparkles, FileText, BrainCircuit } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { AdminVotingResults } from "@/components/company/AdminVotingResults";
+import { Company, Shareholder } from "@/types";
 
 const shareholderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -56,25 +57,7 @@ const shareholderSchema = z.object({
   sharesHeld: z.number().min(1, "Shares must be at least 1"),
 });
 
-interface Shareholder {
-  id: string;
-  shareholder_name: string;
-  email: string;
-  phone: string | null;
-  shares_held: number;
-  login_id: string;
-  is_credential_used: boolean;
-  credential_created_at: string;
-}
 
-interface Company {
-  id: string;
-  company_name: string;
-  cin_number: string;
-  registered_address: string;
-  contact_email: string;
-  contact_phone: string;
-}
 
 const CompanyDashboard = () => {
   const { t } = useTranslation();
@@ -126,7 +109,7 @@ const CompanyDashboard = () => {
     // Get company details
     const { data: companyData, error: companyError } = await supabase
       .from("companies")
-      .select("id, company_name, cin_number, registered_address, contact_email, contact_phone")
+      .select("*")
       .eq("id", adminData.company_id)
       .maybeSingle();
 
@@ -556,47 +539,147 @@ const CompanyDashboard = () => {
 
 
 
-          {/* Company Profile Card - Added Request */}
-          <Card className="mb-8 border-white/10 bg-card/10 backdrop-blur-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Building2 className="w-5 h-5 text-primary" />
-                {t("company_dashboard_profile")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_name")}</p>
-                  <p className="font-semibold text-foreground">{company?.company_name}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_cin")}</p>
-                  <p className="font-mono text-foreground bg-background/50 px-2 py-1 rounded w-fit border border-border">{company?.cin_number || "N/A"}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_email")}</p>
-                  <p className="text-foreground">{company?.contact_email}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_phone")}</p>
-                  <p className="text-foreground">{company?.contact_phone || "N/A"}</p>
-                </div>
-                <div className="space-y-1 md:col-span-2">
-                  <p className="text-sm font-medium text-muted-foreground">{t("company_dashboard_profile_address")}</p>
-                  <p className="text-foreground">{company?.registered_address}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Stats Cards - Always Visible or maybe specific to tab? Let's keep them visible for now or just standard dashboard */}
-
+          {/* Main Dashboard Content - Tabs */}
           <Tabs defaultValue="shareholders" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-              <TabsTrigger value="shareholders" className="gap-2"><Users className="w-4 h-4" /> {t("company_dashboard_tab_shareholders")}</TabsTrigger>
-              <TabsTrigger value="results" className="gap-2"><FileText className="w-4 h-4" /> {t("company_dashboard_tab_results")}</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-[#0f172a]/80 backdrop-blur border border-white/5">
+              <TabsTrigger value="shareholders" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users className="w-4 h-4" /> {t("company_dashboard_tab_shareholders")}</TabsTrigger>
+              <TabsTrigger value="results" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><FileText className="w-4 h-4" /> {t("company_dashboard_tab_results")}</TabsTrigger>
+              <TabsTrigger value="profile" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Building2 className="w-4 h-4" /> Company Profile</TabsTrigger>
             </TabsList>
+
+            {/* PROFILE TAB */}
+            <TabsContent value="profile" className="space-y-6 animate-fade-in-up">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Basic Details */}
+                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                  <CardHeader className="pb-3 border-b border-white/5">
+                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                      <Building2 className="w-5 h-5" /> Basic Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Company Name</p>
+                      <p className="font-semibold text-foreground">{company?.company_name}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Company Type</p>
+                      <p className="font-medium text-foreground">{company?.company_type || "N/A"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">CIN Number</p>
+                      <p className="font-mono text-sm text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded w-fit">{company?.cin_number}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">PAN Number</p>
+                      <p className="font-mono text-sm text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded w-fit">{company?.pan_number}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Date of Incorporation</p>
+                      <p className="text-foreground">{company?.date_of_incorporation ? new Date(company.date_of_incorporation).toLocaleDateString('en-IN') : "N/A"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">GSTIN</p>
+                      <p className="font-mono text-sm text-foreground">{company?.gstin || "N/A"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Financial & Listing */}
+                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                  <CardHeader className="pb-3 border-b border-white/5">
+                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                      <FileText className="w-5 h-5" /> Financial & Listing
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Authorized Capital</p>
+                      <p className="font-semibold text-foreground text-lg">₹{company?.authorized_capital?.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Paid-up Capital</p>
+                      <p className="font-semibold text-foreground text-lg">₹{company?.paid_up_capital?.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Listed Exchanges</p>
+                      <div className="flex gap-2 flex-wrap mt-1">
+                        {company?.exchanges?.map(ex => (
+                           <span key={ex} className="text-xs font-medium bg-secondary text-secondary-foreground px-2 py-1 rounded-md">{ex}</span>
+                        )) || <span className="text-muted-foreground text-sm">Unlisted</span>}
+                      </div>
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">ISIN Number</p>
+                      <p className="font-mono text-foreground tracking-widest">{company?.isin_number || "N/A"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Contact & Location */}
+                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                  <CardHeader className="pb-3 border-b border-white/5">
+                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                      <Mail className="w-5 h-5" /> Contact & Location
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Official Email</p>
+                      <p className="text-sm text-blue-400 break-all">{company?.contact_email}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Admin Phone</p>
+                      <p className="text-sm text-foreground">{company?.contact_phone || "N/A"}</p>
+                    </div>
+                    <div className="space-y-1 col-span-2 mt-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Registered Address</p>
+                      <p className="text-sm text-foreground leading-relaxed">{company?.registered_address}</p>
+                      <p className="text-sm text-foreground mt-1">
+                        {company?.district ? `${company.district}, ` : ''}{company?.state} - {company?.pin_code}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{company?.country}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Compliance & RTA */}
+                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                  <CardHeader className="pb-3 border-b border-white/5">
+                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                      <Shield className="w-5 h-5" /> Compliance & RTA
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Scrutinizer (CS)</p>
+                      <p className="font-medium text-foreground text-sm">{company?.cs_name}</p>
+                      <p className="text-xs text-muted-foreground bg-white/5 px-2 py-0.5 rounded w-fit mt-1">{company?.cs_membership_number}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">CS Contact</p>
+                      <p className="text-sm text-blue-400 break-all">{company?.cs_email}</p>
+                      <p className="text-xs text-foreground mt-1">{company?.cs_phone}</p>
+                    </div>
+                    
+                    <div className="col-span-2 border-t border-white/5 my-2"></div>
+                    
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Registrar (RTA)</p>
+                      <p className="font-medium text-foreground text-sm">{company?.rta_name || "N/A"}</p>
+                      {company?.rta_reg_number && <p className="text-xs text-muted-foreground mt-1">Reg: {company.rta_reg_number}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">SEBI Details</p>
+                      <p className="text-sm text-blue-400 break-all">{company?.sebi_email || "N/A"}</p>
+                      {company?.sebi_reg_number && <p className="text-xs text-muted-foreground mt-1">Reg: {company.sebi_reg_number}</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </div>
+            </TabsContent>
 
             <TabsContent value="shareholders" className="space-y-6 animate-fade-in-up">
               {/* Stats Cards */}
