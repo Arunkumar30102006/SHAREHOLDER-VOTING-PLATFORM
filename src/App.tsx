@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ScrollToTop from "./components/ScrollToTop";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { Analytics } from "@vercel/analytics/react";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -116,6 +117,7 @@ const App = () => {
                   <Footer />
                 </div>
               </BrowserRouter>
+              <Analytics />
             </TooltipProvider>
           </HelmetProvider>
         </GlobalErrorBoundary>
