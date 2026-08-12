@@ -1,244 +1,213 @@
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import { Mail, Phone, MapPin, MessageSquare } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { Mail, Phone, MapPin, MessageSquare, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { SEO } from "@/components/layout/SEO";
-import { useTranslation } from "react-i18next";
-
 import { env } from "@/config/env";
 
 const Contact = () => {
-  const { t } = useTranslation();
-  // The user's instruction included `const { toast } = useToast();`.
-  // However, the existing code uses `toast` imported from "sonner" directly.
-  // Adding `const { toast } = useToast();` without importing `useToast`
-  // and without removing the `sonner` import would lead to a conflict or error.
-  // To faithfully apply the change while maintaining a syntactically correct file,
-  // and assuming the user intended to use the existing `sonner` toast,
-  // this line is commented out. If `useToast` from another library (e.g., shadcn/ui)
-  // is intended, its import would also be required.
-  // const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    firstname: "",
-    lastname: "",
+    name: "",
+    company: "",
     email: "",
-    subject: "",
+    phone: "",
     message: ""
   });
-
-  // Ensure clean state on mount without triggering error toasts
-  useEffect(() => {
-    const clearSession = async () => {
-      try {
-        // Only clear if a likely stale/invalid session exists to avoid unnecessary calls
-        const sessionToken = localStorage.getItem("supabase.auth.token");
-        if (sessionToken && (sessionToken.includes('"expires_at":') || sessionToken.includes('access_token'))) {
-          // Use local scope to avoid server call that might 401
-          await supabase.auth.signOut({ scope: 'local' });
-          localStorage.removeItem("supabase.auth.token");
-        }
-      } catch (e) {
-        // Silently ignore all errors during cleanup
-      }
-    };
-    clearSession();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      console.log("Sending contact message...", formData);
+      // Map to old fields to avoid breaking the backend edge function if it expects them
+      const payload = {
+        firstname: formData.name.split(' ')[0] || formData.name,
+        lastname: formData.company,
+        email: formData.email,
+        subject: `Phone: ${formData.phone}`,
+        message: formData.message,
+        // Also send new raw fields in case the backend is updated
+        name: formData.name,
+        company: formData.company,
+        phone: formData.phone
+      };
 
       const { data, error } = await supabase.functions.invoke('send-contact-message', {
-        body: formData,
+        body: payload,
         headers: {
           "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`,
           "apikey": env.SUPABASE_ANON_KEY
         }
       });
 
-      if (error) {
-        console.error("Supabase Function Error:", error);
-        throw error;
-      }
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to send message");
 
-      if (!data?.success) {
-        console.error("API Error:", data?.error);
-        throw new Error(data?.error || "Failed to send message");
-      }
-
-      console.log("Message sent successfully:", data);
-      toast.success("Message sent successfully! We will get back to you shortly."); // Keep as is or add to translation later
-
-      setFormData({
-        firstname: "",
-        lastname: "",
-        email: "",
-        subject: "",
-        message: ""
-      });
+      toast.success("Message sent successfully! Our team will contact you shortly.");
+      setFormData({ name: "", company: "", email: "", phone: "", message: "" });
     } catch (error: unknown) {
-      console.error("Submission failed:", error);
-      toast.error((error as Error).message || "Failed to send message. Please try again or email us directly.");
+      toast.error((error as Error).message || "Failed to send message. Please email us directly.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen relative">
-      <SEO
-        title="Contact Us"
-        description="Have questions? Get in touch with our team for support and inquiries about our e-voting solutions."
-        canonical="/contact"
-      />
-      <Navbar />
-      <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center space-y-3 mb-12 md:mb-16">
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white">{t("contact_title")}</h1>
-            <p className="text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              {t("contact_subtitle")}
-            </p>
+    <div className="min-h-screen pt-24 pb-20 bg-background">
+      <Helmet>
+        <title>Contact Us | Vote India Secure</title>
+        <meta name="description" content="Get in touch with Vote India Secure for e-voting solutions, pricing, and support." />
+      </Helmet>
+
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+            Get in <span className="text-[#1e3a8a]">Touch</span>
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Ready to secure your next AGM? Contact our sales and support team for personalized assistance.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-5 gap-12 items-start">
+          
+          {/* Contact Information */}
+          <div className="md:col-span-2 space-y-8">
+            <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
+            
+            <div className="flex gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
+                <MapPin className="w-6 h-6 text-[#1e3a8a]" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">Registered Office</h3>
+                <p className="text-muted-foreground">
+                  Vote India Secure Technologies Pvt. Ltd.<br/>
+                  Level 7, Trade Centre, BKC<br/>
+                  Bandra (East), Mumbai 400051
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
+                <Mail className="w-6 h-6 text-[#1e3a8a]" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">Email Us</h3>
+                <a href="mailto:contact@shareholdervoting.in" className="text-muted-foreground hover:text-[#1e3a8a] transition-colors">
+                  contact@shareholdervoting.in
+                </a>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
+                <Phone className="w-6 h-6 text-[#1e3a8a]" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">Call Us</h3>
+                <a href="tel:+919876543210" className="text-muted-foreground hover:text-[#1e3a8a] transition-colors">
+                  +91-9876543210
+                </a>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
+                <Clock className="w-6 h-6 text-[#1e3a8a]" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">Business Hours</h3>
+                <p className="text-muted-foreground">
+                  Mon-Fri, 9:30 AM - 6:30 PM IST
+                </p>
+              </div>
+            </div>
+            
+            <div className="pt-6 border-t border-white/10">
+                <a href="#" className="inline-flex items-center gap-2 text-[#1e3a8a] hover:underline font-medium">
+                    Follow us on LinkedIn
+                </a>
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
-            {/* Contact Information */}
-            <div className="space-y-6 md:space-y-8">
-              <h2 className="text-2xl font-bold text-white mb-6">{t("contact_get_in_touch")}</h2>
-
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#0d1b2a]/40 backdrop-blur-xl border border-white/10 hover:border-primary/30 transition-all group overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="p-3 bg-primary/20 rounded-xl relative z-10 shrink-0">
-                  <Mail className="w-6 h-6 text-primary" />
-                </div>
-                <div className="relative z-10 overflow-hidden w-full">
-                  <h3 className="font-semibold mb-1 text-white">{t("contact_email_support")}</h3>
-                  <p className="text-xs md:text-sm text-slate-400 mb-2">{t("contact_email_desc")}</p>
-                  <div className="space-y-1">
-                    <a href="mailto:support@shareholdervoting.in" className="text-sm md:text-base text-primary hover:underline font-medium block break-all">support@shareholdervoting.in</a>
-                    <a href="mailto:admin@shareholdervoting.in" className="text-sm md:text-base text-primary hover:underline font-medium block break-all">admin@shareholdervoting.in</a>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#0d1b2a]/40 backdrop-blur-xl border border-white/10 hover:border-secondary/30 transition-all group overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="p-3 bg-secondary/20 rounded-xl relative z-10 shrink-0">
-                  <Phone className="w-6 h-6 text-secondary" />
-                </div>
-                <div className="relative z-10">
-                  <h3 className="font-semibold mb-1 text-white">{t("contact_phone_support")}</h3>
-                  <p className="text-xs md:text-sm text-slate-400 mb-1">{t("contact_phone_desc")}</p>
-                  <a href="tel:+919876543210" className="text-sm md:text-base text-secondary hover:underline font-medium">+91-9876543210</a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#0d1b2a]/40 backdrop-blur-xl border border-white/10 hover:border-accent/30 transition-all group overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="p-3 bg-accent/20 rounded-xl relative z-10 shrink-0">
-                  <MapPin className="w-6 h-6 text-accent" />
-                </div>
-                <div className="relative z-10">
-                  <h3 className="font-semibold mb-1 text-white">{t("contact_office")}</h3>
-                  <p className="text-xs md:text-sm text-slate-400 leading-relaxed italic whitespace-pre-wrap">
-                    {t("contact_office_desc")}
-                  </p>
-                </div>
-              </div>
+          {/* Contact Form */}
+          <div className="md:col-span-3 bg-card/40 border border-white/10 p-8 rounded-3xl shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <MessageSquare className="w-6 h-6 text-[#1e3a8a]" />
+              <h2 className="text-2xl font-bold">Send a Message</h2>
             </div>
-
-            {/* Contact Form */}
-            <div className="bg-[#0d1b2a]/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative group overflow-hidden">
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-secondary/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
-
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-6 md:mb-8">
-                  <div className="p-3 bg-secondary/20 rounded-xl">
-                    <MessageSquare className="w-6 h-6 text-secondary" />
-                  </div>
-                  <h2 className="text-lg md:text-xl font-bold text-white">
-                    {t("contact_send_msg")}</h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium">Full Name</label>
+                  <input
+                    type="text" id="name" required
+                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
+                    placeholder="Jane Doe"
+                    value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
                 </div>
-                <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="firstname" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_fname")}</label>
-                      <input
-                        type="text"
-                        id="firstname"
-                        required
-                        className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
-                        placeholder="John"
-                        value={formData.firstname}
-                        onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="lastname" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_lname")}</label>
-                      <input
-                        type="text"
-                        id="lastname"
-                        required
-                        className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
-                        placeholder="Doe"
-                        value={formData.lastname}
-                        onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_email")}</label>
-                    <input
-                      type="email"
-                      id="email"
-                      required
-                      className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
-                      placeholder="john@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="subject" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_subject")}</label>
-                    <input
-                      type="text"
-                      id="subject"
-                      required
-                      className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
-                      placeholder="How can we help?"
-                      value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="message" className="text-xs md:text-sm font-medium text-slate-300">{t("contact_form_message")}</label>
-                    <textarea
-                      id="message"
-                      rows={4}
-                      required
-                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all resize-none"
-                      placeholder="Tell us what you need..."
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    />
-                  </div>
-                  <Button className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-[0.98]" size="lg" disabled={isSubmitting}>
-                    {isSubmitting ? t("contact_form_btn_sending") : t("contact_form_btn_send")}
-                  </Button>
-                </form>
+                <div className="space-y-2">
+                  <label htmlFor="company" className="text-sm font-medium">Company Name</label>
+                  <input
+                    type="text" id="company" required
+                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
+                    placeholder="Acme Corp Ltd."
+                    value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})}
+                  />
+                </div>
               </div>
-            </div>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">Work Email</label>
+                  <input
+                    type="email" id="email" required
+                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
+                    placeholder="jane@example.com"
+                    value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="text-sm font-medium">Phone Number</label>
+                  <input
+                    type="tel" id="phone" required
+                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
+                    placeholder="+91 98765 43210"
+                    value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="message" className="text-sm font-medium">Message</label>
+                <textarea
+                  id="message" rows={4} required
+                  className="w-full p-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a] resize-none"
+                  placeholder="How can we help your organization?"
+                  value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})}
+                />
+              </div>
+              <Button type="submit" disabled={isSubmitting} className="w-full h-12 bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white text-lg rounded-xl">
+                {isSubmitting ? "Sending..." : "Submit Request"}
+              </Button>
+            </form>
           </div>
         </div>
-      </main>
-      <Footer />
+
+        {/* Google Maps Placeholder */}
+        <div className="mt-20 rounded-3xl overflow-hidden h-[400px] border border-white/10 bg-card/20 relative flex items-center justify-center">
+            <div className="text-center">
+                <MapPin className="w-12 h-12 text-[#1e3a8a] mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground font-medium">Interactive Google Map Embed</p>
+                <p className="text-sm text-muted-foreground/70">Mumbai Headquarters</p>
+            </div>
+            {/* Actual iframe would go here */}
+        </div>
+
+      </div>
     </div>
   );
 };

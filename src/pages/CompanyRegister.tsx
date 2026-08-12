@@ -12,10 +12,45 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+export interface FormDataState {
+  companyName: string;
+  cin: string;
+  pan: string;
+  gstin: string;
+  companyType: string;
+  doi: string;
+  exchanges: string[];
+  isin: string;
+  authorizedCapital: string;
+  paidUpCapital: string;
+  address: string;
+  country: string;
+  pinCode: string;
+  area: string;
+  state: string;
+  district: string;
+  adminName: string;
+  adminDesignation: string;
+  adminEmail: string;
+  adminPhone: string;
+  adminPassword: string;
+  adminConfirmPassword: string;
+  csName: string;
+  csMemNumber: string;
+  csEmail: string;
+  csPhone: string;
+  sebiEmail: string;
+  sebiRegNumber: string;
+  rtaName: string;
+  rtaRegNumber: string;
+  declaration: boolean;
+  consent: boolean;
+}
+
 type ValidationRule = {
   regex?: RegExp;
   message: string;
-  custom?: (val: any, allData: any) => boolean;
+  custom?: (val: string, allData: FormDataState) => boolean;
 };
 
 const STEPS = [
@@ -51,8 +86,14 @@ const EXCHANGES = [
   { id: "none", label: "Not Listed" }
 ];
 
-// Extracted Components to prevent re-mounting and losing focus
-const InputField = ({ label, name, type = "text", placeholder = "", helper = "", required = false, prefix = "", disabled = false, value, onChange, onBlur, error, valid }: any) => (
+interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  helper?: string;
+  prefix?: string;
+  error?: string;
+  valid?: boolean;
+}
+const InputField = ({ label, name, type = "text", placeholder = "", helper = "", required = false, prefix = "", disabled = false, value, onChange, onBlur, error, valid }: InputFieldProps) => (
   <div className="space-y-1 w-full">
     <label className="text-sm font-medium text-slate-300">
       {label} {required && <span className="text-red-400">*</span>}
@@ -86,7 +127,14 @@ const InputField = ({ label, name, type = "text", placeholder = "", helper = "",
   </div>
 );
 
-const SelectField = ({ label, name, options, helper = "", required = false, value, onChange, onBlur, error, valid }: any) => (
+interface SelectFieldProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label: string;
+  options: string[];
+  helper?: string;
+  error?: string;
+  valid?: boolean;
+}
+const SelectField = ({ label, name, options, helper = "", required = false, value, onChange, onBlur, error, valid }: SelectFieldProps) => (
   <div className="space-y-1 w-full">
     <label className="text-sm font-medium text-slate-300">
       {label} {required && <span className="text-red-400">*</span>}
@@ -117,7 +165,18 @@ const SelectField = ({ label, name, options, helper = "", required = false, valu
   </div>
 );
 
-const FileUpload = ({ label, name, accept, maxSize, helper, required = false, file, onFileChange, onRemove }: any) => (
+interface FileUploadProps {
+  label: string;
+  name: string;
+  accept: string;
+  maxSize: number;
+  helper?: string;
+  required?: boolean;
+  file: File | null;
+  onFileChange: (name: string, file: File | null, maxSize: number, allowedTypes: string[]) => void;
+  onRemove: (name: string) => void;
+}
+const FileUpload = ({ label, name, accept, maxSize, helper, required = false, file, onFileChange, onRemove }: FileUploadProps) => (
   <div className="space-y-2 p-4 rounded-xl border border-white/10 bg-white/5">
     <label className="text-sm font-medium text-white block">
       {label} {required && <span className="text-red-400">*</span>}
@@ -154,7 +213,7 @@ const FileUpload = ({ label, name, accept, maxSize, helper, required = false, fi
 
 export default function CompanyRegister() {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<FormDataState>({
     companyName: "",
     cin: "",
     pan: "",
@@ -210,15 +269,15 @@ export default function CompanyRegister() {
     const { name, value, type } = e.target;
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
-      setFormData((prev: any) => ({ ...prev, [name]: checked }));
+      setFormData((prev: FormDataState) => ({ ...prev, [name]: checked }));
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: value }));
+      setFormData((prev: FormDataState) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleExchangeChange = (id: string, checked: boolean) => {
-    setFormData((prev: any) => {
-      let newExchanges = [...prev.exchanges];
+    setFormData((prev: FormDataState) => {
+      let newExchanges = [...(prev.exchanges as string[] || [])];
       if (id === "none" && checked) {
         newExchanges = ["none"];
       } else if (checked) {
@@ -294,7 +353,7 @@ export default function CompanyRegister() {
 
   const getError = (field: string) => {
     if (!touched[field]) return "";
-    const val = formData[field];
+    const val = formData[field as keyof FormDataState];
     const rule = rules[field];
     if (!rule) return "";
 
@@ -303,12 +362,12 @@ export default function CompanyRegister() {
     if (field === "rtaRegNumber" && formData.rtaName === "Self-managed (no RTA)") return "";
     if (field === "sebiRegNumber") return "";
 
-    if (rule.regex && !rule.regex.test(val)) return rule.message;
-    if (rule.custom && !rule.custom(val, formData)) return rule.message;
+    if (rule.regex && !rule.regex.test(val as string)) return rule.message;
+    if (rule.custom && !rule.custom(val as string, formData)) return rule.message;
     return "";
   };
 
-  const isValid = (field: string) => touched[field] && !getError(field) && formData[field];
+  const isValid = (field: string) => !!(touched[field] && !getError(field) && formData[field as keyof FormDataState]);
 
   const checkStepValidity = (s: number) => {
     if (s === 1) {
@@ -316,22 +375,22 @@ export default function CompanyRegister() {
       if (formData.exchanges.includes("bse") || formData.exchanges.includes("nse")) required.push("isin");
       if (formData.gstin && getError("gstin")) return false;
       return required.every(f => {
-        const val = formData[f];
+        const val = formData[f as keyof FormDataState];
         const rule = rules[f];
         if (!val) return false;
-        if (rule.regex && !rule.regex.test(val)) return false;
-        if (rule.custom && !rule.custom(val, formData)) return false;
+        if (rule.regex && !rule.regex.test(val as string)) return false;
+        if (rule.custom && !rule.custom(val as string, formData)) return false;
         return true;
       }) && formData.exchanges.length > 0;
     }
     if (s === 2) {
       const required = ["adminName", "adminDesignation", "adminEmail", "adminPhone", "adminPassword", "adminConfirmPassword"];
       return required.every(f => {
-        const val = formData[f];
+        const val = formData[f as keyof FormDataState];
         const rule = rules[f];
         if (!val) return false;
-        if (rule.regex && !rule.regex.test(val)) return false;
-        if (rule.custom && !rule.custom(val, formData)) return false;
+        if (rule.regex && !rule.regex.test(val as string)) return false;
+        if (rule.custom && !rule.custom(val as string, formData)) return false;
         return true;
       });
     }
@@ -339,11 +398,11 @@ export default function CompanyRegister() {
       const required = ["csName", "csMemNumber", "csEmail", "csPhone", "sebiEmail", "rtaName"];
       if (formData.rtaName && formData.rtaName !== "Self-managed (no RTA)") required.push("rtaRegNumber");
       return required.every(f => {
-        const val = formData[f];
+        const val = formData[f as keyof FormDataState];
         const rule = rules[f];
         if (!val) return false;
-        if (rule.regex && !rule.regex.test(val)) return false;
-        if (rule.custom && !rule.custom(val, formData)) return false;
+        if (rule.regex && !rule.regex.test(val as string)) return false;
+        if (rule.custom && !rule.custom(val as string, formData)) return false;
         return true;
       });
     }
@@ -485,9 +544,9 @@ export default function CompanyRegister() {
 
       toast.success("Registration successful! Welcome email sent.");
       setIsSuccess(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
-      toast.error(error.message, { duration: 8000 });
+      toast.error((error as Error).message, { duration: 8000 });
     } finally {
       setIsSubmitting(false);
     }

@@ -1,12 +1,91 @@
 import { Vote, Building2, Activity, Shield } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useInView } from "motion/react";
+import { useRef, useState, useEffect } from "react";
 
-const stats = [
-  { value: "10M+", label: "Votes Processed", icon: Vote, color: "text-blue-400" },
-  { value: "500+", label: "Companies Served", icon: Building2, color: "text-amber-400" },
-  { value: "99.99%", label: "Uptime", icon: Activity, color: "text-emerald-400" },
-  { value: "2023", label: "SEBI Compliant Since", icon: Shield, color: "text-purple-400" },
+interface StatItem {
+  value: string;
+  numericValue: number;
+  suffix: string;
+  label: string;
+  icon: typeof Vote;
+  color: string;
+}
+
+const stats: StatItem[] = [
+  { value: "10M+", numericValue: 10, suffix: "M+", label: "Votes Processed", icon: Vote, color: "text-blue-400" },
+  { value: "500+", numericValue: 500, suffix: "+", label: "Companies Served", icon: Building2, color: "text-amber-400" },
+  { value: "99.99%", numericValue: 99.99, suffix: "%", label: "Uptime", icon: Activity, color: "text-emerald-400" },
+  { value: "2023", numericValue: 2023, suffix: "", label: "SEBI Compliant Since", icon: Shield, color: "text-purple-400" },
 ];
+
+const useCountUp = (end: number, duration: number, shouldStart: boolean, isYear: boolean) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!shouldStart) return;
+
+    const startValue = isYear ? 2000 : 0;
+    const range = end - startValue;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentValue = startValue + range * eased;
+
+      setCount(currentValue);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [end, duration, shouldStart, isYear]);
+
+  return count;
+};
+
+const StatCard = ({ stat, index }: { stat: StatItem; index: number }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+
+  const isYear = stat.suffix === "";
+  const isDecimal = stat.suffix === "%";
+  const count = useCountUp(stat.numericValue, 2000, isInView, isYear);
+
+  const displayValue = isYear
+    ? Math.round(count).toString()
+    : isDecimal
+    ? count.toFixed(2)
+    : Math.round(count).toString();
+
+  return (
+    <motion.div
+      ref={ref}
+      key={stat.label}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="text-center group"
+    >
+      <div className="flex justify-center mb-3">
+        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <stat.icon className={`w-5 h-5 ${stat.color}`} />
+        </div>
+      </div>
+      <p className="text-3xl md:text-4xl font-bold text-white mb-1 tracking-tight tabular-nums">
+        {displayValue}{stat.suffix}
+      </p>
+      <p className="text-xs md:text-sm text-slate-400 font-medium">{stat.label}</p>
+    </motion.div>
+  );
+};
 
 const StatsSection = () => {
   return (
@@ -22,22 +101,7 @@ const StatsSection = () => {
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="text-center group"
-              >
-                <div className="flex justify-center mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                  </div>
-                </div>
-                <p className="text-3xl md:text-4xl font-bold text-white mb-1 tracking-tight">{stat.value}</p>
-                <p className="text-xs md:text-sm text-slate-400 font-medium">{stat.label}</p>
-              </motion.div>
+              <StatCard key={stat.label} stat={stat} index={index} />
             ))}
           </div>
         </motion.div>

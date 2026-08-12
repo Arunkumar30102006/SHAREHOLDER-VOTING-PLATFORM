@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 import Navbar from "@/components/Navbar";
@@ -29,6 +30,7 @@ const ShareholderAnalysis = lazy(() => import("./pages/ShareholderAnalysis"));
 const VotingManagement = lazy(() => import("./pages/VotingManagement"));
 const AIPowerSuite = lazy(() => import("./pages/AIPowerSuite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const LiveDemo = lazy(() => import("./pages/LiveDemo"));
 
 // Lazy Load Public/Legal Pages
 const About = lazy(() => import("./pages/About"));
@@ -36,7 +38,9 @@ const Features = lazy(() => import("./pages/Features"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Demo = lazy(() => import("./pages/Demo"));
 const Contact = lazy(() => import("./pages/Contact"));
-const Security = lazy(() => import("./pages/Security"));
+const Services = lazy(() => import("./pages/Services"));
+const Compliance = lazy(() => import("./pages/Compliance"));
+const Blog = lazy(() => import("./pages/Blog"));
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
 const SebiCompliance = lazy(() => import("./pages/legal/SebiCompliance"));
@@ -71,6 +75,7 @@ const App = () => {
                 <Suspense fallback={null}>
                   <WebsiteFeedback />
                   <VoteAssistant />
+                  <ScrollToTopButton />
                 </Suspense>
 
                 <div className="flex flex-col min-h-screen">
@@ -98,7 +103,10 @@ const App = () => {
                         <Route path="/features" element={<Features />} />
                         <Route path="/pricing" element={<Pricing />} />
                         <Route path="/demo" element={<Demo />} />
-                        <Route path="/security" element={<Security />} />
+                        <Route path="/live-demo" element={<LiveDemo />} />
+                        <Route path="/services" element={<Services />} />
+                        <Route path="/compliance" element={<Compliance />} />
+                        <Route path="/blog" element={<Blog />} />
                         <Route path="/contact" element={<Contact />} />
 
                         {/* Legal Routes */}

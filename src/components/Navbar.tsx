@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Shield, Users, Building2, LogOut, ShieldCheck, Home, Menu, X } from "lucide-react";
+import { Shield, Users, Building2, LogOut, ShieldCheck, Home, Menu, X, BookOpen, Layers } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ const Navbar = () => {
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -33,6 +34,15 @@ const Navbar = () => {
       setIsLoggedIn(!!session);
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Scroll listener for glassmorphism effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const checkAuth = async () => {
@@ -69,16 +79,19 @@ const Navbar = () => {
   const navLinks = [
     { label: "Home", href: "/", icon: Home },
     { label: "About", href: "/about", icon: Users },
-    { label: "Security", href: "/security", icon: ShieldCheck },
+    { label: "Services", href: "/services", icon: Layers },
+    { label: "Compliance", href: "/compliance", icon: ShieldCheck },
+    { label: "Blog", href: "/blog", icon: BookOpen },
     { label: "Contact", href: "/contact", icon: Shield },
-    { label: "Company Register", href: "/company-register", icon: Building2 },
-    { label: "Company Portal", href: "/company-login", icon: Building2 },
-    { label: "Shareholder Login", href: "/shareholder-login", icon: Users },
   ];
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 h-[64px] bg-[#060D1A] border-b border-white/5 shadow-md transition-all duration-300">
+      <nav className={`fixed top-0 left-0 right-0 z-50 h-[64px] border-b transition-all duration-500 ${
+        isScrolled
+          ? "bg-[#060D1A]/90 backdrop-blur-xl border-white/10 shadow-lg shadow-black/20"
+          : "bg-[#060D1A] border-white/5 shadow-md"
+      }`}>
         <div className="w-full h-full px-4 md:px-6 lg:px-8 flex items-center justify-between">
           
           {/* Left: Logo */}
@@ -97,21 +110,37 @@ const Navbar = () => {
                 to={link.href}
                 onClick={(e) => handleNavigation(e, link.href)}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 text-base font-medium whitespace-nowrap px-3 py-2 rounded-lg transition-all duration-200 ${
+                  `relative flex items-center gap-2 text-base font-medium whitespace-nowrap px-3 py-2 rounded-lg transition-all duration-200 ${
                     isActive
                       ? "text-white bg-white/10 shadow-sm"
                       : "text-slate-300 hover:text-white hover:bg-white/5"
                   }`
                 }
               >
-                <link.icon className="w-4 h-4" strokeWidth={2} />
-                {link.label}
+                {({ isActive }) => (
+                  <>
+                    <link.icon className="w-4 h-4" strokeWidth={2} />
+                    {link.label}
+                    {/* Animated active underline */}
+                    {isActive && (
+                      <span
+                        className="absolute bottom-0 left-3 right-3 h-[2px] bg-gradient-to-r from-primary via-amber-400 to-primary rounded-full"
+                        style={{
+                          animation: "navUnderlineIn 0.3s ease-out forwards",
+                        }}
+                      />
+                    )}
+                  </>
+                )}
               </NavLink>
             ))}
           </div>
 
-          {/* Right Placeholder / Mobile Menu Trigger */}
-          <div className="flex items-center justify-end z-20 xl:w-64">
+          {/* Right: CTA & Mobile Menu Trigger */}
+          <div className="flex items-center justify-end z-20 xl:w-64 gap-4">
+            <Link to="/contact" className="hidden xl:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+              Request Demo
+            </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="xl:hidden text-slate-300 hover:text-white p-2 rounded-md hover:bg-white/5 transition-colors"
@@ -123,7 +152,7 @@ const Navbar = () => {
 
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="xl:hidden absolute top-[64px] left-0 w-full bg-[#060D1A] border-b border-white/5 shadow-xl px-4 py-4 flex flex-col gap-2 z-40 max-h-[calc(100vh-64px)] overflow-y-auto">
+          <div className="xl:hidden absolute top-[64px] left-0 w-full bg-[#060D1A]/95 backdrop-blur-xl border-b border-white/5 shadow-xl px-4 py-4 flex flex-col gap-2 z-40 max-h-[calc(100vh-64px)] overflow-y-auto">
             {navLinks.map((link) => (
               <NavLink
                 key={link.href}
@@ -132,7 +161,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 text-base font-medium px-4 py-3 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? "text-white bg-white/10"
+                      ? "text-white bg-white/10 border-l-2 border-primary"
                       : "text-slate-300 hover:text-white hover:bg-white/5"
                   }`
                 }
@@ -141,6 +170,11 @@ const Navbar = () => {
                 {link.label}
               </NavLink>
             ))}
+            <div className="px-4 py-2 mt-2 border-t border-white/5">
+              <Link to="/contact" className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-4 py-2">
+                Request Demo
+              </Link>
+            </div>
           </div>
         )}
       </nav>
@@ -163,6 +197,14 @@ const Navbar = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Keyframe for active underline animation */}
+      <style>{`
+        @keyframes navUnderlineIn {
+          from { transform: scaleX(0); opacity: 0; }
+          to { transform: scaleX(1); opacity: 1; }
+        }
+      `}</style>
     </>
   );
 };

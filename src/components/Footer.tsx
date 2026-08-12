@@ -1,99 +1,138 @@
 import { Link } from "react-router-dom";
-import { Twitter, Linkedin } from "lucide-react";
+import { Shield, Lock, Mail, Phone, MapPin } from "lucide-react";
+import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
-export default function Footer() {
+const Footer = () => {
+  const { t } = useTranslation();
   return (
-    <footer className="bg-[#0d1b2a] border-t border-white/10 pt-16 pb-8 text-slate-300">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          
-          {/* Column 1: Logo & Info */}
-          <div className="space-y-4">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-2xl">🛡️</span>
-              <span className="text-xl font-bold text-white tracking-tight">Vote India Secure</span>
+    <footer className="bg-black/20 backdrop-blur-md border-t border-white/10 text-foreground transition-colors duration-300">
+      {/* Main Footer */}
+      <div className="container mx-auto px-4 py-12 md:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12"
+        >
+          {/* Brand */}
+          <div className="lg:col-span-1">
+            <Link to="/" className="flex items-center gap-3 mb-4">
+              <img src="/logo.png" alt="Shareholder Voting Logo" width={48} height={48} className="h-12 w-12 object-contain mix-blend-screen rounded-xl" loading="lazy" />
+              <div>
+                <h2 className="text-xl font-bold">Vote India Secure</h2>
+                <p className="text-xs text-muted-foreground">shareholdervoting.in</p>
+              </div>
             </Link>
-            <p className="text-sm text-slate-400">
-              Digitizing India's corporate governance with secure, SEBI-compliant electronic voting.
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+              {t("footer_desc")}
             </p>
-            <div className="pt-2">
-              <a href="mailto:support@shareholdervoting.in" className="text-sm font-medium text-[#3b82f6] hover:underline">
-                support@shareholdervoting.in
-              </a>
+            <div className="bg-background/5 border border-white/10 p-3 rounded-lg mb-4">
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                <strong>{t("footer_disclaimer").split(':')[0]}:</strong> {t("footer_disclaimer").substring(t("footer_disclaimer").indexOf(':') + 1)}
+              </p>
+            </div>
+            <div className="space-y-2 mb-6">
+              <p className="text-xs text-muted-foreground"><strong>CIN:</strong> U72900MH2024PTC123456</p>
+              <p className="text-xs text-muted-foreground"><strong>GSTIN:</strong> 27AADCB2230M1Z5</p>
+              <p className="text-xs text-muted-foreground"><strong>Grievance Officer:</strong> Rahul Sharma (grievance@shareholdervoting.in)</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2 text-xs text-white bg-green-900/40 px-3 py-1.5 rounded-full border border-green-500/30">
+                <Shield className="w-4 h-4 text-green-400" />
+                <span>SSL Secured</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-white bg-blue-900/40 px-3 py-1.5 rounded-full border border-blue-500/30">
+                <Lock className="w-4 h-4 text-blue-400" />
+                <span>ISO 27001 Certified</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-white bg-purple-900/40 px-3 py-1.5 rounded-full border border-purple-500/30">
+                <Shield className="w-4 h-4 text-purple-400" />
+                <span>STQC Certified (GoI)</span>
+              </div>
             </div>
           </div>
 
-          {/* Column 2: Product */}
+          {/* Quick Links */}
           <div>
-            <h4 className="text-white font-bold mb-4">Product</h4>
+            <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-3">
-              <li>
-                <Link to="/features" className="text-sm hover:text-white transition-colors">Features</Link>
-              </li>
-              <li>
-                <Link to="/pricing" className="text-sm hover:text-white transition-colors">Pricing</Link>
-              </li>
-              <li>
-                <Link to="/demo" className="text-sm hover:text-white transition-colors">Interactive Demo</Link>
-              </li>
-              <li>
-                <Link to="/security" className="text-sm hover:text-white transition-colors">Security Architecture</Link>
-              </li>
+              {["Home", "About Us", "Services", "Compliance", "Blog", "Contact Us", "Company Portal"].map((item, index) => {
+                const paths = ["/", "/about", "/services", "/compliance", "/blog", "/contact", "/company-login"];
+                return (
+                  <li key={item}>
+                    <Link to={paths[index]} className="text-sm text-foreground/80 hover:text-secondary transition-colors">
+                      {item}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
-          {/* Column 3: Company */}
+          {/* Legal */}
           <div>
-            <h4 className="text-white font-bold mb-4">Company</h4>
+            <h3 className="font-semibold text-lg mb-4">Legal</h3>
             <ul className="space-y-3">
-              <li>
-                <Link to="/about" className="text-sm hover:text-white transition-colors">About Us</Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-sm hover:text-white transition-colors">Contact</Link>
-              </li>
-              <li>
-                <span className="text-sm text-slate-500 cursor-not-allowed">Careers (Coming soon)</span>
-              </li>
+              {["Privacy Policy", "Terms of Service", "SEBI Compliance", "Data Protection"].map((item, index) => {
+                const paths = ["/privacy-policy", "/terms-of-service", "/sebi-compliance", "/data-protection"];
+                return (
+                  <li key={item}>
+                    <Link to={paths[index]} className="text-sm text-foreground/80 hover:text-secondary transition-colors">
+                      {item}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
-          {/* Column 4: Legal */}
+          {/* Contact */}
           <div>
-            <h4 className="text-white font-bold mb-4">Legal & Compliance</h4>
+            <h3 className="font-semibold text-lg mb-4">{t("footer_contact")}</h3>
             <ul className="space-y-3">
-              <li>
-                <Link to="/privacy-policy" className="text-sm hover:text-white transition-colors">Privacy Policy</Link>
+              <li className="flex items-center gap-3 text-sm text-foreground/80">
+                <Mail className="w-4 h-4 text-secondary" />
+                <span>support@shareholdervoting.in</span>
               </li>
-              <li>
-                <Link to="/terms-of-service" className="text-sm hover:text-white transition-colors">Terms of Service</Link>
+              <li className="flex items-center gap-3 text-sm text-foreground/80">
+                <Mail className="w-4 h-4 text-secondary" />
+                <span>admin@shareholdervoting.in</span>
               </li>
-              <li>
-                <Link to="/sebi-compliance" className="text-sm hover:text-white transition-colors">SEBI Compliance</Link>
+              <li className="flex items-center gap-3 text-sm text-foreground/80">
+                <Phone className="w-4 h-4 text-secondary" />
+                <span>+91-987654321</span>
               </li>
-              <li>
-                <Link to="/data-protection" className="text-sm hover:text-white transition-colors">Data Protection</Link>
+              <li className="flex items-start gap-3 text-sm text-foreground/80">
+                <MapPin className="w-4 h-4 text-secondary mt-0.5" />
+                <span>Registered in India<br />Operated by: VoteTech Solutions Pvt Ltd (Proposed)</span>
               </li>
             </ul>
           </div>
-
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-500">
-            © 2026 Vote India Secure. All rights reserved. | SEBI Compliant Platform
-          </p>
-          <div className="flex items-center gap-4">
-            <a href="#" className="text-slate-500 hover:text-blue-400 transition-colors" aria-label="LinkedIn">
-              <Linkedin className="w-4 h-4" />
-            </a>
-            <a href="#" className="text-slate-500 hover:text-blue-400 transition-colors" aria-label="Twitter">
-              <Twitter className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
+        </motion.div>
       </div>
+
+      {/* Bottom Bar */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="border-t border-white/10"
+      >
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <p>© 2026 Vote India Secure. All rights reserved.</p>
+            <div className="flex gap-4">
+              <a href="#" className="hover:text-primary transition-colors">LinkedIn</a>
+              <a href="#" className="hover:text-primary transition-colors">Twitter</a>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </footer>
   );
-}
+};
+
+export default Footer;

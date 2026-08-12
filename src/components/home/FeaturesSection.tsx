@@ -9,6 +9,7 @@ import {
   Calendar
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { motion } from "motion/react";
 
 const features = [
   {
@@ -73,7 +74,13 @@ const FeaturesSection = () => {
 
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
             <Shield className="w-4 h-4 text-blue-400" />
             <span>{t("feat_badge")}</span>
@@ -87,15 +94,18 @@ const FeaturesSection = () => {
           <p className="text-lg text-muted-foreground">
             {t("feat_subtitle")}
           </p>
-        </div>
+        </motion.div>
 
         {/* Features Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={feature.titleKey}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.08 }}
               className="group relative bg-card/10 backdrop-blur-md rounded-2xl p-6 shadow-soft border border-white/10 hover:shadow-large hover:-translate-y-2 transition-all duration-500"
-              style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Icon */}
               <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-medium mb-5 group-hover:scale-110 transition-transform duration-300`}>
@@ -112,7 +122,7 @@ const FeaturesSection = () => {
 
               {/* Hover Glow */}
               <div className={`absolute inset-0 -z-10 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-500`} />
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
