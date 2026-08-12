@@ -12,8 +12,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Vote India Secure | Enterprise E-Voting Platform</title>
-        <meta name="description" content="Secure, SEBI-Compliant Electronic Voting for Indian Corporates. End-to-end encrypted platform for AGMs, EGMs, and Postal Ballots." />
+        <title>Vote Secure | Enterprise E-Voting Platform</title>
+        <meta name="description" content="Secure, Enterprise-Grade Electronic Voting for Global Enterprises. End-to-end encrypted platform for AGMs, EGMs, and Postal Ballots." />
       </Helmet>
 
       {/* HERO SECTION */}
@@ -27,19 +27,19 @@ const Index = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1e3a8a]/10 border border-[#1e3a8a]/20 text-[#1e3a8a] text-sm font-medium mb-8">
               <ShieldCheck className="w-4 h-4" />
-              <span>India's Most Trusted E-Voting Solution</span>
+              <span>The World's Most Trusted E-Voting Solution</span>
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-foreground tracking-tight">
-              Secure, SEBI-Compliant <br />
-              <span className="text-[#1e3a8a]">Electronic Voting</span> for Indian Corporates
+              Secure, Enterprise-Grade <br />
+              <span className="text-[#1e3a8a]">Electronic Voting</span> for Global Enterprises
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto">
-              End-to-end encrypted e-voting platform engineered specifically for India's regulatory framework. Ensure transparency, maximize participation, and guarantee compliance.
+              End-to-end encrypted e-voting platform engineered specifically for global regulatory frameworks. Ensure transparency, maximize participation, and guarantee compliance.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/contact">
                 <Button size="xl" className="w-full sm:w-auto bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-lg px-8 py-6 rounded-xl">
-                  Request a Demo
+                  Contact Us
                 </Button>
               </Link>
               <Link to="/services">
@@ -147,7 +147,7 @@ const Index = () => {
       <section className="py-24">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="bg-[#0f172a] rounded-3xl p-8 md:p-12 border border-[#1e3a8a]/20 shadow-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Beyond Basic Compliance. <br/><span className="text-[#1e3a8a]">Why Choose Vote India Secure?</span></h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Beyond Basic Compliance. <br/><span className="text-[#1e3a8a]">Why Choose Vote Secure?</span></h2>
             <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
               While depositories like NSDL and CDSL offer baseline e-voting, forward-thinking enterprises choose us for premium experience and dedicated support.
             </p>
@@ -179,10 +179,10 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                quote: "Vote India Secure transformed our AGM process. The real-time dashboard allowed us to track quorum instantly, and their dedicated support team was phenomenal.",
-                name: "Rajesh Kumar",
+                quote: "Vote Secure transformed our AGM process. The real-time dashboard allowed us to track quorum instantly, and their dedicated support team was phenomenal.",
+                name: "Vikram S.",
                 role: "Company Secretary",
-                company: "TechNexus India Ltd."
+                company: "TechNexus Global Ltd."
               },
               {
                 quote: "Unlike the standard depository portals, the interface is incredibly intuitive. We saw a 40% increase in retail shareholder participation this year.",
@@ -191,7 +191,7 @@ const Index = () => {
                 company: "GreenEnergy Solutions"
               },
               {
-                quote: "As an RTA, integrating with their API was seamless. It saves our team hundreds of hours during peak proxy season while ensuring 100% SEBI compliance.",
+                quote: "As an RTA, integrating with their API was seamless. It saves our team hundreds of hours during peak proxy season while ensuring 100% global compliance.",
                 name: "Vikram Mehta",
                 role: "VP Operations",
                 company: "Apex Registrars"
@@ -220,11 +220,11 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to modernize your shareholder meetings?</h2>
           <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-            Join the growing number of Indian listed companies upgrading their corporate governance infrastructure.
+            Join the growing number of global enterprises upgrading their corporate governance infrastructure.
           </p>
           <Link to="/contact">
             <Button size="xl" className="bg-white text-[#1e3a8a] hover:bg-gray-100 text-lg px-10 py-7 rounded-xl shadow-2xl">
-              Schedule a Free Demo
+              Contact Us
             </Button>
           </Link>
         </div>

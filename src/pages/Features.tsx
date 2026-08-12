@@ -73,9 +73,9 @@ const mainFeatures = [
   {
     icon: Globe,
     title: "Multi-Language Support",
-    description: "Access the platform in multiple Indian languages to ensure every shareholder can participate comfortably regardless of language preference.",
+    description: "Access the platform in multiple global languages to ensure every shareholder can participate comfortably regardless of language preference.",
     details: [
-      "English, Hindi, Tamil, Telugu support",
+      "English, Spanish, French, Mandarin support",
       "Dynamic language switching",
       "Localized UI components",
       "Accessible to all shareholders"
@@ -186,7 +186,7 @@ const Features = () => {
             </h1>
             <p className="text-base md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto">
               A comprehensive platform built to handle every aspect of corporate electronic voting — from shareholder
-              authentication to scrutinizer reports, fully aligned with SEBI regulations.
+              authentication to scrutinizer reports, fully aligned with global regulations.
             </p>
           </motion.div>
 
@@ -242,11 +242,10 @@ const Features = () => {
             <div className="relative z-10 text-center max-w-3xl mx-auto">
               <Vote className="w-12 h-12 text-primary mx-auto mb-4" />
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                Designed for SEBI Compliance
+                Designed for Global Regulatory Compliance
               </h2>
               <p className="text-slate-400 leading-relaxed mb-6">
-                Every feature is built with Indian corporate regulations in mind — including SEBI (LODR) Regulations 2015
-                Regulation 44, Companies Act 2013 Section 108, and Rule 20 of the Companies (Management and Administration) Rules, 2014.
+                Every feature is built with global corporate regulations in mind — including international data protection laws, GDPR, and standard corporate governance frameworks.
               </p>
               <Link to="/sebi-compliance">
                 <Button variant="outline" className="gap-2 border-white/10 hover:bg-white/5">
@@ -280,7 +279,7 @@ const Features = () => {
               </Link>
               <Link to="/contact">
                 <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2">
-                  Request a Demo
+                  Contact Us
                 </Button>
               </Link>
             </div>

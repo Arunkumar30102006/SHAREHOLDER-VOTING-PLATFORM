@@ -8,7 +8,7 @@ const services = [
   {
     icon: Vote,
     title: "E-Voting for AGMs / EGMs / Postal Ballots",
-    description: "Secure, real-time electronic voting infrastructure designed specifically for Indian corporate assemblies. Ensure seamless remote participation with instant tallying.",
+    description: "Secure, real-time electronic voting infrastructure designed specifically for global corporate assemblies. Ensure seamless remote participation with instant tallying.",
   },
   {
     icon: FileText,
@@ -28,7 +28,7 @@ const services = [
   {
     icon: Link2,
     title: "RTA Integration",
-    description: "Seamless API integrations with leading Registrar and Transfer Agents (RTAs) in India for real-time shareholder data synchronization.",
+    description: "Seamless API integrations with leading Global Registrar and Transfer Agents (RTAs) for real-time shareholder data synchronization.",
   },
   {
     icon: Smartphone,
@@ -41,7 +41,7 @@ const Services = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
       <Helmet>
-        <title>Services | Vote India Secure</title>
+        <title>Services | Vote Secure</title>
         <meta name="description" content="Explore our enterprise e-voting services, compliance reporting, and shareholder engagement tools." />
       </Helmet>
 
@@ -51,7 +51,7 @@ const Services = () => {
             Enterprise Solutions for <span className="text-[#1e3a8a]">Corporate Governance</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive electronic voting and shareholder management services tailored for the Indian regulatory landscape.
+            Comprehensive electronic voting and shareholder management services tailored for global regulatory landscapes.
           </p>
         </div>
 
@@ -74,7 +74,7 @@ const Services = () => {
               </p>
               <Link to="/contact">
                 <Button variant="ghost" className="group text-[#1e3a8a] hover:text-[#1e3a8a]/80 hover:bg-[#1e3a8a]/10 w-full justify-between">
-                  Request Demo
+                  Contact Us
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
