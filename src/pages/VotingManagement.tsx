@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,9 @@ import {
   Share2,
   ShieldCheck,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Layers,
+  FileCheck2
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -53,8 +55,14 @@ import autoTable from 'jspdf-autotable';
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTranslation } from "react-i18next";
 import { MerkleTree } from "@/lib/merkle";
-import { generateVoteHash, simulateBlockchainTransaction } from "@/lib/blockchain";
-import { Nominee, VotingSession, ResolutionResult, AnchorData, Company, Shareholder } from "@/types";
+import { simulateBlockchainTransaction } from "@/lib/blockchain";
+import { Nominee, VotingSession, ResolutionResult, AnchorData, Company, Shareholder, Resolution } from "@/types";
+
+const resolutionSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters").max(250),
+  description: z.string().min(5, "Description must be at least 5 characters").max(1000),
+  resolutionType: z.enum(["ordinary", "special", "unanimous"]),
+});
 
 const nomineeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -87,9 +95,14 @@ const VotingManagement = () => {
   const [isSendingEmails, setIsSendingEmails] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
   const [votingSession, setVotingSession] = useState<VotingSession | null>(null);
+  const [resolutions, setResolutions] = useState<Resolution[]>([]);
   const [nominees, setNominees] = useState<Nominee[]>([]);
   const [shareholders, setShareholders] = useState<Shareholder[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Forms toggle
+  const [showAddResolution, setShowAddResolution] = useState(false);
+  const [isAddingResolution, setIsAddingResolution] = useState(false);
   const [showAddNominee, setShowAddNominee] = useState(false);
   const [isAddingNominee, setIsAddingNominee] = useState(false);
 
@@ -107,6 +120,12 @@ const VotingManagement = () => {
     recordDate: "",
   });
 
+  const [resolutionForm, setResolutionForm] = useState({
+    title: "",
+    description: "",
+    resolutionType: "ordinary" as "ordinary" | "special" | "unanimous",
+  });
+
   const [nomineeForm, setNomineeForm] = useState({
     name: "",
     email: "",
@@ -119,70 +138,6 @@ const VotingManagement = () => {
   const [results, setResults] = useState<ResolutionResult[]>([]);
   const [isAnchoring, setIsAnchoring] = useState(false);
   const [anchorData, setAnchorData] = useState<AnchorData | null>(null);
-
-  const handleAnchorToBlockchain = async () => {
-    if (!votingSession || results.length === 0) return;
-    setIsAnchoring(true);
-
-    try {
-      const { data: allVotes, error: votesError } = await supabase
-        .from("votes")
-        .select("vote_hash")
-        .in("resolution_id", results.map(r => r.id));
-
-      if (votesError || !allVotes || allVotes.length === 0) {
-        toast.error("No cast votes available to anchor.");
-        setIsAnchoring(false);
-        return;
-      }
-
-      const voteHashes = allVotes.map(v => v.vote_hash).sort();
-      const tree = await MerkleTree.create(voteHashes);
-      const root = tree.getRoot();
-      const txHash = await simulateBlockchainTransaction();
-
-      const { error: anchorError } = await supabase
-        .from("block_anchors")
-        .insert({
-          session_id: votingSession.id,
-          merkle_root: root,
-          vote_count: voteHashes.length,
-          started_at: votingSession.start_date,
-          ended_at: votingSession.end_date,
-          transaction_id: txHash,
-          blockchain_network: "Polygon Amoy Testnet"
-        });
-
-      if (anchorError) throw anchorError;
-
-      toast.success("Session votes cryptographically anchored to Polygon Blockchain!");
-      await loadAnchorStatus();
-
-    } catch (error: unknown) {
-      console.error("Anchoring failed:", error);
-      toast.error(`Anchoring failed: ${(error as Error).message}`);
-    } finally {
-      setIsAnchoring(false);
-    }
-  };
-
-  const loadAnchorStatus = async () => {
-    if (!votingSession) return;
-    const { data } = await supabase
-      .from("block_anchors")
-      .select("*")
-      .eq("session_id", votingSession.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (data) setAnchorData(data);
-  };
-
-  useEffect(() => {
-    if (votingSession) loadAnchorStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [votingSession]);
 
   const checkAuthAndLoadData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -206,7 +161,7 @@ const VotingManagement = () => {
 
     const { data: companyData, error: companyError } = await supabase
       .from("companies")
-      .select("id, company_name")
+      .select("*")
       .eq("id", adminData.company_id)
       .maybeSingle();
 
@@ -257,6 +212,7 @@ const VotingManagement = () => {
         recordDate: data.record_date || "",
       });
 
+      await loadResolutions(data.id);
       await loadNominees(data.id);
       await loadResults(data.id);
     }
@@ -271,11 +227,21 @@ const VotingManagement = () => {
     if (!error && data) setShareholders(data);
   };
 
+  const loadResolutions = async (sessionId: string) => {
+    const { data, error } = await supabase
+      .from("resolutions")
+      .select("*")
+      .eq("voting_session_id", sessionId)
+      .order("created_at", { ascending: true });
+
+    if (!error && data) setResolutions(data as Resolution[]);
+  };
+
   const loadNominees = async (sessionId: string) => {
     const { data, error } = await supabase
       .from("nominees")
       .select("*")
-      .eq("session_id", sessionId)
+      .eq("voting_session_id", sessionId)
       .order("created_at", { ascending: true });
 
     if (!error && data) setNominees(data);
@@ -285,7 +251,7 @@ const VotingManagement = () => {
     const { data: resolutionsData, error: resError } = await supabase
       .from("resolutions")
       .select("*")
-      .eq("session_id", sessionId);
+      .eq("voting_session_id", sessionId);
 
     if (resError || !resolutionsData) return;
 
@@ -302,21 +268,22 @@ const VotingManagement = () => {
 
         votes?.forEach((v) => {
           const weight = v.weighted_votes || 1;
-          if (v.vote_value === "FOR") forCount += weight;
-          else if (v.vote_value === "AGAINST") againstCount += weight;
-          else if (v.vote_value === "ABSTAIN") abstainCount += weight;
+          const val = (v.vote_value || "").toUpperCase();
+          if (val === "FOR") forCount += weight;
+          else if (val === "AGAINST") againstCount += weight;
+          else if (val === "ABSTAIN") abstainCount += weight;
         });
 
         return {
           id: res.id,
           title: res.title,
           description: res.description,
-          resolution_type: res.resolution_type,
           stats: {
             for: forCount,
             against: againstCount,
             abstain: abstainCount,
             total: forCount + againstCount + abstainCount,
+            winner: forCount > againstCount,
           },
         };
       })
@@ -325,9 +292,78 @@ const VotingManagement = () => {
     setResults(mappedResults);
   };
 
+  const loadAnchorStatus = async () => {
+    if (!votingSession) return;
+    const { data } = await supabase
+      .from("block_anchors")
+      .select("*")
+      .eq("session_id", votingSession.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) setAnchorData(data);
+  };
+
+  useEffect(() => {
+    if (votingSession) loadAnchorStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [votingSession]);
+
+  const handleAnchorToBlockchain = async () => {
+    if (!votingSession || results.length === 0) return;
+    setIsAnchoring(true);
+
+    try {
+      const { data: allVotes, error: votesError } = await supabase
+        .from("votes")
+        .select("vote_hash")
+        .in("resolution_id", results.map(r => r.id));
+
+      if (votesError || !allVotes || allVotes.length === 0) {
+        toast.error("No cast votes available to anchor.");
+        setIsAnchoring(false);
+        return;
+      }
+
+      const voteHashes = allVotes.map(v => v.vote_hash).sort();
+      const tree = await MerkleTree.create(voteHashes);
+      const root = tree.getRoot();
+      const txHash = await simulateBlockchainTransaction();
+
+      const { error: anchorError } = await supabase
+        .from("block_anchors")
+        .insert({
+          session_id: votingSession.id,
+          merkle_root: root,
+          vote_count: voteHashes.length,
+          started_at: votingSession.start_date,
+          ended_at: votingSession.end_date,
+          transaction_id: txHash,
+          blockchain_network: "Polygon Amoy Testnet"
+        });
+
+      if (anchorError) throw anchorError;
+
+      toast.success("Session votes cryptographically anchored to Polygon Blockchain!");
+      await loadAnchorStatus();
+
+    } catch (error: unknown) {
+      console.error("Anchoring failed:", error);
+      toast.error(`Anchoring failed: ${(error as Error).message}`);
+    } finally {
+      setIsAnchoring(false);
+    }
+  };
+
   const handleSessionInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setSessionForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleResolutionInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setResolutionForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleNomineeInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -409,6 +445,117 @@ const VotingManagement = () => {
     if (company) await loadVotingSession(company.id);
   };
 
+  const handleAddResolution = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!votingSession) {
+      toast.error("Please create and save a voting session first.");
+      return;
+    }
+
+    setIsAddingResolution(true);
+    try {
+      resolutionSchema.parse(resolutionForm);
+
+      const { error } = await supabase.from("resolutions").insert({
+        voting_session_id: votingSession.id,
+        title: resolutionForm.title.trim(),
+        description: resolutionForm.description.trim(),
+        resolution_type: resolutionForm.resolutionType,
+      });
+
+      if (error) throw error;
+
+      toast.success("Resolution agenda added to session ballot.");
+      setResolutionForm({ title: "", description: "", resolutionType: "ordinary" });
+      setShowAddResolution(false);
+      await loadResolutions(votingSession.id);
+      await loadResults(votingSession.id);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0]?.message || "Validation error");
+      } else {
+        toast.error("Failed to add resolution.");
+      }
+    } finally {
+      setIsAddingResolution(false);
+    }
+  };
+
+  const handleDeleteResolution = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this resolution agenda?")) return;
+
+    const { error } = await supabase.from("resolutions").delete().eq("id", id);
+    if (error) {
+      toast.error("Failed to delete resolution.");
+      return;
+    }
+
+    toast.success("Resolution removed.");
+    if (votingSession) {
+      await loadResolutions(votingSession.id);
+      await loadResults(votingSession.id);
+    }
+  };
+
+  const handleAddNominee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!votingSession || !company) {
+      toast.error("Create and save a voting session first.");
+      return;
+    }
+
+    setIsAddingNominee(true);
+    try {
+      nomineeSchema.parse({
+        name: nomineeForm.name,
+        email: nomineeForm.email,
+        designation: nomineeForm.designation,
+        qualification: nomineeForm.qualification,
+        experienceYears: nomineeForm.experienceYears ? parseInt(nomineeForm.experienceYears) : undefined,
+        bio: nomineeForm.bio,
+      });
+
+      const { error } = await supabase.from("nominees").insert({
+        voting_session_id: votingSession.id,
+        company_id: company.id,
+        nominee_name: nomineeForm.name.trim(),
+        nominee_email: nomineeForm.email.trim().toLowerCase(),
+        designation: nomineeForm.designation || null,
+        qualification: nomineeForm.qualification || null,
+        experience_years: nomineeForm.experienceYears ? parseInt(nomineeForm.experienceYears) : null,
+        bio: nomineeForm.bio || null,
+      });
+
+      if (error) throw error;
+
+      toast.success("Candidate nominee registered successfully.");
+      setNomineeForm({ name: "", email: "", designation: "", qualification: "", experienceYears: "", bio: "" });
+      setShowAddNominee(false);
+      await loadNominees(votingSession.id);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0]?.message || "Validation failed");
+      } else {
+        toast.error("Failed to add nominee.");
+      }
+    } finally {
+      setIsAddingNominee(false);
+    }
+  };
+
+  const handleDeleteNominee = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this candidate nominee?")) return;
+
+    const { error } = await supabase.from("nominees").delete().eq("id", id);
+    if (error) {
+      toast.error("Failed to delete nominee.");
+      return;
+    }
+
+    toast.success("Nominee removed.");
+    if (votingSession) await loadNominees(votingSession.id);
+  };
+
   const handleSendMeetingInvites = async () => {
     if (!votingSession || !sessionForm.meetingLink) {
       toast.error("Please configure and save meeting details first.");
@@ -445,64 +592,6 @@ const VotingManagement = () => {
     } finally {
       setIsSendingEmails(false);
     }
-  };
-
-  const handleAddNominee = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!votingSession) {
-      toast.error("Create a voting session first.");
-      return;
-    }
-
-    setIsAddingNominee(true);
-    try {
-      nomineeSchema.parse({
-        name: nomineeForm.name,
-        email: nomineeForm.email,
-        designation: nomineeForm.designation,
-        qualification: nomineeForm.qualification,
-        experienceYears: nomineeForm.experienceYears ? parseInt(nomineeForm.experienceYears) : undefined,
-        bio: nomineeForm.bio,
-      });
-
-      const { error } = await supabase.from("nominees").insert({
-        session_id: votingSession.id,
-        nominee_name: nomineeForm.name,
-        nominee_email: nomineeForm.email,
-        designation: nomineeForm.designation || null,
-        qualification: nomineeForm.qualification || null,
-        experience_years: nomineeForm.experienceYears ? parseInt(nomineeForm.experienceYears) : null,
-        bio: nomineeForm.bio || null,
-      });
-
-      if (error) throw error;
-
-      toast.success("Nominee added successfully.");
-      setNomineeForm({ name: "", email: "", designation: "", qualification: "", experienceYears: "", bio: "" });
-      setShowAddNominee(false);
-      await loadNominees(votingSession.id);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        toast.error(err.errors[0]?.message || "Validation failed");
-      } else {
-        toast.error("Failed to add nominee.");
-      }
-    } finally {
-      setIsAddingNominee(false);
-    }
-  };
-
-  const handleDeleteNominee = async (id: string) => {
-    if (!confirm("Are you sure you want to remove this nominee?")) return;
-
-    const { error } = await supabase.from("nominees").delete().eq("id", id);
-    if (error) {
-      toast.error("Failed to delete nominee.");
-      return;
-    }
-
-    toast.success("Nominee removed.");
-    if (votingSession) await loadNominees(votingSession.id);
   };
 
   const handleDownloadPDF = () => {
@@ -559,7 +648,6 @@ const VotingManagement = () => {
   }
 
   const sessionStatus = getSessionStatus();
-  const totalVotesCast = results.reduce((acc, r) => acc + r.stats.total, 0);
 
   return (
     <div className="min-h-screen relative bg-[#020817] text-white selection:bg-blue-500/30">
@@ -572,16 +660,16 @@ const VotingManagement = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           
           {/* Header Bar */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8 p-6 rounded-3xl bg-[#0d1b2a]/80 border border-white/10 backdrop-blur-xl shadow-2xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8 p-6 rounded-3xl bg-[#0d1b2a]/90 border border-white/20 backdrop-blur-xl shadow-2xl">
             <div>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-2.5">
-                <Vote className="w-3.5 h-3.5" />
-                <span>Session Operations & Governance</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-2.5 shadow-sm">
+                <Vote className="w-4 h-4 text-cyan-400" />
+                <span>Session Operations & Governance Hub</span>
               </div>
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                 {votingSession?.title || "Voting Session Management"}
               </h1>
-              <p className="text-slate-200 text-sm mt-1">
+              <p className="text-slate-100 text-sm mt-1.5 font-medium leading-relaxed">
                 Configure general meeting resolutions, virtual meeting streams, and live scrutinizer tallies.
               </p>
             </div>
@@ -592,7 +680,7 @@ const VotingManagement = () => {
               <Button 
                 variant="outline" 
                 onClick={() => navigate("/company-dashboard")}
-                className="border-white/20 hover:bg-white/10 text-white rounded-xl text-xs font-semibold px-4 py-5"
+                className="border-white/30 hover:bg-white/10 text-white rounded-xl text-xs font-bold px-4 py-5"
               >
                 Back to Dashboard
               </Button>
@@ -601,26 +689,30 @@ const VotingManagement = () => {
 
           {/* Main Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 bg-[#0d1b2a]/90 backdrop-blur border border-white/10 p-1 rounded-2xl">
-              <TabsTrigger value="overview" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
+            <TabsList className="grid w-full grid-cols-6 bg-[#0d1b2a]/95 backdrop-blur border border-white/20 p-1.5 rounded-2xl shadow-xl">
+              <TabsTrigger value="overview" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs">
                 <FileText className="w-4 h-4" />
                 <span>Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="schedule" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
+              <TabsTrigger value="schedule" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs">
                 <CalendarDays className="w-4 h-4" />
                 <span>Schedule</span>
               </TabsTrigger>
-              <TabsTrigger value="meeting" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
+              <TabsTrigger value="resolutions" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs">
+                <Layers className="w-4 h-4" />
+                <span>Resolutions</span>
+              </TabsTrigger>
+              <TabsTrigger value="meeting" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs">
                 <Video className="w-4 h-4" />
                 <span>Virtual Meeting</span>
               </TabsTrigger>
-              <TabsTrigger value="nominees" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
+              <TabsTrigger value="nominees" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs">
                 <UserPlus className="w-4 h-4" />
                 <span>Nominees</span>
               </TabsTrigger>
-              <TabsTrigger value="results" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
+              <TabsTrigger value="results" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs">
                 <Trophy className="w-4 h-4" />
-                <span>Results & Audit</span>
+                <span>Results</span>
               </TabsTrigger>
             </TabsList>
 
@@ -629,63 +721,63 @@ const VotingManagement = () => {
               
               {/* 4 Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
+                <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Shareholders</p>
-                        <p className="text-3xl font-extrabold text-white mt-1 tabular-nums">{shareholders.length}</p>
-                        <p className="text-xs text-cyan-300 mt-1 font-medium">Eligible Voters</p>
+                        <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Shareholders</p>
+                        <p className="text-3xl font-black text-white mt-1 tabular-nums">{shareholders.length}</p>
+                        <p className="text-xs text-cyan-300 mt-1 font-bold">Eligible Voters</p>
                       </div>
-                      <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center">
-                        <Users className="w-6 h-6 text-blue-400" />
+                      <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
+                        <Users className="w-6 h-6 text-blue-300" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
+                <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Candidates / Nominees</p>
-                        <p className="text-3xl font-extrabold text-white mt-1 tabular-nums">{nominees.length}</p>
-                        <p className="text-xs text-amber-300 mt-1 font-medium">On Active Ballot</p>
+                        <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Resolutions</p>
+                        <p className="text-3xl font-black text-white mt-1 tabular-nums">{resolutions.length}</p>
+                        <p className="text-xs text-emerald-300 mt-1 font-bold">Active Agendas</p>
                       </div>
-                      <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/20 flex items-center justify-center">
-                        <UserPlus className="w-6 h-6 text-amber-400" />
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center">
+                        <Layers className="w-6 h-6 text-emerald-300" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
+                <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Invites Dispatch</p>
-                        <p className="text-2xl font-extrabold text-white mt-1">
+                        <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Director Nominees</p>
+                        <p className="text-3xl font-black text-white mt-1 tabular-nums">{nominees.length}</p>
+                        <p className="text-xs text-amber-300 mt-1 font-bold">On Active Ballot</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center">
+                        <UserPlus className="w-6 h-6 text-amber-300" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Invites Dispatch</p>
+                        <p className="text-2xl font-black text-white mt-1">
                           {votingSession?.is_meeting_emails_sent ? "Dispatched" : "Pending"}
                         </p>
-                        <p className="text-xs text-purple-300 mt-1 font-medium">Meeting Link & Agenda</p>
+                        <p className="text-xs text-purple-300 mt-1 font-bold">Meeting Links</p>
                       </div>
-                      <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
-                        <Mail className="w-6 h-6 text-purple-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Quorum Health</p>
-                        <p className="text-2xl font-extrabold text-emerald-400 mt-1">Met & Compliant</p>
-                        <p className="text-xs text-emerald-300 mt-1 font-medium">Statutory Threshold</p>
-                      </div>
-                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
-                        <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                      <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center">
+                        <Mail className="w-6 h-6 text-purple-300" />
                       </div>
                     </div>
                   </CardContent>
@@ -694,7 +786,7 @@ const VotingManagement = () => {
 
               {/* Session Controls & Quick Actions */}
               {votingSession && (
-                <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl">
+                <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl p-6 shadow-xl">
                   <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-cyan-400" />
                     Session Operations & Actions
@@ -715,7 +807,7 @@ const VotingManagement = () => {
                       variant="outline"
                       onClick={handleSendMeetingInvites}
                       disabled={isSendingEmails || !sessionForm.meetingLink}
-                      className="border-white/20 hover:bg-white/10 text-white font-semibold rounded-xl gap-2"
+                      className="border-white/30 hover:bg-white/10 text-white font-bold rounded-xl gap-2"
                     >
                       {isSendingEmails ? <Loader2 className="w-4 h-4 animate-spin text-cyan-400" /> : <Send className="w-4 h-4 text-cyan-400" />}
                       {votingSession.is_meeting_emails_sent ? "Resend Meeting Invites" : "Dispatch Meeting Invites"}
@@ -725,7 +817,7 @@ const VotingManagement = () => {
                       <Button
                         variant="ghost"
                         onClick={() => window.open(sessionForm.meetingLink, "_blank")}
-                        className="hover:bg-white/10 text-slate-200 hover:text-white rounded-xl gap-2"
+                        className="hover:bg-white/10 text-slate-100 hover:text-white font-semibold rounded-xl gap-2"
                       >
                         <ExternalLink className="w-4 h-4" />
                         Preview Virtual Meeting Room
@@ -739,13 +831,13 @@ const VotingManagement = () => {
 
             {/* TAB 2: SCHEDULE CONFIGURATION */}
             <TabsContent value="schedule" className="space-y-6">
-              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
-                <CardHeader className="border-b border-white/10 pb-4">
-                  <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/15 pb-4">
+                  <CardTitle className="text-xl font-black text-white flex items-center gap-2">
                     <CalendarDays className="w-5 h-5 text-cyan-400" />
-                    AGM & Resolution Schedule
+                    AGM & General Meeting Schedule
                   </CardTitle>
-                  <CardDescription className="text-slate-200">
+                  <CardDescription className="text-slate-100 font-normal">
                     Set precise voting start and closing timestamps, statutory record date, and meeting title.
                   </CardDescription>
                 </CardHeader>
@@ -753,73 +845,73 @@ const VotingManagement = () => {
                   <form onSubmit={handleCreateOrUpdateSession} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="title" className="text-xs font-semibold text-slate-200">General Meeting Title</Label>
+                        <Label htmlFor="title" className="text-xs font-bold text-slate-100">General Meeting Title</Label>
                         <Input
                           id="title"
                           name="title"
                           value={sessionForm.title}
                           onChange={handleSessionInputChange}
                           placeholder="e.g. 105th Annual General Meeting (AGM)"
-                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           required
                         />
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="description" className="text-xs font-semibold text-slate-200">Session Description & Notice Summary</Label>
+                        <Label htmlFor="description" className="text-xs font-bold text-slate-100">Session Description & Notice Summary</Label>
                         <Textarea
                           id="description"
                           name="description"
                           value={sessionForm.description}
                           onChange={handleSessionInputChange}
                           placeholder="Provide context on resolutions, voting instructions, and agenda..."
-                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           rows={3}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="startDate" className="text-xs font-semibold text-slate-200">Voting Window Start (UTC/Local)</Label>
+                        <Label htmlFor="startDate" className="text-xs font-bold text-slate-100">Voting Window Start (UTC/Local)</Label>
                         <Input
                           id="startDate"
                           name="startDate"
                           type="datetime-local"
                           value={sessionForm.startDate}
                           onChange={handleSessionInputChange}
-                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           required
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="endDate" className="text-xs font-semibold text-slate-200">Voting Window End / Cutoff</Label>
+                        <Label htmlFor="endDate" className="text-xs font-bold text-slate-100">Voting Window End / Cutoff</Label>
                         <Input
                           id="endDate"
                           name="endDate"
                           type="datetime-local"
                           value={sessionForm.endDate}
                           onChange={handleSessionInputChange}
-                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           required
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="recordDate" className="text-xs font-semibold text-slate-200">Statutory Record Date</Label>
+                        <Label htmlFor="recordDate" className="text-xs font-bold text-slate-100">Statutory Record Date</Label>
                         <Input
                           id="recordDate"
                           name="recordDate"
                           type="date"
                           value={sessionForm.recordDate}
                           onChange={handleSessionInputChange}
-                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="flex justify-end pt-4 border-t border-white/10">
-                      <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2">
+                      <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2 shadow-lg">
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                         Save Schedule Configuration
                       </Button>
@@ -829,15 +921,134 @@ const VotingManagement = () => {
               </Card>
             </TabsContent>
 
-            {/* TAB 3: VIRTUAL MEETING */}
+            {/* TAB 3: RESOLUTIONS & AGENDAS */}
+            <TabsContent value="resolutions" className="space-y-6">
+              <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/15 pb-4 flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl font-black text-white flex items-center gap-2">
+                      <Layers className="w-5 h-5 text-cyan-400" />
+                      Resolution Agendas & Ballots
+                    </CardTitle>
+                    <CardDescription className="text-slate-100 text-xs font-medium">
+                      Define the statutory motions and resolutions that shareholders will vote upon.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => setShowAddResolution(!showAddResolution)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs gap-2 shadow-md"
+                  >
+                    {showAddResolution ? "Cancel" : <><Plus className="w-4 h-4" /> Add Resolution</>}
+                  </Button>
+                </CardHeader>
+
+                {showAddResolution && (
+                  <CardContent className="pt-6 border-b border-white/15 bg-black/30">
+                    <form onSubmit={handleAddResolution} className="space-y-4">
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="resTitle" className="text-xs font-bold text-slate-100">Resolution Title / Item</Label>
+                          <Input
+                            id="resTitle"
+                            name="title"
+                            value={resolutionForm.title}
+                            onChange={handleResolutionInputChange}
+                            placeholder="e.g. Adoption of Audited Financial Statements for FY 2025-26"
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="resType" className="text-xs font-bold text-slate-100">Resolution Type</Label>
+                          <Select
+                            value={resolutionForm.resolutionType}
+                            onValueChange={(val) => setResolutionForm(prev => ({ ...prev, resolutionType: val as "ordinary" | "special" | "unanimous" }))}
+                          >
+                            <SelectTrigger className="bg-black/60 border-white/20 text-white rounded-xl font-bold">
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#020817] border-white/20 text-white rounded-xl">
+                              <SelectItem value="ordinary">Ordinary Resolution (Simple Majority &gt; 50%)</SelectItem>
+                              <SelectItem value="special">Special Resolution (Supermajority &gt; 75%)</SelectItem>
+                              <SelectItem value="unanimous">Unanimous Consent (100%)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="resDesc" className="text-xs font-bold text-slate-100">Explanatory Statement / Agenda Text</Label>
+                          <Textarea
+                            id="resDesc"
+                            name="description"
+                            value={resolutionForm.description}
+                            onChange={handleResolutionInputChange}
+                            placeholder="To receive, consider and adopt the audited standalone and consolidated financial statements..."
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                            rows={3}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <Button type="submit" disabled={isAddingResolution} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2 shadow-lg">
+                          {isAddingResolution ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                          Add Resolution to Ballot
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                )}
+
+                <CardContent className="pt-6">
+                  {resolutions.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400">
+                      <Layers className="w-12 h-12 mx-auto mb-3 text-slate-500" />
+                      <p className="text-white font-bold">No resolutions added yet.</p>
+                      <p className="text-xs text-slate-200 mt-1">Click Add Resolution above to build the voting ballot.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {resolutions.map((res, index) => (
+                        <div key={res.id} className="p-5 rounded-2xl bg-black/40 border border-white/15 flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-bold border border-cyan-400/30 font-mono">
+                                ITEM #{index + 1}
+                              </span>
+                              <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold uppercase border border-blue-400/30">
+                                {res.resolution_type || "Ordinary"}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-white text-base mt-2">{res.title}</h4>
+                            <p className="text-xs text-slate-100 leading-relaxed">{res.description}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteResolution(res.id)}
+                            className="hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg p-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* TAB 4: VIRTUAL MEETING */}
             <TabsContent value="meeting" className="space-y-6">
-              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
-                <CardHeader className="border-b border-white/10 pb-4">
-                  <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/15 pb-4">
+                  <CardTitle className="text-xl font-black text-white flex items-center gap-2">
                     <Video className="w-5 h-5 text-cyan-400" />
-                    Virtual Meeting Room & Broadcast
+                    Virtual Meeting Room & Stream
                   </CardTitle>
-                  <CardDescription className="text-slate-200">
+                  <CardDescription className="text-slate-100 font-normal">
                     Connect Zoom, Microsoft Teams, Webex, or Google Meet for live video proceedings.
                   </CardDescription>
                 </CardHeader>
@@ -845,12 +1056,12 @@ const VotingManagement = () => {
                   <form onSubmit={handleCreateOrUpdateSession} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label htmlFor="meetingPlatform" className="text-xs font-semibold text-slate-200">Platform</Label>
+                        <Label htmlFor="meetingPlatform" className="text-xs font-bold text-slate-100">Platform</Label>
                         <Select
                           value={sessionForm.meetingPlatform}
                           onValueChange={(value) => setSessionForm(prev => ({ ...prev, meetingPlatform: value }))}
                         >
-                          <SelectTrigger className="bg-black/40 border-white/15 text-white rounded-xl">
+                          <SelectTrigger className="bg-black/60 border-white/20 text-white rounded-xl font-bold">
                             <SelectValue placeholder="Select platform" />
                           </SelectTrigger>
                           <SelectContent className="bg-[#020817] border-white/20 text-white">
@@ -864,7 +1075,7 @@ const VotingManagement = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="meetingPassword" className="text-xs font-semibold text-slate-200">Room Passcode (Optional)</Label>
+                        <Label htmlFor="meetingPassword" className="text-xs font-bold text-slate-100">Room Passcode (Optional)</Label>
                         <Input
                           id="meetingPassword"
                           name="meetingPassword"
@@ -872,28 +1083,28 @@ const VotingManagement = () => {
                           value={sessionForm.meetingPassword}
                           onChange={handleSessionInputChange}
                           placeholder="e.g. AGM2026Secure"
-                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                         />
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="meetingLink" className="text-xs font-semibold text-slate-200">Live Meeting URL</Label>
+                        <Label htmlFor="meetingLink" className="text-xs font-bold text-slate-100">Live Meeting URL</Label>
                         <div className="relative">
-                          <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                           <Input
                             id="meetingLink"
                             name="meetingLink"
                             value={sessionForm.meetingLink}
                             onChange={handleSessionInputChange}
                             placeholder="https://zoom.us/j/123456789"
-                            className="pl-10 bg-black/40 border-white/15 text-white rounded-xl"
+                            className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           />
                         </div>
                       </div>
                     </div>
 
                     <div className="flex justify-end pt-4 border-t border-white/10">
-                      <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2">
+                      <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2 shadow-lg">
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                         Save Virtual Meeting Details
                       </Button>
@@ -903,46 +1114,46 @@ const VotingManagement = () => {
               </Card>
             </TabsContent>
 
-            {/* TAB 4: NOMINEES */}
+            {/* TAB 5: NOMINEES */}
             <TabsContent value="nominees" className="space-y-6">
-              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
-                <CardHeader className="border-b border-white/10 pb-4 flex flex-row items-center justify-between">
+              <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/15 pb-4 flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                    <CardTitle className="text-xl font-black text-white flex items-center gap-2">
                       <UserPlus className="w-5 h-5 text-cyan-400" />
                       Director & Nominee Agendas
                     </CardTitle>
-                    <CardDescription className="text-slate-200 text-xs">
+                    <CardDescription className="text-slate-100 text-xs font-medium">
                       Manage candidates standing for election to the board of directors.
                     </CardDescription>
                   </div>
                   <Button
                     onClick={() => setShowAddNominee(!showAddNominee)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs gap-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs gap-2 shadow-md"
                   >
                     {showAddNominee ? "Cancel" : <><Plus className="w-4 h-4" /> Add Nominee</>}
                   </Button>
                 </CardHeader>
 
                 {showAddNominee && (
-                  <CardContent className="pt-6 border-b border-white/10 bg-black/20">
+                  <CardContent className="pt-6 border-b border-white/15 bg-black/30">
                     <form onSubmit={handleAddNominee} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="nomName" className="text-xs font-semibold text-slate-200">Candidate Full Name</Label>
+                          <Label htmlFor="nomName" className="text-xs font-bold text-slate-100">Candidate Full Name</Label>
                           <Input
                             id="nomName"
                             name="name"
                             value={nomineeForm.name}
                             onChange={handleNomineeInputChange}
                             placeholder="e.g. Dr. Arthur Vance"
-                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                             required
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="nomEmail" className="text-xs font-semibold text-slate-200">Email Address</Label>
+                          <Label htmlFor="nomEmail" className="text-xs font-bold text-slate-100">Email Address</Label>
                           <Input
                             id="nomEmail"
                             name="email"
@@ -950,25 +1161,25 @@ const VotingManagement = () => {
                             value={nomineeForm.email}
                             onChange={handleNomineeInputChange}
                             placeholder="candidate@enterprise.com"
-                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                             required
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="nomDesig" className="text-xs font-semibold text-slate-200">Proposed Designation</Label>
+                          <Label htmlFor="nomDesig" className="text-xs font-bold text-slate-100">Proposed Designation</Label>
                           <Input
                             id="nomDesig"
                             name="designation"
                             value={nomineeForm.designation}
                             onChange={handleNomineeInputChange}
                             placeholder="e.g. Independent Non-Executive Director"
-                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="nomExp" className="text-xs font-semibold text-slate-200">Years of Experience</Label>
+                          <Label htmlFor="nomExp" className="text-xs font-bold text-slate-100">Years of Experience</Label>
                           <Input
                             id="nomExp"
                             name="experienceYears"
@@ -977,13 +1188,13 @@ const VotingManagement = () => {
                             onChange={handleNomineeInputChange}
                             placeholder="18"
                             min="0"
-                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                           />
                         </div>
                       </div>
 
                       <div className="flex justify-end pt-2">
-                        <Button type="submit" disabled={isAddingNominee} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2">
+                        <Button type="submit" disabled={isAddingNominee} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2 shadow-lg">
                           {isAddingNominee ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                           Add to Ballot
                         </Button>
@@ -997,23 +1208,23 @@ const VotingManagement = () => {
                     <div className="text-center py-12 text-slate-400">
                       <UserPlus className="w-12 h-12 mx-auto mb-3 text-slate-500" />
                       <p className="text-white font-bold">No nominees registered for this session.</p>
-                      <p className="text-xs text-slate-300 mt-1">Click Add Nominee above to register candidates.</p>
+                      <p className="text-xs text-slate-200 mt-1">Click Add Nominee above to register candidates.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {nominees.map((nominee) => (
-                        <div key={nominee.id} className="p-5 rounded-2xl bg-black/40 border border-white/10 flex items-start justify-between gap-4">
+                        <div key={nominee.id} className="p-5 rounded-2xl bg-black/40 border border-white/15 flex items-start justify-between gap-4">
                           <div>
                             <h4 className="font-bold text-white text-base">{nominee.nominee_name}</h4>
-                            <p className="text-xs text-slate-300">{nominee.nominee_email}</p>
+                            <p className="text-xs text-slate-200 font-medium">{nominee.nominee_email}</p>
                             <div className="flex flex-wrap gap-2 mt-2.5">
                               {nominee.designation && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-cyan-300 text-xs font-semibold border border-blue-500/30">
+                                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-cyan-300 text-xs font-bold border border-blue-400/30">
                                   {nominee.designation}
                                 </span>
                               )}
                               {nominee.experience_years && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
+                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
                                   {nominee.experience_years} Years Exp
                                 </span>
                               )}
@@ -1035,44 +1246,56 @@ const VotingManagement = () => {
               </Card>
             </TabsContent>
 
-            {/* TAB 5: RESULTS & AUDIT */}
+            {/* TAB 6: RESULTS & AUDIT */}
             <TabsContent value="results" className="space-y-6">
-              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
-                <CardHeader className="border-b border-white/10 pb-4 flex flex-row items-center justify-between">
+              <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/15 pb-4 flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                    <CardTitle className="text-xl font-black text-white flex items-center gap-2">
                       <Trophy className="w-5 h-5 text-amber-400" />
                       Scrutinizer Audit & Official Results
                     </CardTitle>
-                    <CardDescription className="text-slate-200 text-xs">
+                    <CardDescription className="text-slate-100 text-xs font-medium">
                       Cryptographically verified vote tallies and exchange disclosure exports.
                     </CardDescription>
                   </div>
-                  {results.length > 0 && (
-                    <Button 
-                      onClick={handleDownloadPDF} 
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs gap-2 shadow-lg"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download Scrutinizer PDF
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {results.length > 0 && (
+                      <Button 
+                        onClick={handleAnchorToBlockchain}
+                        disabled={isAnchoring}
+                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs gap-2 shadow-lg"
+                      >
+                        {isAnchoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4 text-purple-200" />}
+                        Anchor to Polygon
+                      </Button>
+                    )}
+                    {results.length > 0 && (
+                      <Button 
+                        onClick={handleDownloadPDF} 
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs gap-2 shadow-lg"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download Scrutinizer PDF
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6">
                   {results.length === 0 ? (
                     <div className="text-center py-12 text-slate-400">
                       <FileText className="w-12 h-12 mx-auto mb-3 text-slate-500" />
                       <p className="text-white font-bold">No votes recorded yet.</p>
-                      <p className="text-xs text-slate-300 mt-1">Cast ballots will appear here in real time.</p>
+                      <p className="text-xs text-slate-200 mt-1">Cast ballots will appear here in real time.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {results.map((item) => (
-                        <div key={item.id} className="p-6 rounded-2xl bg-black/40 border border-white/10">
+                        <div key={item.id} className="p-6 rounded-2xl bg-black/40 border border-white/15">
                           <div className="flex items-start justify-between mb-4">
                             <div>
                               <h4 className="font-bold text-white text-base">{item.title}</h4>
-                              <p className="text-xs text-slate-300 mt-0.5">{item.description}</p>
+                              <p className="text-xs text-slate-200 mt-0.5">{item.description}</p>
                             </div>
                             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${item.stats.for >= item.stats.against ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : "bg-rose-500/20 text-rose-300 border-rose-500/30"}`}>
                               {item.stats.for >= item.stats.against ? "PASSED (ASSENT)" : "REJECTED"}
@@ -1080,17 +1303,17 @@ const VotingManagement = () => {
                           </div>
 
                           <div className="grid grid-cols-3 gap-4 text-center">
-                            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                              <div className="text-2xl font-extrabold text-emerald-400 tabular-nums">{item.stats.for.toLocaleString()}</div>
-                              <div className="text-[11px] font-bold text-emerald-300/80 uppercase mt-1">Votes In Favor</div>
+                            <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
+                              <div className="text-2xl font-black text-emerald-400 tabular-nums">{item.stats.for.toLocaleString()}</div>
+                              <div className="text-[11px] font-bold text-emerald-300 uppercase mt-1">Votes In Favor</div>
                             </div>
-                            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                              <div className="text-2xl font-extrabold text-rose-400 tabular-nums">{item.stats.against.toLocaleString()}</div>
-                              <div className="text-[11px] font-bold text-rose-300/80 uppercase mt-1">Votes Against</div>
+                            <div className="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30">
+                              <div className="text-2xl font-black text-rose-400 tabular-nums">{item.stats.against.toLocaleString()}</div>
+                              <div className="text-[11px] font-bold text-rose-300 uppercase mt-1">Votes Against</div>
                             </div>
-                            <div className="p-4 rounded-xl bg-slate-500/10 border border-slate-500/20">
-                              <div className="text-2xl font-extrabold text-slate-300 tabular-nums">{item.stats.abstain.toLocaleString()}</div>
-                              <div className="text-[11px] font-bold text-slate-400 uppercase mt-1">Abstained</div>
+                            <div className="p-4 rounded-xl bg-slate-500/15 border border-slate-500/30">
+                              <div className="text-2xl font-black text-slate-200 tabular-nums">{item.stats.abstain.toLocaleString()}</div>
+                              <div className="text-[11px] font-bold text-slate-300 uppercase mt-1">Abstained</div>
                             </div>
                           </div>
                         </div>
