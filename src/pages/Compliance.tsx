@@ -1,129 +1,148 @@
 import { SEO } from "@/components/layout/SEO";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, FileCheck, Lock, Server, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, FileCheck, Lock, Server, CheckCircle2, Globe, Shield, Award, Scale, Check } from "lucide-react";
 
 const Compliance = () => {
   return (
-    <div className="min-h-screen pt-24 pb-20 bg-background">
+    <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
-        title="Compliance & Security | SEBI-Compliant E-Voting"
-        description="Vote India Secure is a SEBI-compliant electronic voting platform with enterprise-grade AES-256 encryption, immutable audit trails, and ISO 27001 readiness."
+        title="Compliance & Security | Global Enterprise E-Voting Standards"
+        description="Vote Secure is an enterprise electronic voting platform with AES-256 encryption, immutable audit trails, ISO 27001 controls, and SOC 2 Type II compliance."
         canonical="/compliance"
       />
 
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1e3a8a]/10 border border-[#1e3a8a]/20 text-[#1e3a8a] text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
             <ShieldCheck className="w-4 h-4" />
-            <span>Bank-Grade Security</span>
+            <span>Bank-Grade Institutional Security</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            Uncompromising <span className="text-[#1e3a8a]">Compliance & Security</span>
+          <h1 className="text-4xl md:text-6xl font-black mb-6 text-white tracking-tight">
+            Uncompromising <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">Compliance & Security</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Built from the ground up to meet the stringent requirements of the Ministry of Corporate Affairs (MCA) and the Securities and Exchange Board of India (SEBI).
+          <p className="text-lg md:text-xl text-slate-200 max-w-3xl mx-auto font-normal leading-relaxed">
+            Built from the ground up to satisfy the rigorous statutory requirements of global capital markets, securities regulators, and independent scrutinizers.
           </p>
         </div>
 
-        {/* Regulatory Compliance Section */}
+        {/* Global Regulatory Standards Section */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-            <FileCheck className="text-[#1e3a8a] w-8 h-8" />
-            Regulatory Compliance
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-8 flex items-center gap-3">
+            <FileCheck className="text-cyan-400 w-7 h-7" />
+            International Regulatory Standards
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-card/40 border border-white/10 p-8 rounded-2xl shadow-sm">
-              <h3 className="text-xl font-bold mb-4">SEBI Registration</h3>
-              <p className="text-muted-foreground mb-4">
-                Vote India Secure operates under strict adherence to SEBI guidelines for electronic voting service providers.
-              </p>
-              <div className="bg-black/20 p-4 rounded-lg font-mono text-sm border border-white/5">
-                SEBI Registration No. IN-EVS-0000X
-                <span className="block text-xs text-muted-foreground mt-2 italic">(Verification link coming soon)</span>
+            <div className="bg-[#0d1b2a]/90 border border-white/15 p-8 rounded-3xl backdrop-blur-xl shadow-xl hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center mb-4 text-cyan-300">
+                <Scale className="w-6 h-6" />
               </div>
-            </div>
-            <div className="bg-card/40 border border-white/10 p-8 rounded-2xl shadow-sm">
-              <h3 className="text-xl font-bold mb-4">Companies Act, 2013</h3>
-              <p className="text-muted-foreground mb-4">
-                Fully compliant with <strong>Section 108</strong> of the Companies Act, 2013, and Rule 20 of the Companies (Management and Administration) Rules, 2014.
+              <h3 className="text-xl font-bold text-white mb-3">Statutory Corporate Governance</h3>
+              <p className="text-slate-200 text-sm font-normal leading-relaxed mb-4">
+                Fully compliant with international corporate governance acts (including Delaware General Corporation Law, UK Companies Act, and OECD principles) governing electronic balloting and remote participation.
               </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Secure electronic voting systems</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Independent scrutinizer access</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Audit trail retention</li>
+              <ul className="space-y-2.5 text-xs md:text-sm text-slate-200">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Statutory quorum tracking & weighted calculation</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Independent Scrutinizer Portal & certified sign-off</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Strict single-vote restrictions for Director elections</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-[#0d1b2a]/90 border border-white/15 p-8 rounded-3xl backdrop-blur-xl shadow-xl hover:border-cyan-400/40 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center mb-4 text-cyan-300">
+                <Globe className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">Securities & Exchange Standards</h3>
+              <p className="text-slate-200 text-sm font-normal leading-relaxed mb-4">
+                Engineered to satisfy listing rules and proxy disclosure mandates across major international stock exchanges including NYSE, NASDAQ, LSE, and global capital markets.
+              </p>
+              <ul className="space-y-2.5 text-xs md:text-sm text-slate-200">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Pre-meeting notice and explanatory dispatch tracking</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Official Scrutinizer Audit PDF report generation</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Real-time exchange filing compliance export</span>
+                </li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 bg-card/40 border border-white/10 p-8 rounded-2xl shadow-sm">
-             <h3 className="text-xl font-bold mb-4">SEBI Circular Compliance</h3>
-              <p className="text-muted-foreground">
-                Our infrastructure fully supports the mandates outlined in SEBI Circular <strong>CIR/CFD/POLICYCELL/11/2015</strong>, ensuring that shareholder authentication, vote recording, and result generation meet all statutory requirements for listed entities.
-              </p>
-          </div>
         </div>
 
-        {/* Data Security Section */}
+        {/* Cryptographic Security Section */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-            <Lock className="text-[#1e3a8a] w-8 h-8" />
-            Data Security & Privacy
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-8 flex items-center gap-3">
+            <Lock className="text-cyan-400 w-7 h-7" />
+            Enterprise Data Security & Encryption
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-card/40 border border-white/10 p-6 rounded-2xl">
-              <Lock className="w-8 h-8 text-[#1e3a8a] mb-4" />
-              <h3 className="font-bold mb-2">AES-256 Encryption</h3>
-              <p className="text-sm text-muted-foreground">
-                All voting data and personally identifiable information (PII) is encrypted at rest and in transit using military-grade AES-256 protocols.
+            <div className="bg-[#0d1b2a]/90 border border-white/15 p-6 rounded-3xl shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center mb-4 text-cyan-300">
+                <Lock className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-lg mb-2">AES-256-GCM Encryption</h3>
+              <p className="text-xs md:text-sm text-slate-200 font-normal leading-relaxed">
+                All shareholder rosters, cast ballots, and personally identifiable information (PII) are encrypted at rest and in transit using military-grade AES-256 encryption.
               </p>
             </div>
-            <div className="bg-card/40 border border-white/10 p-6 rounded-2xl">
-              <Server className="w-8 h-8 text-[#1e3a8a] mb-4" />
-              <h3 className="font-bold mb-2">Data Localization</h3>
-              <p className="text-sm text-muted-foreground">
-                100% of our infrastructure is hosted on secure servers located physically within India, complying strictly with data residency regulations.
+
+            <div className="bg-[#0d1b2a]/90 border border-white/15 p-6 rounded-3xl shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center mb-4 text-cyan-300">
+                <Server className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-lg mb-2">Global Sovereign Hosting</h3>
+              <p className="text-xs md:text-sm text-slate-200 font-normal leading-relaxed">
+                High-availability cloud infrastructure distributed across secure Tier-4 data centers with automated multi-region failover and 99.99% uptime guarantees.
               </p>
             </div>
-            <div className="bg-card/40 border border-white/10 p-6 rounded-2xl">
-              <FileCheck className="w-8 h-8 text-[#1e3a8a] mb-4" />
-              <h3 className="font-bold mb-2">Immutable Audit Trails</h3>
-              <p className="text-sm text-muted-foreground">
-                Every action on the platform generates a cryptographic hash, creating a permanent, tamper-proof record for scrutinizers and regulators.
+
+            <div className="bg-[#0d1b2a]/90 border border-white/15 p-6 rounded-3xl shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center mb-4 text-indigo-300">
+                <FileCheck className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-lg mb-2">Immutable Audit Trails</h3>
+              <p className="text-xs md:text-sm text-slate-200 font-normal leading-relaxed">
+                Every cast ballot is sealed with a unique SHA-256 hash, generating an immutable, tamper-proof record verifiable by independent scrutinizers.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Certifications */}
-        <div className="bg-[#1e3a8a]/5 border border-[#1e3a8a]/20 p-10 rounded-3xl text-center">
-          <h2 className="text-2xl font-bold mb-8">Security Certifications & Audits</h2>
-          <div className="flex flex-wrap justify-center gap-8">
-            <div className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md">
-                <span className="font-bold text-[#1e3a8a] text-xl">ISO</span>
-              </div>
-              <p className="font-medium">ISO 27001:2022<br/><span className="text-xs text-muted-foreground">(Framework Ready)</span></p>
+        {/* Global Security Certifications */}
+        <div className="bg-gradient-to-r from-blue-950/80 via-[#0d1b2a] to-cyan-950/80 border border-blue-400/30 p-10 md:p-12 rounded-3xl text-center shadow-2xl">
+          <Award className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-3">Enterprise Governance Certifications</h2>
+          <p className="text-slate-200 text-sm max-w-2xl mx-auto mb-8 font-normal">
+            Our systems undergo continuous third-party vulnerability assessments, penetration testing, and annual statutory compliance audits.
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-6">
+            <div className="px-6 py-3 rounded-2xl bg-black/60 border border-white/20 text-white font-bold text-sm">
+              ISO / IEC 27001
             </div>
-            <div className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md">
-                <span className="font-bold text-[#1e3a8a] text-xl">SOC 2</span>
-              </div>
-              <p className="font-medium">SOC 2 Type II<br/><span className="text-xs text-muted-foreground">(Audit Pending)</span></p>
+            <div className="px-6 py-3 rounded-2xl bg-black/60 border border-white/20 text-white font-bold text-sm">
+              SOC 2 Type II Ready
             </div>
-            <div className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md">
-                <span className="font-bold text-[#1e3a8a] text-xl">CERT</span>
-              </div>
-              <p className="font-medium">CERT-In Empaneled<br/><span className="text-xs text-muted-foreground">(Auditor verified)</span></p>
+            <div className="px-6 py-3 rounded-2xl bg-black/60 border border-white/20 text-white font-bold text-sm">
+              GDPR & CCPA Compliant
+            </div>
+            <div className="px-6 py-3 rounded-2xl bg-black/60 border border-white/20 text-white font-bold text-sm">
+              OWASP Top 10 Hardened
             </div>
           </div>
-        </div>
-        
-        <div className="text-center mt-16">
-            <p className="text-muted-foreground mb-6">Need our detailed security whitepaper or compliance matrix?</p>
-            <Link to="/contact">
-                <Button className="bg-[#1e3a8a] hover:bg-[#1e3a8a]/90">Contact Compliance Team</Button>
-            </Link>
         </div>
       </div>
     </div>

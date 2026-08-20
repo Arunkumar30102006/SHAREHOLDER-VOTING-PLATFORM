@@ -1,6 +1,9 @@
 import { SEO } from "@/components/layout/SEO";
-import { Mail, Phone, MapPin, MessageSquare, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, MessageSquare, Clock, Globe, Shield, Sparkles, Building2, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,14 +24,12 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Map to old fields to avoid breaking the backend edge function if it expects them
       const payload = {
         firstname: formData.name.split(' ')[0] || formData.name,
         lastname: formData.company,
         email: formData.email,
-        subject: `Phone: ${formData.phone}`,
+        subject: `Corporate Inquiry: ${formData.company || formData.name}`,
         message: formData.message,
-        // Also send new raw fields in case the backend is updated
         name: formData.name,
         company: formData.company,
         phone: formData.phone
@@ -45,169 +46,194 @@ const Contact = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Failed to send message");
 
-      toast.success("Message sent successfully! Our team will contact you shortly.");
+      toast.success("Inquiry received! Our Corporate Concierge team will contact you promptly.");
       setFormData({ name: "", company: "", email: "", phone: "", message: "" });
     } catch (error: unknown) {
-      toast.error((error as Error).message || "Failed to send message. Please email us directly.");
+      toast.error((error as Error).message || "Failed to send message. Please email support directly.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-20 bg-background">
+    <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
-        title="Contact Us | Enterprise E-Voting Support & Sales"
-        description="Get in touch with Vote Secure for enterprise e-voting solutions, global pricing, and dedicated support for your shareholder meetings."
+        title="Contact Us | Global Enterprise E-Voting Support & Sales"
+        description="Get in touch with Vote Secure for global corporate e-voting deployments, pricing, and dedicated 24/7 general meeting support."
         canonical="/contact"
       />
 
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            Get in <span className="text-[#1e3a8a]">Touch</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
+            <Globe className="w-3.5 h-3.5" />
+            24/7 Global Corporate Concierge
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black mb-6 text-white tracking-tight">
+            Connect With Our <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">Governance Team</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Ready to secure your next AGM? Contact our sales and support team for personalized assistance.
+          <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto font-normal leading-relaxed">
+            Ready to deploy seamless, cryptographically secure voting for your upcoming AGM or special meeting? Reach out for tailored assistance.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-5 gap-12 items-start">
+        <div className="grid md:grid-cols-5 gap-10 items-start">
           
-          {/* Contact Information */}
-          <div className="md:col-span-2 space-y-8">
-            <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
-            
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
-                <MapPin className="w-6 h-6 text-[#1e3a8a]" />
+          {/* Contact Information Cards */}
+          <div className="md:col-span-2 space-y-6">
+            <div className="bg-[#0d1b2a]/90 border border-white/15 rounded-3xl p-8 backdrop-blur-xl shadow-xl space-y-6">
+              <h2 className="text-2xl font-black text-white">Global Headquarters</h2>
+              
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-cyan-300">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Enterprise Governance Center</h3>
+                  <p className="text-slate-200 text-xs mt-1 leading-relaxed font-normal">
+                    Vote Secure International Corp.<br/>
+                    1201 North Market Street, Suite 1400<br/>
+                    Wilmington, DE 19801, United States
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold mb-1">Registered Office</h3>
-                <p className="text-muted-foreground">
-                  Vote India Secure Technologies Pvt. Ltd.<br/>
-                  Level 7, Trade Centre, BKC<br/>
-                  Bandra (East), Mumbai 400051
-                </p>
+
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center shrink-0 text-cyan-300">
+                  <Mail className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Executive Email Contacts</h3>
+                  <p className="text-slate-200 text-xs mt-1 font-normal">
+                    General Inquiries: <span className="text-cyan-300 font-medium">contact@votesecure.global</span><br/>
+                    Corporate Sales: <span className="text-cyan-300 font-medium">sales@votesecure.global</span><br/>
+                    Scrutinizer Desk: <span className="text-cyan-300 font-medium">audit@votesecure.global</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0 text-indigo-300">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Meeting Support Window</h3>
+                  <p className="text-slate-200 text-xs mt-1 font-normal">
+                    24/7 Active Live General Meeting Monitoring & Dedicated Scrutinizer Hotlines.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
-                <Mail className="w-6 h-6 text-[#1e3a8a]" />
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-950/60 to-cyan-950/60 border border-blue-400/30 backdrop-blur-xl">
+              <div className="flex items-center gap-3 text-cyan-300 font-bold text-sm mb-1">
+                <Shield className="w-4 h-4" />
+                <span>Enterprise SLA Guarantee</span>
               </div>
-              <div>
-                <h3 className="font-bold mb-1">Email Us</h3>
-                <a href="mailto:contact@shareholdervoting.in" className="text-muted-foreground hover:text-[#1e3a8a] transition-colors">
-                  contact@shareholdervoting.in
-                </a>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
-                <Phone className="w-6 h-6 text-[#1e3a8a]" />
-              </div>
-              <div>
-                <h3 className="font-bold mb-1">Call Us</h3>
-                <a href="tel:+919876543210" className="text-muted-foreground hover:text-[#1e3a8a] transition-colors">
-                  +91-9876543210
-                </a>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center shrink-0">
-                <Clock className="w-6 h-6 text-[#1e3a8a]" />
-              </div>
-              <div>
-                <h3 className="font-bold mb-1">Business Hours</h3>
-                <p className="text-muted-foreground">
-                  Mon-Fri, 9:30 AM - 6:30 PM IST
-                </p>
-              </div>
-            </div>
-            
-            <div className="pt-6 border-t border-white/10">
-                <a href="#" className="inline-flex items-center gap-2 text-[#1e3a8a] hover:underline font-medium">
-                    Follow us on LinkedIn
-                </a>
+              <p className="text-xs text-slate-200 leading-relaxed font-normal">
+                All corporate inquiries receive a response from a dedicated corporate secretary or technical solution architect within 2 business hours.
+              </p>
             </div>
           </div>
 
           {/* Contact Form */}
-          <div className="md:col-span-3 bg-card/40 border border-white/10 p-8 rounded-3xl shadow-sm">
-            <div className="flex items-center gap-3 mb-8">
-              <MessageSquare className="w-6 h-6 text-[#1e3a8a]" />
-              <h2 className="text-2xl font-bold">Send a Message</h2>
+          <div className="md:col-span-3">
+            <div className="bg-[#0d1b2a]/90 border border-white/15 rounded-3xl p-8 md:p-10 backdrop-blur-xl shadow-2xl">
+              <h2 className="text-2xl font-black text-white mb-2">Request Corporate Consultation</h2>
+              <p className="text-xs text-slate-200 mb-8 font-normal">
+                Fill in your company details to receive a customized deployment proposal and security compliance documentation.
+              </p>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-xs font-bold text-slate-100">Full Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Jane Doe"
+                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company" className="text-xs font-bold text-slate-100">Organization / Listed Entity *</Label>
+                    <Input
+                      id="company"
+                      value={formData.company}
+                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      placeholder="Apex Global Holdings Inc."
+                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-xs font-bold text-slate-100">Corporate Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="j.doe@enterprise.com"
+                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-xs font-bold text-slate-100">Phone Number (Optional)</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+1 (555) 019-2834"
+                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="message" className="text-xs font-bold text-slate-100">Meeting Details & Estimated Shareholders *</Label>
+                  <Textarea
+                    id="message"
+                    rows={4}
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Tell us about your upcoming AGM/EGM dates, estimated member count, and specific transfer agent integration needs..."
+                    className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  size="lg"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm gap-2 shadow-lg shadow-blue-500/20"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Transmitting Inquiry...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Submit Corporate Inquiry
+                    </>
+                  )}
+                </Button>
+              </form>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">Full Name</label>
-                  <input
-                    type="text" id="name" required
-                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
-                    placeholder="Jane Doe"
-                    value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="company" className="text-sm font-medium">Company Name</label>
-                  <input
-                    type="text" id="company" required
-                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
-                    placeholder="Acme Corp Ltd."
-                    value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">Work Email</label>
-                  <input
-                    type="email" id="email" required
-                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
-                    placeholder="jane@example.com"
-                    value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-medium">Phone Number</label>
-                  <input
-                    type="tel" id="phone" required
-                    className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a]"
-                    placeholder="+91 98765 43210"
-                    value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="message" className="text-sm font-medium">Message</label>
-                <textarea
-                  id="message" rows={4} required
-                  className="w-full p-4 rounded-xl border border-white/10 bg-background focus:ring-2 focus:ring-[#1e3a8a] resize-none"
-                  placeholder="How can we help your organization?"
-                  value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})}
-                />
-              </div>
-              <Button type="submit" disabled={isSubmitting} className="w-full h-12 bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white text-lg rounded-xl">
-                {isSubmitting ? "Sending..." : "Submit Request"}
-              </Button>
-            </form>
           </div>
-        </div>
 
-        {/* Google Maps Placeholder */}
-        <div className="mt-20 rounded-3xl overflow-hidden h-[400px] border border-white/10 bg-card/20 relative flex items-center justify-center">
-            <div className="text-center">
-                <MapPin className="w-12 h-12 text-[#1e3a8a] mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground font-medium">Interactive Google Map Embed</p>
-                <p className="text-sm text-muted-foreground/70">Mumbai Headquarters</p>
-            </div>
-            {/* Actual iframe would go here */}
         </div>
-
       </div>
     </div>
   );
