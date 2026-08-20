@@ -25,6 +25,8 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -42,14 +44,34 @@ const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Scroll listener for glassmorphism effect
+  // Throttled Scroll listener for auto-hiding navbar on scroll down & glassmorphism
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+
+          if (currentScrollY > 70 && currentScrollY > lastScrollY) {
+            // Scrolling down -> Hide navbar
+            setIsVisible(false);
+          } else {
+            // Scrolling up or at top -> Show navbar
+            setIsVisible(true);
+          }
+
+          setIsScrolled(currentScrollY > 20);
+          setLastScrollY(currentScrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -93,8 +115,12 @@ const Navbar = () => {
 
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-50 w-full px-4 md:px-6 pointer-events-none transition-transform duration-700 ${
-        isScrolled ? "translate-y-4" : "translate-y-6"
+      <header className={`fixed top-0 left-0 right-0 z-50 w-full px-4 md:px-6 pointer-events-none transition-all duration-500 ease-in-out ${
+        !isVisible
+          ? "-translate-y-28 opacity-0 pointer-events-none"
+          : isScrolled
+          ? "translate-y-4 opacity-100"
+          : "translate-y-6 opacity-100"
       }`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           

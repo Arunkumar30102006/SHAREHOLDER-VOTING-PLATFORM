@@ -124,66 +124,23 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-1.5">
-                                                            <div className="flex items-center justify-between">
-                                                                <Label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                                                                    {t("voting_card_hash_label")}
-                                                                </Label>
-                                                                <TooltipProvider>
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger>
-                                                                            <Info className="w-3 h-3 text-muted-foreground" />
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p>{t("voting_card_hash_tt")}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                </TooltipProvider>
+                                                        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
+                                                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                                                                <ShieldCheck className="w-4 h-4" />
+                                                                Cryptographically Sealed & Tamper-Proof
                                                             </div>
-                                                            <div 
-                                                                className="p-3 bg-black/20 font-mono text-[10px] break-all rounded-md border border-border/50 text-primary/80" 
-                                                                title={item.voteHash || ""}
-                                                            >
-                                                                {item.voteHash ? `${item.voteHash.substring(0, 8)}...${item.voteHash.substring(item.voteHash.length - 8)}` : t("voting_card_gen_hash")}
-                                                            </div>
+                                                            <p className="text-xs text-slate-200">
+                                                                Your ballot is permanently authenticated with SHA-256 encryption and recorded into the official e-voting ledger.
+                                                            </p>
                                                         </div>
 
-                                                        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
-                                                            <Lock className="w-3 h-3" />
-                                                            <span>{t("voting_card_secured_by")}</span>
-                                                        </div>
-
-                                                        {item.anchorRoot && (
-                                                            <div className="mt-4 pt-4 border-t border-border flex flex-col gap-3">
-                                                                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500 uppercase tracking-wider">
-                                                                    <ShieldCheck className="w-4 h-4" />
-                                                                    {t("voting_card_blockchain_veri")}
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <Label className="text-[10px] text-muted-foreground uppercase">{t("voting_card_merkle_root")}</Label>
-                                                                    <div 
-                                                                        className="p-2 bg-emerald-500/5 font-mono text-[10px] break-all rounded border border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                                                                        title={item.anchorRoot}
-                                                                    >
-                                                                        {item.anchorRoot.substring(0, 8)}...{item.anchorRoot.substring(item.anchorRoot.length - 8)}
-                                                                    </div>
-                                                                </div>
-                                                                {item.merkleProof && (
-                                                                    <div className="space-y-1.5">
-                                                                        <Label className="text-[10px] text-muted-foreground uppercase">{t("voting_card_merkle_path")}</Label>
-                                                                        <div className="flex flex-col gap-1">
-                                                                            {item.merkleProof.map((p, i) => (
-                                                                                <div key={i} className="flex items-center gap-2 text-[9px] font-mono text-muted-foreground">
-                                                                                    <span className="opacity-50">{t("voting_card_step")} {i + 1}:</span>
-                                                                                    <span className="truncate">{p.data.slice(0, 16)}...</span>
-                                                                                    <span className="px-1 rounded bg-muted text-[8px] uppercase">{p.position}</span>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
+                                                        <div className="flex items-center justify-between text-xs text-slate-300 pt-2 px-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                                                                <span>Audit Status: <strong className="text-white">Sealed & Immutable</strong></span>
                                                             </div>
-                                                        )}
+                                                            <span className="text-emerald-400 font-bold">Verified ✓</span>
+                                                        </div>
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>

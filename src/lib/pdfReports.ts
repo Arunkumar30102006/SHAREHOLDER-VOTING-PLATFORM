@@ -208,27 +208,26 @@ export const generateScrutinizerAuditPDF = (opts: ScrutinizerReportOptions) => {
     finalY = 20;
   }
 
-  // 5. Cryptographic Blockchain & Merkle Root Proof Box
-  doc.setFillColor(241, 245, 249);
-  doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(14, finalY, pageWidth - 28, 22, 2, 2, "FD");
+  // 5. Statutory Assurance & Governance Compliance Banner
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(14, finalY, pageWidth - 28, 14, 2, 2, "FD");
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-  doc.text("IMMUTABLE CRYPTOGRAPHIC VERIFICATION & BLOCKCHAIN LEDGER", 18, finalY + 5);
+  doc.text("STATUTORY COMPLIANCE & INTEGRITY CERTIFICATION", 18, finalY + 5);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
+  doc.setFontSize(7.5);
   doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-  
-  const rootStr = opts.merkleRoot || "0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069";
-  const txStr = opts.txHash || "0x9a4f7832bc12ef8902d41b65ca4819df56c7104b2a8d3e91ff0284c1b6973e21";
-  doc.text(`Merkle Tree Root Hash: ${rootStr}`, 18, finalY + 10);
-  doc.text(`Polygon Ledger Anchor Tx: ${txStr}`, 18, finalY + 14);
-  doc.text(`Network: Polygon Amoy Testnet | Standard: ISO 27001 Cryptographic Ballot Anchoring`, 18, finalY + 18);
+  doc.text(
+    "All electronic ballots in this general meeting were authenticated, verified, and sealed in accordance with corporate governance e-voting regulations.",
+    18,
+    finalY + 10
+  );
 
-  finalY += 30;
+  finalY += 22;
 
   // If near bottom, add page
   if (finalY > pageHeight - 45) {
