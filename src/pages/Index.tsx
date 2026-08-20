@@ -132,11 +132,36 @@ const audienceCards = [
 ];
 
 const comparisonPoints = [
-  { feature: "Universal Mobile UX", us: "Seamless PWA on any phone with 2-tap voting", them: "Outdated legacy web portals designed decades ago" },
-  { feature: "Authentication Speed", us: "Instant multi-channel OTP verification (<10s)", them: "Slow postal mail or complex hardware tokens" },
-  { feature: "Live Quorum & Analytics", us: "Real-time visual charts & global participation metrics", them: "Static spreadsheets compiled hours after meetings" },
-  { feature: "Audit Report Generation", us: "1-Click automated statutory scrutinizer reports", them: "Manual calculation prone to tabulation errors" },
-  { feature: "AI Document Summarizer", us: "Instant bullet-point executive summaries", them: "Not available" },
+  { 
+    feature: "Universal Mobile UX", 
+    category: "User Experience", 
+    us: "Seamless PWA on any smartphone with 2-tap biometric voting", 
+    them: "Outdated legacy web portals designed decades ago" 
+  },
+  { 
+    feature: "Authentication Speed", 
+    category: "Security & Access", 
+    us: "Instant multi-channel OTP verification (<10s)", 
+    them: "Slow postal mail or complex hardware tokens" 
+  },
+  { 
+    feature: "Live Quorum & Analytics", 
+    category: "Boardroom Intelligence", 
+    us: "Real-time visual charts & global participation metrics", 
+    them: "Static spreadsheets compiled hours after meetings" 
+  },
+  { 
+    feature: "Audit Report Generation", 
+    category: "Compliance & Legal", 
+    us: "1-Click automated statutory scrutinizer reports", 
+    them: "Manual calculation prone to tabulation errors" 
+  },
+  { 
+    feature: "AI Document Summarizer", 
+    category: "AI Governance", 
+    us: "Instant bullet-point executive summaries & resolution analysis", 
+    them: "Not available (hundreds of dense PDF pages)" 
+  },
 ];
 
 const Index = () => {
@@ -436,30 +461,49 @@ const Index = () => {
       </section>
 
       {/* ─── 6. COMPARISON MATRIX (Us vs Legacy) ─── */}
-      <section className="py-20 bg-white/[0.02] border-y border-white/10">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
-              Why Global Enterprises Choose <span className="text-blue-400">Vote Secure</span>
+      <section className="py-24 bg-white/[0.02] border-y border-white/10 relative overflow-hidden">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-4">
+              <span>Next-Gen vs Legacy</span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+              Why Global Enterprises Choose <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">Vote Secure</span>
             </h2>
-            <p className="text-slate-200 text-sm md:text-base font-normal">Comparing modern governance technology with legacy corporate portals.</p>
+            <p className="text-slate-200 text-base md:text-lg max-w-2xl mx-auto font-normal">
+              Comparing modern cryptographic governance technology with legacy corporate portals.
+            </p>
           </div>
 
-          <div className="rounded-3xl border border-white/20 overflow-hidden bg-[#0d1b2a]/80 backdrop-blur-xl shadow-2xl">
-            <div className="grid grid-cols-3 bg-black/60 p-4.5 border-b border-white/15 text-xs font-bold text-slate-100 tracking-wider">
-              <div>CAPABILITY</div>
-              <div className="text-blue-400">VOTE SECURE</div>
-              <div className="text-slate-300">LEGACY PORTALS</div>
+          <div className="rounded-3xl border border-white/20 overflow-hidden bg-[#0d1b2a]/90 backdrop-blur-xl shadow-2xl">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 bg-black/70 px-6 py-5 border-b border-white/15 text-xs font-black tracking-wider uppercase">
+              <div className="col-span-4 text-slate-200 pl-1">Capability & Feature</div>
+              <div className="col-span-4 text-cyan-300 flex items-center gap-1.5 font-black">
+                <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                Vote Secure Platform
+              </div>
+              <div className="col-span-4 text-slate-400">Legacy Voting Systems</div>
             </div>
+
+            {/* Table Rows */}
             <div className="divide-y divide-white/10">
               {comparisonPoints.map((pt, i) => (
-                <div key={i} className="grid grid-cols-3 p-4 text-xs md:text-sm items-center gap-2 hover:bg-white/[0.02] transition-colors">
-                  <div className="font-bold text-white">{pt.feature}</div>
-                  <div className="text-emerald-300 font-semibold flex items-center gap-1.5">
-                    <Check className="w-4 h-4 shrink-0 text-emerald-400" />
-                    {pt.us}
+                <div key={i} className="grid grid-cols-12 px-6 py-5 text-xs md:text-sm items-center gap-4 hover:bg-white/[0.03] transition-colors">
+                  <div className="col-span-4 pr-2 pl-1">
+                    <span className="font-bold text-white block text-sm">{pt.feature}</span>
+                    <span className="text-[11px] text-cyan-400/90 font-medium">{pt.category}</span>
                   </div>
-                  <div className="text-slate-300 font-normal">{pt.them}</div>
+                  <div className="col-span-4 bg-blue-950/40 border border-cyan-500/30 rounded-2xl p-4 text-emerald-300 font-semibold flex items-start gap-3 shadow-sm">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 mt-0.5 text-emerald-300">
+                      <Check className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="leading-snug">{pt.us}</span>
+                  </div>
+                  <div className="col-span-4 text-slate-300 font-normal pl-2 flex items-start gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0 mt-2" />
+                    <span className="leading-snug">{pt.them}</span>
+                  </div>
                 </div>
               ))}
             </div>
