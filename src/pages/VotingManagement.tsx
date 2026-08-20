@@ -182,6 +182,30 @@ const VotingManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+const toLocalInputString = (isoString?: string | null) => {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "";
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } catch {
+    return "";
+  }
+};
+
+const toLocalDateString = (dateOrIso?: string | null) => {
+  if (!dateOrIso) return "";
+  try {
+    const d = new Date(dateOrIso);
+    if (isNaN(d.getTime())) return "";
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  } catch {
+    return "";
+  }
+};
+
   const loadVotingSession = async (companyId: string) => {
     const { data, error } = await supabase
       .from("voting_sessions")
@@ -201,15 +225,15 @@ const VotingManagement = () => {
       setSessionForm({
         title: data.title || "",
         description: data.description || "",
-        startDate: data.start_date ? data.start_date.slice(0, 16) : "",
-        endDate: data.end_date ? data.end_date.slice(0, 16) : "",
+        startDate: toLocalInputString(data.start_date),
+        endDate: toLocalInputString(data.end_date),
         meetingLink: data.meeting_link || "",
         meetingPassword: data.meeting_password || "",
         meetingPlatform: data.meeting_platform || "zoom",
-        meetingStartDate: data.meeting_start_date ? data.meeting_start_date.slice(0, 16) : "",
-        meetingEndDate: data.meeting_end_date ? data.meeting_end_date.slice(0, 16) : "",
+        meetingStartDate: toLocalInputString(data.meeting_start_date),
+        meetingEndDate: toLocalInputString(data.meeting_end_date),
         votingInstructions: data.voting_instructions || "",
-        recordDate: data.record_date || "",
+        recordDate: toLocalDateString(data.record_date),
       });
 
       await loadResolutions(data.id);
