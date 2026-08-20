@@ -30,10 +30,20 @@ export interface VotingSession {
   status: string | null;
 }
 
+export interface Resolution {
+  id: string;
+  voting_session_id: string;
+  title: string;
+  description?: string | null;
+  resolution_type: string;
+  created_at?: string;
+}
+
 export interface ResolutionResult {
   id: string;
   title: string;
   description: string | null;
+  resolution_type?: string;
   stats: {
     for: number;
     against: number;
@@ -46,6 +56,9 @@ export interface ResolutionResult {
 export interface AnchorData {
   created_at: string;
   transaction_id: string;
+  merkle_root?: string;
+  vote_count?: number;
+  blockchain_network?: string;
   [key: string]: unknown;
 }
 

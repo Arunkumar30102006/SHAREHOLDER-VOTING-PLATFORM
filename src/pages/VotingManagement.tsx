@@ -57,6 +57,7 @@ import { useTranslation } from "react-i18next";
 import { MerkleTree } from "@/lib/merkle";
 import { simulateBlockchainTransaction } from "@/lib/blockchain";
 import { Nominee, VotingSession, ResolutionResult, AnchorData, Company, Shareholder, Resolution } from "@/types";
+import { generateScrutinizerAuditPDF } from "@/lib/pdfReports";
 
 const resolutionSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(250),
@@ -619,35 +620,26 @@ const toLocalDateString = (dateOrIso?: string | null) => {
   };
 
   const handleDownloadPDF = () => {
-    if (!votingSession || results.length === 0) return;
+    if (!votingSession || results.length === 0) {
+      toast.info("No resolution results available to generate Scrutinizer PDF.");
+      return;
+    }
 
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Official Scrutinizer Audit Report", 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Company: ${company?.company_name || 'Enterprise'}`, 14, 28);
-    doc.text(`Meeting: ${votingSession.title}`, 14, 35);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 42);
-
-    const tableData = results.map((r, i) => [
-      i + 1,
-      r.title,
-      r.stats.for.toLocaleString(),
-      r.stats.against.toLocaleString(),
-      r.stats.abstain.toLocaleString(),
-      r.stats.for > r.stats.against ? "PASSED" : "REJECTED",
-    ]);
-
-    autoTable(doc, {
-      startY: 50,
-      head: [["#", "Resolution Agendas", "Votes FOR", "Votes AGAINST", "ABSTAIN", "Outcome"]],
-      body: tableData,
-      theme: "striped",
-      headStyles: { fillColor: [30, 58, 138] },
-    });
-
-    doc.save(`${company?.company_name || 'voting'}_audit_report.pdf`);
-    toast.success("Statutory scrutinizer report downloaded.");
+    try {
+      generateScrutinizerAuditPDF({
+        company,
+        session: votingSession,
+        results,
+        shareholderCount: shareholders.length,
+        totalShares: shareholders.reduce((acc, s) => acc + (s.shares_held || 0), 0),
+        merkleRoot: anchorData?.merkle_root ? String(anchorData.merkle_root) : null,
+        txHash: anchorData?.transaction_id ? String(anchorData.transaction_id) : null,
+      });
+      toast.success("Boardroom Scrutinizer Audit Report downloaded successfully!");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.error("Failed to generate PDF report.");
+    }
   };
 
   const getSessionStatus = () => {

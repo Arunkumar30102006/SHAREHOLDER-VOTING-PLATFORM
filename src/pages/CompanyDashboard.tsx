@@ -64,6 +64,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { AdminVotingResults } from "@/components/company/AdminVotingResults";
 import { Company, Shareholder } from "@/types";
+import { generateShareholderRosterPDF } from "@/lib/pdfReports";
 
 const shareholderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -490,6 +491,24 @@ const CompanyDashboard = () => {
     toast.success("Shareholder roster exported as CSV.");
   };
 
+  const handleExportPDF = () => {
+    if (shareholders.length === 0) {
+      toast.error("No shareholder data to export.");
+      return;
+    }
+
+    try {
+      generateShareholderRosterPDF({
+        company,
+        shareholders: filteredShareholders,
+      });
+      toast.success("Boardroom Shareholder Registry PDF downloaded.");
+    } catch (err) {
+      console.error("PDF Export error:", err);
+      toast.error("Failed to generate PDF.");
+    }
+  };
+
   const handleDeleteShareholder = async (id: string) => {
     if (!confirm("Are you sure you want to delete this shareholder?")) return;
 
@@ -743,6 +762,15 @@ const CompanyDashboard = () => {
                   >
                     <Download className="w-4 h-4 text-cyan-300" />
                     Export CSV
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={handleExportPDF}
+                    className="border-white/30 hover:bg-white/10 text-white font-bold rounded-xl gap-2 text-xs shadow-sm"
+                  >
+                    <FileText className="w-4 h-4 text-emerald-400" />
+                    Export Roster PDF
                   </Button>
 
                   <Button

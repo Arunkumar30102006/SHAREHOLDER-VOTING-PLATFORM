@@ -10,6 +10,7 @@ import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { generateScrutinizerAuditPDF } from "@/lib/pdfReports";
 
 interface AdminVotingResultsProps {
     sessionId: string;
@@ -119,62 +120,34 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
         toast.success(t("admin_voting_results_toast_refresh") || "Results refreshed");
     };
 
-    const exportPDF = () => {
+    const exportPDF = async () => {
         setIsExporting(true);
         try {
-            const doc = new jsPDF();
-
-            // Header
-            doc.setFontSize(20);
-            doc.text("Official Scrutinizer Resolution Report", 14, 22);
-
-            doc.setFontSize(10);
-            doc.text(`Company: ${companyName}`, 14, 30);
-            doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 35);
-            doc.text(`Status: Official Scrutinizer Audit Record`, 14, 40);
-
-            // Table Data
-            const tableData = resolutions.map((res, index) => {
-                const stat = stats[res.id] || { for_count: 0, against_count: 0, abstain_count: 0, total_weighted_votes: 0 };
-                const total = stat.total_weighted_votes || 1;
-                const approvalPct = total > 0 ? ((stat.for_count / total) * 100).toFixed(2) : "0.00";
-
-                return [
-                    index + 1,
-                    res.title,
-                    stat.for_count.toLocaleString(),
-                    stat.against_count.toLocaleString(),
-                    stat.abstain_count.toLocaleString(),
-                    total.toLocaleString(),
-                    `${approvalPct}%`
-                ];
+            const mappedResults = resolutions.map((res) => {
+                const stat = stats[res.id] || { for_count: 0, against_count: 0, abstain_count: 0, total_weighted_votes: 0, total_vote_count: 0 };
+                const total = stat.total_weighted_votes || (stat.for_count + stat.against_count + stat.abstain_count) || 0;
+                return {
+                    id: res.id,
+                    title: res.title,
+                    description: res.description || null,
+                    resolution_type: res.resolution_type,
+                    stats: {
+                        for: stat.for_count,
+                        against: stat.against_count,
+                        abstain: stat.abstain_count,
+                        total: total,
+                        winner: stat.for_count >= stat.against_count,
+                    },
+                };
             });
 
-            autoTable(doc, {
-                startY: 48,
-                head: [['#', 'Resolution', 'For', 'Against', 'Abstain', 'Total Shares', 'Approval %']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: { fillColor: [30, 58, 138], textColor: 255 },
-                styles: { fontSize: 9 },
-                columnStyles: {
-                    0: { cellWidth: 10 },
-                    1: { cellWidth: 60 },
-                }
+            generateScrutinizerAuditPDF({
+                company: { id: "", company_name: companyName },
+                session: { id: sessionId, title: "Annual General Meeting", start_date: new Date().toISOString(), end_date: new Date().toISOString(), is_active: true, meeting_link: null, meeting_password: null, meeting_platform: null, voting_instructions: null, is_meeting_emails_sent: false, meeting_start_date: null, meeting_end_date: null, record_date: null, status: null, description: null },
+                results: mappedResults,
             });
 
-            // Footer
-            const pageCount = doc.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.text('Vote Secure - Immutable Audit Ledger', 14, doc.internal.pageSize.height - 10);
-                doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-            }
-
-            doc.save(`voting-results-${new Date().toISOString().slice(0, 10)}.pdf`);
-            toast.success(t("admin_voting_results_toast_pdf_success") || "PDF downloaded successfully");
-
+            toast.success(t("admin_voting_results_toast_pdf_success") || "Boardroom Scrutinizer Audit Report downloaded!");
         } catch (error) {
             console.error("Export failed:", error);
             toast.error(t("admin_voting_results_toast_pdf_fail") || "Failed to export PDF");
