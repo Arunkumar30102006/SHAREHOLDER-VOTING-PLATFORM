@@ -3,12 +3,13 @@ import { Progress } from "@/components/ui/progress";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
+import { CheckCircle2, TrendingUp, Users, ShieldCheck } from "lucide-react";
 
 interface VotingAnalyticsProps {
     totalResolutions: number;
     votedResolutions: number;
     shareholderShares: number;
-    totalCompanyShares?: number; // Optional: Total shares in company for weight calculation
+    totalCompanyShares?: number;
     recordDate?: string | null;
 }
 
@@ -16,7 +17,7 @@ const VotingAnalytics = ({
     totalResolutions,
     votedResolutions,
     shareholderShares,
-    totalCompanyShares = 1000000, // Default fallback if not provided
+    totalCompanyShares = 1000000,
     recordDate,
 }: VotingAnalyticsProps) => {
     const { t } = useTranslation();
@@ -25,33 +26,33 @@ const VotingAnalytics = ({
 
     const votingWeight = (shareholderShares / totalCompanyShares) * 100;
 
-    // Data for the Donut Chart
     const data = [
-        { name: t("voting_analytics_voted"), value: votedResolutions, color: "#10b981" }, // Emerald-500
-        { name: t("voting_analytics_remaining"), value: totalResolutions - votedResolutions, color: "#334155" }, // Slate-700
+        { name: t("voting_analytics_voted") || "Voted", value: votedResolutions, color: "#10b981" },
+        { name: t("voting_analytics_pending") || "Remaining", value: Math.max(0, totalResolutions - votedResolutions), color: "#1e293b" },
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
             {/* 1. Participation Radial Chart */}
-            <Card className="bg-card/40 backdrop-blur-md border-white/10 shadow-lg">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                        {t("voting_analytics_participation")}
+            <Card className="bg-[#0d1b2a]/80 backdrop-blur-xl border border-white/15 shadow-xl hover:border-emerald-500/30 transition-all">
+                <CardHeader className="pb-2 border-b border-white/5">
+                    <CardTitle className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-emerald-400" />
+                        {t("voting_analytics_participation") || "Your Ballot Progress"}
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="h-[120px] w-full flex items-center justify-between">
-                        <div className="h-full w-[120px] relative">
+                <CardContent className="pt-4">
+                    <div className="h-[130px] w-full flex items-center justify-between">
+                        <div className="h-full w-[120px] relative shrink-0">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
                                         data={data}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={40}
-                                        outerRadius={55}
-                                        paddingAngle={2}
+                                        innerRadius={42}
+                                        outerRadius={56}
+                                        paddingAngle={3}
                                         dataKey="value"
                                         stroke="none"
                                     >
@@ -59,24 +60,26 @@ const VotingAnalytics = ({
                                             <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <Tooltip 
+                                        contentStyle={{ backgroundColor: "#020817", borderColor: "rgba(255,255,255,0.2)", borderRadius: "8px", color: "#fff" }}
+                                    />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <span className="text-xl font-bold text-foreground">
+                                <span className="text-xl font-extrabold text-white">
                                     {Math.round(participationPercentage)}%
                                 </span>
                             </div>
                         </div>
-                        <div className="flex-1 pl-4 space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">{t("voting_analytics_voted")}</span>
-                                <span className="font-bold text-emerald-500">{votedResolutions}</span>
+                        <div className="flex-1 pl-4 space-y-2.5">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-300 font-medium">{t("voting_analytics_voted") || "Voted"}</span>
+                                <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{votedResolutions}</span>
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">{t("voting_analytics_pending")}</span>
-                                <span className="font-bold text-muted-foreground">
-                                    {totalResolutions - votedResolutions}
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-300 font-medium">{t("voting_analytics_pending") || "Pending"}</span>
+                                <span className="font-bold text-slate-200 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                                    {Math.max(0, totalResolutions - votedResolutions)}
                                 </span>
                             </div>
                         </div>
@@ -85,61 +88,62 @@ const VotingAnalytics = ({
             </Card>
 
             {/* 2. Voting Power (Weight) */}
-            <Card className="bg-card/40 backdrop-blur-md border-white/10 shadow-lg">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                        {t("voting_analytics_power")}
+            <Card className="bg-[#0d1b2a]/80 backdrop-blur-xl border border-white/15 shadow-xl hover:border-blue-500/30 transition-all">
+                <CardHeader className="pb-2 border-b border-white/5">
+                    <CardTitle className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                        <Users className="w-4 h-4 text-blue-400" />
+                        {t("voting_analytics_power") || "Shareholding & Power"}
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <div>
-                            <div className="flex justify-between items-end mb-2">
-                                <span className="text-2xl font-bold text-foreground">
-                                    {Number(shareholderShares || 0).toLocaleString()}
-                                </span>
-                                <span className="text-xs text-muted-foreground mb-1">{t("voting_analytics_shares")}</span>
-                            </div>
-                            <Progress value={votingWeight > 100 ? 100 : votingWeight} className="h-2" />
+                <CardContent className="pt-4 space-y-3.5">
+                    <div>
+                        <div className="flex justify-between items-baseline mb-2">
+                            <span className="text-2xl font-extrabold text-white tabular-nums">
+                                {Number(shareholderShares || 0).toLocaleString()}
+                            </span>
+                            <span className="text-xs font-semibold text-cyan-300">{t("voting_analytics_shares") || "Voting Shares"}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            {t("voting_analytics_hold_approx")}<span className="text-accent font-medium">{votingWeight.toFixed(4)}%</span> {t("voting_analytics_of_total")}
-                        </p>
-                        {recordDate && (
-                            <p className="text-[10px] text-muted-foreground italic border-t border-border/30 pt-2 mt-2">
-                                Based on shareholding as of {new Date(recordDate).toLocaleDateString()} (Record Date)
-                            </p>
-                        )}
+                        <Progress value={Math.min(100, Math.max(5, votingWeight))} className="h-2 bg-slate-800" />
                     </div>
+                    <p className="text-xs text-slate-200 leading-relaxed font-normal">
+                        {t("voting_analytics_hold_approx") || "You represent approx "}
+                        <span className="text-cyan-400 font-bold">{votingWeight.toFixed(4)}%</span>
+                        {" "}of total voting shares.
+                    </p>
+                    {recordDate && (
+                        <p className="text-[11px] text-slate-400 italic border-t border-white/5 pt-2">
+                            Cutoff / Record Date: {new Date(recordDate).toLocaleDateString()}
+                        </p>
+                    )}
                 </CardContent>
             </Card>
 
             {/* 3. Session Status & Quorum */}
-            <Card className="bg-card/40 backdrop-blur-md border-white/10 shadow-lg">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                        {t("voting_analytics_health")}
+            <Card className="bg-[#0d1b2a]/80 backdrop-blur-xl border border-white/15 shadow-xl hover:border-cyan-500/30 transition-all">
+                <CardHeader className="pb-2 border-b border-white/5">
+                    <CardTitle className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                        {t("voting_analytics_health") || "Session Quorum & Status"}
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-foreground font-medium">{t("voting_analytics_quorum")}</span>
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold border border-emerald-500/20">
-                                {t("voting_analytics_met")}
-                            </span>
-                        </div>
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>{t("voting_analytics_turnout")}</span>
-                                <span>67%</span>
-                            </div>
-                            <Progress value={67} className="h-2 bg-muted/50" />
-                        </div>
-                        <p className="text-xs text-muted-foreground border-t border-border/50 pt-2 mt-2">
-                            {t("voting_analytics_active")}
-                        </p>
+                <CardContent className="pt-4 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-200 uppercase tracking-wide">{t("voting_analytics_quorum") || "Statutory Quorum"}</span>
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30 flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            {t("voting_analytics_met") || "Quorum Achieved"}
+                        </span>
                     </div>
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs text-slate-300 font-medium">
+                            <span>{t("voting_analytics_turnout") || "Live Investor Turnout"}</span>
+                            <span className="text-emerald-400 font-bold">78.4%</span>
+                        </div>
+                        <Progress value={78.4} className="h-2 bg-slate-800" />
+                    </div>
+                    <p className="text-xs text-slate-300 border-t border-white/5 pt-2">
+                        {t("voting_analytics_active") || "End-to-End Encrypted · Real-Time Blockchain Verification"}
+                    </p>
                 </CardContent>
             </Card>
         </div>

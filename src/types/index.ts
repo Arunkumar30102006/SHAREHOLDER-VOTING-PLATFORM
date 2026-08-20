@@ -87,6 +87,7 @@ export interface Shareholder {
   login_id?: string;
   is_credential_used?: boolean;
   credential_created_at?: string;
+  created_at?: string;
 }
 
 export interface DashboardMetrics {

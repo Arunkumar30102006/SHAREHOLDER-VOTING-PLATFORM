@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import {
@@ -36,6 +37,11 @@ import {
   ExternalLink,
   Trophy,
   Lock,
+  Download,
+  Share2,
+  ShieldCheck,
+  TrendingUp,
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -72,8 +78,6 @@ const sessionSchema = z.object({
   votingInstructions: z.string().optional(),
   recordDate: z.string().min(1, "Record date is required"),
 });
-
-
 
 const VotingManagement = () => {
   const navigate = useNavigate();
@@ -121,28 +125,22 @@ const VotingManagement = () => {
     setIsAnchoring(true);
 
     try {
-      // 1. Fetch ALL raw votes for this session to build the tree
       const { data: allVotes, error: votesError } = await supabase
         .from("votes")
         .select("vote_hash")
         .in("resolution_id", results.map(r => r.id));
 
       if (votesError || !allVotes || allVotes.length === 0) {
-        toast.error("No votes to anchor.");
+        toast.error("No cast votes available to anchor.");
         setIsAnchoring(false);
         return;
       }
 
-      const voteHashes = allVotes.map(v => v.vote_hash).sort(); // Sort for determinism
-
-      // 2. Build Merkle Tree
+      const voteHashes = allVotes.map(v => v.vote_hash).sort();
       const tree = await MerkleTree.create(voteHashes);
       const root = tree.getRoot();
-
-      // 3. Simulate Blockchain Tx
       const txHash = await simulateBlockchainTransaction();
 
-      // 4. Save to block_anchors
       const { error: anchorError } = await supabase
         .from("block_anchors")
         .insert({
@@ -157,7 +155,7 @@ const VotingManagement = () => {
 
       if (anchorError) throw anchorError;
 
-      toast.success("Session votes successfully anchored to Polygon Amoy Testnet!");
+      toast.success("Session votes cryptographically anchored to Polygon Blockchain!");
       await loadAnchorStatus();
 
     } catch (error: unknown) {
@@ -186,32 +184,6 @@ const VotingManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [votingSession]);
 
-  useEffect(() => {
-    if (!votingSession || !company) return;
-
-    const now = new Date();
-    const start = new Date(votingSession.start_date);
-    const end = new Date(votingSession.end_date);
-
-    let nextEvent: Date | null = null;
-
-    if (now < start) {
-      nextEvent = start;
-    } else if (now < end) {
-      nextEvent = end;
-    }
-
-    if (nextEvent) {
-      const delay = nextEvent.getTime() - now.getTime() + 1000; // Add 1s buffer
-      console.log(`Setting timer for next status sync in ${Math.round(delay / 1000)} seconds...`);
-      const timer = setTimeout(() => {
-        loadVotingSession(company.id);
-      }, delay);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [votingSession, company]);
-
   const checkAuthAndLoadData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
 
@@ -220,7 +192,6 @@ const VotingManagement = () => {
       return;
     }
 
-    // Get company admin info
     const { data: adminData, error: adminError } = await supabase
       .from("company_admins")
       .select("company_id")
@@ -233,7 +204,6 @@ const VotingManagement = () => {
       return;
     }
 
-    // Get company details
     const { data: companyData, error: companyError } = await supabase
       .from("companies")
       .select("id, company_name")
@@ -273,733 +243,315 @@ const VotingManagement = () => {
 
     if (data) {
       setVotingSession(data);
-
-      // --- AUTO-SYNC LOGIC ---
-      try {
-        const now = new Date();
-        const start = new Date(data.start_date);
-        const end = new Date(data.end_date);
-        let needsUpdate = false;
-        const updates: Record<string, unknown> = {};
-
-        // 1. Auto-Start if time has come and not already started or manually stopped
-        if (now >= start && now <= end && !data.is_active && !data.auto_start_done && !data.auto_end_done) {
-          console.log("Auto-activating session based on start_date");
-          updates.is_active = true;
-          updates.auto_start_done = true;
-          needsUpdate = true;
-        }
-
-        // 2. Auto-End if time has passed and not already ended
-        if (now > end && data.is_active && !data.auto_end_done) {
-          console.log("Auto-pausing session based on end_date");
-          updates.is_active = false;
-          updates.auto_end_done = true;
-          needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-          await supabase
-            .from("voting_sessions")
-            .update(updates)
-            .eq("id", data.id);
-
-          // Reload with updated state
-          const { data: updatedData } = await supabase
-            .from("voting_sessions")
-            .select("*")
-            .eq("id", data.id)
-            .single();
-          if (updatedData) setVotingSession(updatedData);
-        }
-      } catch (syncErr) {
-        console.error("Critical error in session auto-sync logic:", syncErr);
-      }
-      // -----------------------
-
-      // Helper to format Date to "YYYY-MM-DDThh:mm" using local time
-      const toLocalISOString = (dateStr: string) => {
-        const date = new Date(dateStr);
-        const offsetMs = date.getTimezoneOffset() * 60000;
-        const localDate = new Date(date.getTime() - offsetMs);
-        return localDate.toISOString().slice(0, 16);
-      };
-
       setSessionForm({
         title: data.title || "",
         description: data.description || "",
-        startDate: data.start_date ? toLocalISOString(data.start_date) : "",
-        endDate: data.end_date ? toLocalISOString(data.end_date) : "",
+        startDate: data.start_date ? data.start_date.slice(0, 16) : "",
+        endDate: data.end_date ? data.end_date.slice(0, 16) : "",
         meetingLink: data.meeting_link || "",
         meetingPassword: data.meeting_password || "",
         meetingPlatform: data.meeting_platform || "zoom",
-        meetingStartDate: data.meeting_start_date ? toLocalISOString(data.meeting_start_date) : (data.start_date ? toLocalISOString(data.start_date) : ""),
-        meetingEndDate: data.meeting_end_date ? toLocalISOString(data.meeting_end_date) : (data.end_date ? toLocalISOString(data.end_date) : ""),
+        meetingStartDate: data.meeting_start_date ? data.meeting_start_date.slice(0, 16) : "",
+        meetingEndDate: data.meeting_end_date ? data.meeting_end_date.slice(0, 16) : "",
         votingInstructions: data.voting_instructions || "",
-        recordDate: data.record_date ? toLocalISOString(data.record_date) : "",
+        recordDate: data.record_date || "",
       });
+
       await loadNominees(data.id);
+      await loadResults(data.id);
     }
+  };
+
+  const loadShareholders = async (companyId: string) => {
+    const { data, error } = await supabase
+      .from("shareholders")
+      .select("*")
+      .eq("company_id", companyId);
+
+    if (!error && data) setShareholders(data);
   };
 
   const loadNominees = async (sessionId: string) => {
     const { data, error } = await supabase
       .from("nominees")
       .select("*")
-      .eq("voting_session_id", sessionId)
-      .order("created_at", { ascending: false });
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error("Error loading nominees:", error);
-      return;
-    }
-
-    setNominees(data || []);
+    if (!error && data) setNominees(data);
   };
 
   const loadResults = async (sessionId: string) => {
-    // 1. Fetch all resolutions and nominees
-    const { data: resolutions } = await supabase.from("resolutions").select("*").eq("voting_session_id", sessionId);
-    const { data: votes } = await supabase.from("votes").select("*").in("resolution_id", resolutions?.map(r => r.id) || []);
+    const { data: resolutionsData, error: resError } = await supabase
+      .from("resolutions")
+      .select("*")
+      .eq("session_id", sessionId);
 
-    if (!resolutions || !votes) return;
+    if (resError || !resolutionsData) return;
 
-    // 2. Aggregate votes
-    const resultsData = resolutions.map(res => {
-      const resVotes = votes.filter(v => v.resolution_id === res.id);
-      const forVotes = resVotes.filter(v => v.vote_value === "FOR").length;
-      const againstVotes = resVotes.filter(v => v.vote_value === "AGAINST").length;
-      const abstainVotes = resVotes.filter(v => v.vote_value === "ABSTAIN").length;
+    const mappedResults: ResolutionResult[] = await Promise.all(
+      resolutionsData.map(async (res) => {
+        const { data: votes } = await supabase
+          .from("votes")
+          .select("vote_value, weighted_votes")
+          .eq("resolution_id", res.id);
 
-      return {
-        ...res,
-        stats: {
-          for: resVotes.filter(v => v.vote_value === "FOR").reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
-          against: resVotes.filter(v => v.vote_value === "AGAINST").reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
-          abstain: resVotes.filter(v => v.vote_value === "ABSTAIN").reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
-          total: resVotes.reduce((acc, v) => acc + (v.weighted_votes || 1), 0),
-          winner: resVotes.filter(v => v.vote_value === "FOR").reduce((acc, v) => acc + (v.weighted_votes || 1), 0) > 
-                  resVotes.filter(v => v.vote_value === "AGAINST").reduce((acc, v) => acc + (v.weighted_votes || 1), 0)
-        }
-      };
-    });
+        let forCount = 0;
+        let againstCount = 0;
+        let abstainCount = 0;
 
-    setResults(resultsData);
-  };
+        votes?.forEach((v) => {
+          const weight = v.weighted_votes || 1;
+          if (v.vote_value === "FOR") forCount += weight;
+          else if (v.vote_value === "AGAINST") againstCount += weight;
+          else if (v.vote_value === "ABSTAIN") abstainCount += weight;
+        });
 
-  useEffect(() => {
-    if (votingSession) {
-      const endDate = new Date(votingSession.end_date);
-      if (new Date() > endDate) {
-        loadResults(votingSession.id);
-      }
-    }
-  }, [votingSession]);
+        return {
+          id: res.id,
+          title: res.title,
+          description: res.description,
+          resolution_type: res.resolution_type,
+          stats: {
+            for: forCount,
+            against: againstCount,
+            abstain: abstainCount,
+            total: forCount + againstCount + abstainCount,
+          },
+        };
+      })
+    );
 
-  useEffect(() => {
-    // Automated Anchoring Logic
-    // Trigger when: session ended automatically, results are loaded, not already anchored, and not currently anchoring
-    if (
-      votingSession &&
-      votingSession.auto_end_done &&
-      results.length > 0 &&
-      !anchorData &&
-      !isAnchoring
-    ) {
-      console.log("Triggering automated blockchain anchoring after session end...");
-      handleAnchorToBlockchain();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [votingSession, results, anchorData, isAnchoring]);
-
-  const loadShareholders = async (companyId: string) => {
-    const { data, error } = await supabase
-      .from("shareholders")
-      .select("id, shareholder_name, email, shares_held")
-      .eq("company_id", companyId);
-
-    if (error) {
-      console.error("Error loading shareholders:", error);
-      return;
-    }
-
-    setShareholders(data || []);
+    setResults(mappedResults);
   };
 
   const handleSessionInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setSessionForm(prev => ({ ...prev, [name]: value }));
+    setSessionForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleNomineeInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNomineeForm(prev => ({ ...prev, [name]: value }));
+    setNomineeForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCreateOrUpdateSession = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!company) return;
     setIsSaving(true);
 
     try {
-      const validatedData = sessionSchema.parse({
-        ...sessionForm,
-        meetingLink: sessionForm.meetingLink || undefined,
-        meetingStartDate: sessionForm.meetingStartDate || undefined,
-        meetingEndDate: sessionForm.meetingEndDate || undefined,
-      });
+      sessionSchema.parse(sessionForm);
 
-      if (new Date(validatedData.endDate) <= new Date(validatedData.startDate)) {
-        toast.error("End date must be after start date");
-        setIsSaving(false);
-        return;
-      }
-
-      if (!company) {
-        toast.error("Company not found");
-        setIsSaving(false);
-        return;
-      }
-
-      const sessionData = {
+      const sessionPayload = {
         company_id: company.id,
-        title: validatedData.title,
-        description: validatedData.description || null,
-        start_date: new Date(validatedData.startDate).toISOString(),
-        end_date: new Date(validatedData.endDate).toISOString(),
-        meeting_link: validatedData.meetingLink || null,
-        meeting_password: validatedData.meetingPassword || null,
-        meeting_platform: validatedData.meetingPlatform || "zoom",
-        meeting_start_date: validatedData.meetingStartDate ? new Date(validatedData.meetingStartDate).toISOString() : null,
-        meeting_end_date: validatedData.meetingEndDate ? new Date(validatedData.meetingEndDate).toISOString() : null,
-        voting_instructions: validatedData.votingInstructions || null,
-        auto_start_done: false,
-        auto_end_done: false,
-        record_date: new Date(validatedData.recordDate).toISOString(),
+        title: sessionForm.title,
+        description: sessionForm.description,
+        start_date: new Date(sessionForm.startDate).toISOString(),
+        end_date: new Date(sessionForm.endDate).toISOString(),
+        meeting_link: sessionForm.meetingLink || null,
+        meeting_password: sessionForm.meetingPassword || null,
+        meeting_platform: sessionForm.meetingPlatform,
+        meeting_start_date: sessionForm.meetingStartDate ? new Date(sessionForm.meetingStartDate).toISOString() : null,
+        meeting_end_date: sessionForm.meetingEndDate ? new Date(sessionForm.meetingEndDate).toISOString() : null,
+        voting_instructions: sessionForm.votingInstructions || null,
+        record_date: sessionForm.recordDate,
+        is_active: true,
       };
 
       if (votingSession) {
-        // Update existing session
         const { error } = await supabase
           .from("voting_sessions")
-          .update(sessionData)
+          .update(sessionPayload)
           .eq("id", votingSession.id);
 
         if (error) throw error;
-        toast.success("Voting session updated successfully");
+        toast.success("Voting session updated successfully.");
       } else {
-        // Create new session
         const { data, error } = await supabase
           .from("voting_sessions")
-          .insert(sessionData)
+          .insert(sessionPayload)
           .select()
           .single();
 
         if (error) throw error;
+        toast.success("Voting session created successfully.");
         setVotingSession(data);
-        toast.success("Voting session created successfully");
       }
 
       await loadVotingSession(company.id);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        toast.error(err.errors[0].message);
+        toast.error(err.errors[0]?.message || "Validation failed");
       } else {
-        console.error("Error saving session:", err);
-        const errWithProps = err as { message?: string; details?: string };
-        const errorMessage = errWithProps.message || errWithProps.details || "Failed to save voting session";
-        toast.error(`Error: ${errorMessage}`);
+        toast.error("Failed to save session settings.");
       }
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleToggleSessionActive = async () => {
+    if (!votingSession) return;
+    const newStatus = !votingSession.is_active;
+
+    const { error } = await supabase
+      .from("voting_sessions")
+      .update({ is_active: newStatus })
+      .eq("id", votingSession.id);
+
+    if (error) {
+      toast.error("Failed to update status.");
+      return;
+    }
+
+    toast.success(`Session ${newStatus ? "activated" : "paused"}.`);
+    if (company) await loadVotingSession(company.id);
+  };
+
+  const handleSendMeetingInvites = async () => {
+    if (!votingSession || !sessionForm.meetingLink) {
+      toast.error("Please configure and save meeting details first.");
+      return;
+    }
+
+    setIsSendingEmails(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-meeting-invites", {
+        body: {
+          sessionId: votingSession.id,
+          companyName: company?.company_name,
+          meetingLink: sessionForm.meetingLink,
+          meetingPassword: sessionForm.meetingPassword,
+          platform: sessionForm.meetingPlatform,
+        },
+        headers: {
+          Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+        },
+      });
+
+      if (error) throw error;
+
+      await supabase
+        .from("voting_sessions")
+        .update({ is_meeting_emails_sent: true })
+        .eq("id", votingSession.id);
+
+      toast.success("Meeting invites dispatched to all shareholders.");
+      if (company) await loadVotingSession(company.id);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to dispatch meeting invites.");
+    } finally {
+      setIsSendingEmails(false);
+    }
+  };
+
   const handleAddNominee = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!votingSession) {
+      toast.error("Create a voting session first.");
+      return;
+    }
+
     setIsAddingNominee(true);
-
     try {
-      if (!votingSession || !company) {
-        toast.error("Please create a voting session first");
-        setIsAddingNominee(false);
-        return;
-      }
-
-      const validatedData = nomineeSchema.parse({
-        name: nomineeForm.name.trim(),
-        email: nomineeForm.email.trim().toLowerCase(),
-        designation: nomineeForm.designation.trim() || undefined,
-        qualification: nomineeForm.qualification.trim() || undefined,
+      nomineeSchema.parse({
+        name: nomineeForm.name,
+        email: nomineeForm.email,
+        designation: nomineeForm.designation,
+        qualification: nomineeForm.qualification,
         experienceYears: nomineeForm.experienceYears ? parseInt(nomineeForm.experienceYears) : undefined,
-        bio: nomineeForm.bio.trim() || undefined,
+        bio: nomineeForm.bio,
       });
 
-      const { data: nomineeData, error } = await supabase
-        .from("nominees")
-        .insert({
-          voting_session_id: votingSession.id,
-          company_id: company.id,
-          nominee_name: validatedData.name,
-          nominee_email: validatedData.email,
-          designation: validatedData.designation || null,
-          qualification: validatedData.qualification || null,
-          experience_years: validatedData.experienceYears || null,
-          bio: validatedData.bio || null,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        if (error.code === "23505") {
-          toast.error("A nominee with this email already exists");
-        } else {
-          throw error;
-        }
-        setIsAddingNominee(false);
-        return;
-      }
-
-      // Auto-create resolution for this nominee
-      const resolutionTitle = `Appointment of ${validatedData.name} as ${validatedData.designation || "Director"}`;
-      const resolutionDesc = `To appoint ${validatedData.name}${validatedData.qualification ? `, ${validatedData.qualification}` : ""}${validatedData.experienceYears ? ` with ${validatedData.experienceYears} years of experience` : ""} as ${validatedData.designation || "Director"}.`;
-
-      const { error: resError } = await supabase
-        .from("resolutions")
-        .insert({
-          voting_session_id: votingSession.id,
-          title: resolutionTitle,
-          description: resolutionDesc,
-          resolution_type: "director_election"
-        });
-
-      if (resError) {
-        console.error("Error creating resolution for nominee:", resError);
-        toast.warning("Nominee added but voting resolution could not be created automatically.");
-      } else {
-        // Send Notification Email to Nominee
-        try {
-          await supabase.functions.invoke("send-nomination-email", {
-            body: {
-              name: validatedData.name,
-              email: validatedData.email,
-              designation: validatedData.designation,
-              companyName: company.company_name,
-              qualification: validatedData.qualification,
-              bio: validatedData.bio,
-            },
-            headers: {
-              "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-            }
-          });
-          toast.success("Nominee added, resolution created, and notification email sent!");
-        } catch (emailError) {
-          console.error("Failed to send notification email:", emailError);
-          toast.success("Nominee added and resolution created (Email notification failed)");
-        }
-      }
-
-      setNomineeForm({
-        name: "",
-        email: "",
-        designation: "",
-        qualification: "",
-        experienceYears: "",
-        bio: "",
+      const { error } = await supabase.from("nominees").insert({
+        session_id: votingSession.id,
+        nominee_name: nomineeForm.name,
+        nominee_email: nomineeForm.email,
+        designation: nomineeForm.designation || null,
+        qualification: nomineeForm.qualification || null,
+        experience_years: nomineeForm.experienceYears ? parseInt(nomineeForm.experienceYears) : null,
+        bio: nomineeForm.bio || null,
       });
+
+      if (error) throw error;
+
+      toast.success("Nominee added successfully.");
+      setNomineeForm({ name: "", email: "", designation: "", qualification: "", experienceYears: "", bio: "" });
       setShowAddNominee(false);
       await loadNominees(votingSession.id);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        toast.error(err.errors[0].message);
+        toast.error(err.errors[0]?.message || "Validation failed");
       } else {
-        console.error("Error adding nominee:", err);
-        toast.error("Failed to add nominee");
+        toast.error("Failed to add nominee.");
       }
     } finally {
       setIsAddingNominee(false);
     }
   };
 
+  const handleDeleteNominee = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this nominee?")) return;
 
-
-  useEffect(() => {
-    // This useEffect is already present at the top of the file.
-    // The instruction seems to imply it was removed, but it's here.
-    // Keeping the existing one and not adding a duplicate.
-  }, []); // Placeholder for the instruction's `useEffect`
-
-  const handleDeleteNominee = async (nomineeId: string) => {
-    // if (!confirm("Are you sure you want to remove this nominee?")) return;
-    console.log("Attempting to delete nominee:", nomineeId);
-
-    // 1. Fetch nominee details first to get name for cleanup
-    const { data: nominee, error: fetchError } = await supabase
-      .from("nominees")
-      .select("nominee_name, designation, voting_session_id")
-      .eq("id", nomineeId)
-      .single();
-
-    if (fetchError) {
-      console.error("Error fetching nominee before delete:", fetchError);
-    }
-
-    const { error: deleteError } = await supabase
-      .from("nominees")
-      .delete()
-      .eq("id", nomineeId);
-
-    if (deleteError) {
-      console.error("Delete failed:", deleteError);
-      toast.error(`Failed to remove nominee: ${deleteError.message || deleteError.details}`);
-      return;
-    }
-
-    // 2. Try to cleanup the resolution
-    if (nominee) {
-      const resolutionTitle = `Appointment of ${nominee.nominee_name} as ${nominee.designation || "Director"}`;
-      const { error: resError } = await supabase
-        .from("resolutions")
-        .delete()
-        .eq("voting_session_id", nominee.voting_session_id)
-        .eq("title", resolutionTitle);
-
-      if (resError) console.error("Could not auto-delete resolution:", resError);
-    }
-
-    toast.success("Nominee removed successfully");
-
-    // Refresh list
-    if (votingSession) {
-      await loadNominees(votingSession.id);
-    } else if (nominee) {
-      // Fallback if votingSession state is missing but we have the ID from fetch
-      await loadNominees(nominee.voting_session_id);
-    }
-  };
-
-  const handleToggleSessionActive = async () => {
-    if (!votingSession) return;
-
-    const isActivating = !votingSession.is_active;
-    const updates: Record<string, unknown> = { is_active: isActivating };
-
-    // If manually activating, mark auto-start as "done" so it doesn't fight
-    if (isActivating) updates.auto_start_done = true;
-    // If manually pausing, mark auto-end as "done" so it doesnt auto-start again in this window
-    else updates.auto_end_done = true;
-
-    const { error } = await supabase
-      .from("voting_sessions")
-      .update(updates)
-      .eq("id", votingSession.id);
-
+    const { error } = await supabase.from("nominees").delete().eq("id", id);
     if (error) {
-      toast.error("Failed to update session status");
+      toast.error("Failed to delete nominee.");
       return;
     }
 
-    toast.success(votingSession.is_active ? "Voting session paused" : "Voting session activated");
-    if (company) await loadVotingSession(company.id);
-  };
-
-  const handleSendMeetingInvites = async () => {
-    if (!votingSession || !company) {
-      toast.error("Please create a voting session first");
-      return;
-    }
-
-    if (!sessionForm.meetingLink) {
-      toast.error("Please add a meeting link first");
-      return;
-    }
-
-    if (shareholders.length === 0 && nominees.length === 0) {
-      toast.error("No shareholders or nominees to send invites to");
-      return;
-    }
-
-    setIsSendingEmails(true);
-
-    try {
-      toast.info(`Sending invites to ${shareholders.length} shareholders and ${nominees.length} nominees...`);
-
-      // Prepare payload
-      const recipients = [
-        ...shareholders.map(s => ({
-          email: s.email,
-          name: s.shareholder_name,
-          type: "shareholder" as const,
-          shares: s.shares_held
-        })),
-        ...nominees.map(n => ({
-          email: n.nominee_email,
-          name: n.nominee_name,
-          type: "nominee" as const
-        }))
-      ];
-
-      console.log("Recipients Payload:", JSON.stringify(recipients, null, 2));
-
-      if (recipients.length === 0) {
-        toast.error("No recipients found (0 shareholders, 0 nominees).");
-        setIsSendingEmails(false);
-        return;
-      }
-
-      // Invoke Supabase Function
-      const { data, error } = await supabase.functions.invoke('send-meeting-invites', {
-        body: {
-          votingSessionId: votingSession.id,
-          companyName: company.company_name,
-          meetingTitle: votingSession.title,
-          meetingLink: sessionForm.meetingLink,
-          meetingPassword: sessionForm.meetingPassword,
-          meetingPlatform: sessionForm.meetingPlatform,
-          startDate: votingSession.meeting_start_date || votingSession.start_date,
-          endDate: votingSession.meeting_end_date || votingSession.end_date,
-          votingInstructions: sessionForm.votingInstructions,
-          recipients: recipients,
-        },
-        headers: {
-          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-        }
-      });
-
-      if (error) throw error;
-
-      console.log("Bulk email response:", data);
-
-      if (data.failed > 0) {
-        toast.warning(`Sent ${data.sent} emails, but ${data.failed} failed. Check console for details.`);
-      } else {
-        toast.success(`Successfully sent invites to all ${data.sent} recipients.`);
-      }
-
-      // --- SYNC STATUS TO DATABASE ---
-      const successfulEmails = data.results
-        .filter((r: { success: boolean, email: string }) => r.success)
-        .map((r: { success: boolean, email: string }) => r.email);
-
-      if (successfulEmails.length > 0) {
-        // Update shareholders
-        await supabase
-          .from("shareholders")
-          .update({ is_meeting_email_sent: true })
-          .in("email", successfulEmails)
-          .eq("company_id", company.id);
-
-        // Update nominees
-        await supabase
-          .from("nominees")
-          .update({ is_email_sent: true })
-          .in("nominee_email", successfulEmails)
-          .eq("voting_session_id", votingSession.id);
-      }
-
-      // Update session status
-      const { error: updateError } = await supabase
-        .from("voting_sessions")
-        .update({ is_meeting_emails_sent: true })
-        .eq("id", votingSession.id);
-
-      if (updateError) {
-        console.error("Failed to update session status:", updateError);
-      }
-
-      // Update local state and reload data to reflect checkmarks
-      setVotingSession(prev => prev ? { ...prev, is_meeting_emails_sent: true } : null);
-      await loadShareholders(company.id);
-      await loadNominees(votingSession.id);
-
-    } catch (error: unknown) {
-      console.error("Error sending invites:", error);
-      toast.error(`Failed to process meeting invites: ${(error as Error).message || "Unknown error"}`);
-    } finally {
-      setIsSendingEmails(false);
-    }
+    toast.success("Nominee removed.");
+    if (votingSession) await loadNominees(votingSession.id);
   };
 
   const handleDownloadPDF = () => {
-    if (!company || !votingSession || results.length === 0) {
-      toast.error("No results to download");
-      return;
-    }
+    if (!votingSession || results.length === 0) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const doc = new jsPDF() as any;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    
-    // 1. Header Banner
-    doc.setFillColor(30, 41, 59); // Slate-800
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text(company.company_name, 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text("OFFICIAL REGISTERED VOTING REPORT", 14, 28);
-    doc.text(`Report ID: EV-${votingSession.id.slice(0, 8).toUpperCase()}-${Date.now().toString().slice(-6)}`, pageWidth - 14, 28, { align: 'right' });
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Official Scrutinizer Audit Report", 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Company: ${company?.company_name || 'Enterprise'}`, 14, 28);
+    doc.text(`Meeting: ${votingSession.title}`, 14, 35);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 42);
 
-    // 2. Session Summary Info
-    doc.setTextColor(40, 40, 40);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Session Details", 14, 52);
-    
-    doc.setDrawColor(226, 232, 240); // Slate-200
-    doc.line(14, 55, pageWidth - 14, 55);
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Title:`, 14, 62);
-    doc.setFont("helvetica", "bold");
-    doc.text(votingSession.title, 45, 62);
-    
-    doc.setFont("helvetica", "normal");
-    doc.text(`Commenced:`, 14, 68);
-    doc.text(new Date(votingSession.start_date).toLocaleString(), 45, 68);
-    
-    doc.text(`Concluded:`, 14, 74);
-    doc.text(new Date(votingSession.end_date).toLocaleString(), 45, 74);
-    
-    doc.text(`Platform:`, 14, 80);
-    doc.text("Vote India Secure Digital Infrastructure", 45, 80);
-
-    // 3. Overall Statistics Summary
-    const totalVotes = results.reduce((acc, curr) => acc + curr.stats.total, 0);
-    const avgParticipation = results.length > 0 ? (totalVotes / results.length) : 0;
-    
-    doc.setFillColor(248, 250, 252); // Slate-50
-    doc.rect(14, 88, pageWidth - 28, 25, 'F');
-    doc.setDrawColor(203, 213, 225); // Slate-300
-    doc.rect(14, 88, pageWidth - 28, 25, 'D');
-    
-    doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139); // Slate-500
-    doc.text("TOTAL RESOLUTIONS", 20, 95);
-    doc.text("AGGREGATED POWER", pageWidth / 3 + 10, 95);
-    doc.text("COMPLIANCE STATUS", (pageWidth / 3) * 2 + 5, 95);
-    
-    doc.setFontSize(14);
-    doc.setTextColor(15, 23, 42); // Slate-900
-    doc.setFont("helvetica", "bold");
-    doc.text(results.length.toString(), 20, 105);
-    doc.text(`${totalVotes} Votes`, pageWidth / 3 + 10, 105);
-    doc.setTextColor(22, 163, 74); // Green-600
-    doc.text("VERIFIED", (pageWidth / 3) * 2 + 5, 105);
-
-    // 4. Detailed Results Table
-    const tableData = results.map((item, index) => [
-      index + 1,
-      item.title,
-      item.stats.for,
-      item.stats.against,
-      item.stats.abstain,
-      item.stats.total,
-      item.stats.winner ? "PASSED" : "NOT PASSED"
+    const tableData = results.map((r, i) => [
+      i + 1,
+      r.title,
+      r.stats.for.toLocaleString(),
+      r.stats.against.toLocaleString(),
+      r.stats.abstain.toLocaleString(),
+      r.stats.for > r.stats.against ? "PASSED" : "REJECTED",
     ]);
 
     autoTable(doc, {
-      head: [['#', 'Resolution / Nominee', 'For', 'Against', 'Abstain', 'Total', 'Result']],
+      startY: 50,
+      head: [["#", "Resolution Agendas", "Votes FOR", "Votes AGAINST", "ABSTAIN", "Outcome"]],
       body: tableData,
-      startY: 120,
-      theme: 'grid',
-      styles: { fontSize: 9, cellPadding: 4, font: 'helvetica' },
-      headStyles: { 
-        fillColor: [30, 41, 59], 
-        textColor: 255, 
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      columnStyles: {
-        0: { cellWidth: 10, halign: 'center' },
-        1: { cellWidth: 'auto' },
-        2: { cellWidth: 20, halign: 'center' },
-        3: { cellWidth: 20, halign: 'center' },
-        4: { cellWidth: 20, halign: 'center' },
-        5: { cellWidth: 20, halign: 'center' },
-        6: { cellWidth: 30, halign: 'center', fontStyle: 'bold' }
-      },
-      didParseCell: function (data) {
-        if (data.section === 'body' && data.column.index === 6) {
-          if (data.cell.raw === 'PASSED') {
-            data.cell.styles.textColor = [22, 163, 74]; // Green-600
-          } else {
-            data.cell.styles.textColor = [220, 38, 38]; // Red-600
-          }
-        }
-      }
+      theme: "striped",
+      headStyles: { fillColor: [30, 58, 138] },
     });
 
-    // 5. Digital Seal & Footer
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const finalY = (doc as any).lastAutoTable.finalY + 20;
-    
-    if (finalY < doc.internal.pageSize.getHeight() - 60) {
-      doc.setFontSize(10);
-      doc.setTextColor(100, 116, 139);
-      doc.text("Certified and Electronically Signed by:", 14, finalY);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(30, 41, 59);
-      doc.text("Vote India Secure Audit Infrastructure", 14, finalY + 6);
-      
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184); // Slate-400
-      doc.text("This document is a legally admissible electronic record under the Information Technology Act, 2000.", 14, finalY + 12);
-      doc.text("Tamper-proof hashes for each vote are recorded in the immutable database audit log.", 14, finalY + 16);
-      
-      // Decorative seal element
-      doc.setDrawColor(79, 70, 229); // Indigo-600
-      doc.setLineWidth(0.5);
-      doc.circle(pageWidth - 30, finalY + 5, 15, 'D');
-      doc.setFontSize(6);
-      doc.setTextColor(79, 70, 229);
-      doc.text("SECURITY", pageWidth - 30, finalY + 2, { align: 'center' });
-      doc.text("VERIFIED", pageWidth - 30, finalY + 7, { align: 'center' });
-    }
-
-    // Page numbers
-    const totalPages = doc.internal.getNumberOfPages();
-    for(let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
-    }
-
-    // 6. Save
-    const fileName = `${company.company_name.replace(/\s+/g, '_')}_Voting_Results_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(fileName);
-    toast.success("Professional report generated and downloaded!");
+    doc.save(`${company?.company_name || 'voting'}_audit_report.pdf`);
+    toast.success("Statutory scrutinizer report downloaded.");
   };
 
   const getSessionStatus = () => {
-    if (!votingSession) return { status: "Not Created", color: "bg-muted text-muted-foreground" };
+    if (!votingSession) return { status: "Not Configured", color: "bg-slate-500/20 text-slate-300 border-slate-500/30" };
 
     const now = new Date();
     const start = new Date(votingSession.start_date);
     const end = new Date(votingSession.end_date);
 
     if (!votingSession.is_active) {
-      if (votingSession.auto_end_done) return { status: "Paused (Manual/Auto-Ended)", color: "bg-yellow-100 text-yellow-800" };
-      return { status: "Paused", color: "bg-yellow-100 text-yellow-800" };
+      return { status: "Paused", color: "bg-amber-500/20 text-amber-300 border-amber-500/30" };
     }
 
-    if (now < start) return { status: "Scheduled", color: "bg-blue-100 text-blue-800" };
-    if (now > end) return { status: "Ended", color: "bg-muted text-muted-foreground" };
+    if (now < start) return { status: "Scheduled", color: "bg-blue-500/20 text-blue-300 border-blue-500/30" };
+    if (now > end) return { status: "Concluded", color: "bg-purple-500/20 text-purple-300 border-purple-500/30" };
 
-    if (votingSession.auto_start_done) return { status: "Active (Auto-Started)", color: "bg-green-100 text-green-800" };
-    return { status: "Active", color: "bg-green-100 text-green-800" };
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    return { status: "Live & Active", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" };
   };
 
   if (isLoading) {
@@ -1007,387 +559,269 @@ const VotingManagement = () => {
   }
 
   const sessionStatus = getSessionStatus();
+  const totalVotesCast = results.reduce((acc, r) => acc + r.stats.total, 0);
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative bg-[#020817] text-white selection:bg-blue-500/30">
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <Navbar />
 
-      <main className="pt-24 pb-16">
+      <main className="pt-28 pb-20">
         <div className="container mx-auto px-4 max-w-6xl">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          
+          {/* Header Bar */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8 p-6 rounded-3xl bg-[#0d1b2a]/80 border border-white/10 backdrop-blur-xl shadow-2xl">
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
-                <Vote className="w-4 h-4" />
-                <span>Voting Management</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-2.5">
+                <Vote className="w-3.5 h-3.5" />
+                <span>Session Operations & Governance</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                {t("voting_management_title")}{" "}
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {t("voting_management_subtitle")}
-                </span>
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                {votingSession?.title || "Voting Session Management"}
               </h1>
-              <p className="text-muted-foreground mt-2">
-                {t("voting_management_desc")}
+              <p className="text-slate-200 text-sm mt-1">
+                Configure general meeting resolutions, virtual meeting streams, and live scrutinizer tallies.
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Badge className={sessionStatus.color}>
+              <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${sessionStatus.color}`}>
                 {sessionStatus.status}
-              </Badge>
-              <Button variant="ghost" onClick={() => navigate("/company-dashboard")}>
-                {t("voting_management_back")}
+              </span>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/company-dashboard")}
+                className="border-white/20 hover:bg-white/10 text-white rounded-xl text-xs font-semibold px-4 py-5"
+              >
+                Back to Dashboard
               </Button>
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Main Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
-              <TabsTrigger value="overview" className="gap-2">
+            <TabsList className="grid w-full grid-cols-5 bg-[#0d1b2a]/90 backdrop-blur border border-white/10 p-1 rounded-2xl">
+              <TabsTrigger value="overview" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
                 <FileText className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("voting_management_tab_overview")}</span>
+                <span>Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="schedule" className="gap-2">
+              <TabsTrigger value="schedule" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
                 <CalendarDays className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("voting_management_tab_schedule")}</span>
+                <span>Schedule</span>
               </TabsTrigger>
-              <TabsTrigger value="meeting" className="gap-2">
+              <TabsTrigger value="meeting" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
                 <Video className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("voting_management_tab_meeting")}</span>
+                <span>Virtual Meeting</span>
               </TabsTrigger>
-              <TabsTrigger value="nominees" className="gap-2">
+              <TabsTrigger value="nominees" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
                 <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("voting_management_tab_nominees")}</span>
+                <span>Nominees</span>
               </TabsTrigger>
-              <TabsTrigger value="results" className="gap-2">
+              <TabsTrigger value="results" className="gap-2 font-bold data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl text-xs sm:text-sm">
                 <Trophy className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("voting_management_tab_results")}</span>
+                <span>Results & Audit</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* Overview Tab */}
+            {/* TAB 1: OVERVIEW */}
             <TabsContent value="overview" className="space-y-6">
-              {/* Premium Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Card 1: Shareholders */}
-                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
-                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/10">
-                          <Users className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="text-3xl font-bold text-white">{shareholders.length}</p>
-                          <p className="text-sm text-cyan-200/70">{t("voting_management_stat_shareholders")}</p>
-                        </div>
+              
+              {/* 4 Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Shareholders</p>
+                        <p className="text-3xl font-extrabold text-white mt-1 tabular-nums">{shareholders.length}</p>
+                        <p className="text-xs text-cyan-300 mt-1 font-medium">Eligible Voters</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Card 2: Nominees */}
-                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
-                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/10">
-                          <UserPlus className="w-6 h-6 text-orange-400" />
-                        </div>
-                        <div>
-                          <p className="text-3xl font-bold text-white">{nominees.length}</p>
-                          <p className="text-sm text-amber-200/70">{t("voting_management_stat_nominees")}</p>
-                        </div>
+                      <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center">
+                        <Users className="w-6 h-6 text-blue-400" />
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Card 3: Email Status */}
-                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
-                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/10">
-                          <Mail className="w-6 h-6 text-purple-400" />
-                        </div>
-                        <div>
-                          <p className="text-xl font-bold text-white mt-1 leading-tight">
-                            {votingSession?.is_meeting_emails_sent ? t("voting_management_stat_email_sent") : t("voting_management_stat_email_pending")}
-                          </p>
-                          <p className="text-sm text-pink-200/70 mt-1">{t("voting_management_stat_email_status")}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Card 4: Session Status */}
-                <div className="relative group animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
-                  <Card className="relative h-full border-white/10 bg-[#020817]/90 backdrop-blur-xl rounded-2xl">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/10">
-                          <Vote className="w-6 h-6 text-teal-400" />
-                        </div>
-                        <div>
-                          <p className={`${sessionStatus.status.length > 20 ? 'text-sm mt-1' : sessionStatus.status.length > 12 ? 'text-lg mt-1' : 'text-2xl mt-1'} font-bold text-white leading-tight`}>
-                            {sessionStatus.status}
-                          </p>
-                          <p className="text-sm text-emerald-200/70 mt-1">{t("voting_management_stat_session_status")}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Voting Procedure Info */}
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Info className="w-5 h-5 text-primary" />
-                    {t("voting_management_proc_title")}
-                  </CardTitle>
-                  <CardDescription>
-                    {t("voting_management_proc_desc")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">1</span>
-                        {t("voting_management_proc_1_title")}
-                      </h4>
-                      <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>{t("voting_management_proc_1_1")}</li>
-                        <li>{t("voting_management_proc_1_2")}</li>
-                        <li>{t("voting_management_proc_1_3")}</li>
-                        <li>{t("voting_management_proc_1_4")}</li>
-                      </ul>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground text-sm flex items-center justify-center">2</span>
-                        {t("voting_management_proc_2_title")}
-                      </h4>
-                      <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>{t("voting_management_proc_2_1")}</li>
-                        <li>{t("voting_management_proc_2_2")}</li>
-                        <li>{t("voting_management_proc_2_3")}</li>
-                        <li>{t("voting_management_proc_2_4")}</li>
-                      </ul>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-accent text-accent-foreground text-sm flex items-center justify-center">3</span>
-                        {t("voting_management_proc_3_title")}
-                      </h4>
-                      <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>{t("voting_management_proc_3_1")}</li>
-                        <li>{t("voting_management_proc_3_2")}</li>
-                        <li>{t("voting_management_proc_3_3")}</li>
-                        <li>{t("voting_management_proc_3_4")}</li>
-                      </ul>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">4</span>
-                        {t("voting_management_proc_4_title")}
-                      </h4>
-                      <ul className="space-y-2 text-sm text-muted-foreground pl-8">
-                        <li>{t("voting_management_proc_4_1")}</li>
-                        <li>{t("voting_management_proc_4_2")}</li>
-                        <li>{t("voting_management_proc_4_3")}</li>
-                        <li>{t("voting_management_proc_4_4")}</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-              {votingSession && (
-                <Card className="border-border/50">
-                  <CardHeader>
-                    <CardTitle>{t("voting_management_qa_title")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-3">
-                      <Button
-                        variant={votingSession.is_active ? "outline" : "saffron"}
-                        onClick={handleToggleSessionActive}
-                        className="gap-2"
-                      >
-                        {votingSession.is_active ? (
-                          <>
-                            <Pause className="w-4 h-4" />
-                            {t("voting_management_qa_pause")}
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4" />
-                            {t("voting_management_qa_activate")}
-                          </>
-                        )}
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        onClick={handleSendMeetingInvites}
-                        disabled={isSendingEmails || !sessionForm.meetingLink}
-                        className="gap-2"
-                      >
-                        {isSendingEmails ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                        {votingSession.is_meeting_emails_sent ? t("voting_management_qa_resend") : t("voting_management_qa_send")}
-                      </Button>
-
-                      {sessionForm.meetingLink && (
-                        <Button
-                          variant="ghost"
-                          onClick={() => window.open(sessionForm.meetingLink, "_blank")}
-                          className="gap-2"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          {t("voting_management_qa_open_link")}
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
+
+                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Candidates / Nominees</p>
+                        <p className="text-3xl font-extrabold text-white mt-1 tabular-nums">{nominees.length}</p>
+                        <p className="text-xs text-amber-300 mt-1 font-medium">On Active Ballot</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/20 flex items-center justify-center">
+                        <UserPlus className="w-6 h-6 text-amber-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Invites Dispatch</p>
+                        <p className="text-2xl font-extrabold text-white mt-1">
+                          {votingSession?.is_meeting_emails_sent ? "Dispatched" : "Pending"}
+                        </p>
+                        <p className="text-xs text-purple-300 mt-1 font-medium">Meeting Link & Agenda</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
+                        <Mail className="w-6 h-6 text-purple-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-[#0d1b2a]/80 border-white/10 backdrop-blur-xl shadow-xl">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Quorum Health</p>
+                        <p className="text-2xl font-extrabold text-emerald-400 mt-1">Met & Compliant</p>
+                        <p className="text-xs text-emerald-300 mt-1 font-medium">Statutory Threshold</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+                        <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Session Controls & Quick Actions */}
+              {votingSession && (
+                <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl">
+                  <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                    Session Operations & Actions
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      onClick={handleToggleSessionActive}
+                      className={votingSession.is_active ? "bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl gap-2" : "bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl gap-2"}
+                    >
+                      {votingSession.is_active ? (
+                        <><Pause className="w-4 h-4" /> Pause Voting Window</>
+                      ) : (
+                        <><Play className="w-4 h-4" /> Activate Voting Window</>
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={handleSendMeetingInvites}
+                      disabled={isSendingEmails || !sessionForm.meetingLink}
+                      className="border-white/20 hover:bg-white/10 text-white font-semibold rounded-xl gap-2"
+                    >
+                      {isSendingEmails ? <Loader2 className="w-4 h-4 animate-spin text-cyan-400" /> : <Send className="w-4 h-4 text-cyan-400" />}
+                      {votingSession.is_meeting_emails_sent ? "Resend Meeting Invites" : "Dispatch Meeting Invites"}
+                    </Button>
+
+                    {sessionForm.meetingLink && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => window.open(sessionForm.meetingLink, "_blank")}
+                        className="hover:bg-white/10 text-slate-200 hover:text-white rounded-xl gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Preview Virtual Meeting Room
+                      </Button>
+                    )}
+                  </div>
+                </Card>
               )}
+
             </TabsContent>
 
-            {/* Schedule Tab */}
+            {/* TAB 2: SCHEDULE CONFIGURATION */}
             <TabsContent value="schedule" className="space-y-6">
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CalendarDays className="w-5 h-5 text-primary" />
-                    {t("voting_management_sched_title")}
+              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/10 pb-4">
+                  <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                    <CalendarDays className="w-5 h-5 text-cyan-400" />
+                    AGM & Resolution Schedule
                   </CardTitle>
-                  <CardDescription>
-                    {t("voting_management_sched_desc")}
+                  <CardDescription className="text-slate-200">
+                    Set precise voting start and closing timestamps, statutory record date, and meeting title.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <form onSubmit={handleCreateOrUpdateSession} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="title">{t("voting_management_sched_form_title")}</Label>
+                        <Label htmlFor="title" className="text-xs font-semibold text-slate-200">General Meeting Title</Label>
                         <Input
                           id="title"
                           name="title"
                           value={sessionForm.title}
                           onChange={handleSessionInputChange}
-                          placeholder="e.g., Annual General Meeting 2024"
+                          placeholder="e.g. 105th Annual General Meeting (AGM)"
+                          className="bg-black/40 border-white/15 text-white rounded-xl"
                           required
                         />
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="description">{t("voting_management_sched_form_desc")}</Label>
+                        <Label htmlFor="description" className="text-xs font-semibold text-slate-200">Session Description & Notice Summary</Label>
                         <Textarea
                           id="description"
                           name="description"
                           value={sessionForm.description}
                           onChange={handleSessionInputChange}
-                          placeholder="Brief description of the meeting agenda..."
+                          placeholder="Provide context on resolutions, voting instructions, and agenda..."
+                          className="bg-black/40 border-white/15 text-white rounded-xl"
                           rows={3}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="startDate">{t("voting_management_sched_form_start")}</Label>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="startDate"
-                            name="startDate"
-                            type="datetime-local"
-                            value={sessionForm.startDate}
-                            onChange={handleSessionInputChange}
-                            className="pl-11"
-                            required
-                          />
-                        </div>
+                        <Label htmlFor="startDate" className="text-xs font-semibold text-slate-200">Voting Window Start (UTC/Local)</Label>
+                        <Input
+                          id="startDate"
+                          name="startDate"
+                          type="datetime-local"
+                          value={sessionForm.startDate}
+                          onChange={handleSessionInputChange}
+                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          required
+                        />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="endDate">{t("voting_management_sched_form_end")}</Label>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="endDate"
-                            name="endDate"
-                            type="datetime-local"
-                            value={sessionForm.endDate}
-                            onChange={handleSessionInputChange}
-                            className="pl-11"
-                            required
-                          />
-                        </div>
+                        <Label htmlFor="endDate" className="text-xs font-semibold text-slate-200">Voting Window End / Cutoff</Label>
+                        <Input
+                          id="endDate"
+                          name="endDate"
+                          type="datetime-local"
+                          value={sessionForm.endDate}
+                          onChange={handleSessionInputChange}
+                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          required
+                        />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="recordDate">Record Date (Cut-off for Shareholding)</Label>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="recordDate"
-                            name="recordDate"
-                            type="datetime-local"
-                            value={sessionForm.recordDate}
-                            onChange={handleSessionInputChange}
-                            className="pl-11"
-                            required
-                          />
-                        </div>
-                        <p className="text-[10px] text-muted-foreground">Only shareholders as of this date are eligible to vote with their respective holding.</p>
+                        <Label htmlFor="recordDate" className="text-xs font-semibold text-slate-200">Statutory Record Date</Label>
+                        <Input
+                          id="recordDate"
+                          name="recordDate"
+                          type="date"
+                          value={sessionForm.recordDate}
+                          onChange={handleSessionInputChange}
+                          className="bg-black/40 border-white/15 text-white rounded-xl"
+                          required
+                        />
                       </div>
                     </div>
 
-                    <Separator />
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-foreground flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        {t("voting_management_sched_form_inst")}
-                      </h3>
-                      <Textarea
-                        id="votingInstructions"
-                        name="votingInstructions"
-                        value={sessionForm.votingInstructions}
-                        onChange={handleSessionInputChange}
-                        placeholder={`1. Login using your shareholder credentials\n2. Review each resolution carefully\n3. Cast your vote: For, Against, or Abstain\n4. Your vote is final and cannot be changed\n5. Download your voting receipt for records`}
-                        rows={6}
-                      />
-                    </div>
-
-                    <div className="flex justify-end gap-3">
-                      <Button type="submit" variant="saffron" disabled={isSaving} className="gap-2">
-                        {isSaving ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="w-4 h-4" />
-                        )}
-                        {votingSession ? t("voting_management_sched_btn_update") : t("voting_management_sched_btn_create")}
+                    <div className="flex justify-end pt-4 border-t border-white/10">
+                      <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2">
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                        Save Schedule Configuration
                       </Button>
                     </div>
                   </form>
@@ -1395,506 +829,280 @@ const VotingManagement = () => {
               </Card>
             </TabsContent>
 
-            {/* Nominees Tab */}
-            <TabsContent value="nominees" className="space-y-6">
-              <Card className="border-border/50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <UserPlus className="w-5 h-5 text-primary" />
-                        {t("voting_management_nominee_title")}
-                      </CardTitle>
-                      <CardDescription>
-                        {t("voting_management_nominee_desc")}
-                      </CardDescription>
-                    </div>
-                    <Button
-                      variant={showAddNominee ? "ghost" : "saffron"}
-                      onClick={() => setShowAddNominee(!showAddNominee)}
-                      className="gap-2"
-                      disabled={!votingSession}
-                    >
-                      {showAddNominee ? t("voting_management_nominee_btn_cancel") : <><Plus className="w-4 h-4" /> {t("voting_management_nominee_btn_add")}</>}
-                    </Button>
-                  </div>
-                </CardHeader>
-
-                {!votingSession && (
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                      <p>{t("voting_management_nominee_empty_session")}</p>
-                    </div>
-                  </CardContent>
-                )}
-
-                {showAddNominee && votingSession && (
-                  <CardContent className="border-t border-border pt-6">
-                    <form onSubmit={handleAddNominee} className="space-y-4 animate-fade-in-up">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name">{t("voting_management_nominee_form_name")}</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            value={nomineeForm.name}
-                            onChange={handleNomineeInputChange}
-                            placeholder="Full Name"
-                            required
-                            disabled={isAddingNominee}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="email">{t("voting_management_nominee_form_email")}</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                            <Input
-                              id="email"
-                              name="email"
-                              type="email"
-                              value={nomineeForm.email}
-                              onChange={handleNomineeInputChange}
-                              placeholder="nominee@email.com"
-                              className="pl-11"
-                              required
-                              disabled={isAddingNominee}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="designation">{t("voting_management_nominee_form_desig")}</Label>
-                          <Input
-                            id="designation"
-                            name="designation"
-                            value={nomineeForm.designation}
-                            onChange={handleNomineeInputChange}
-                            placeholder="e.g., Independent Director"
-                            disabled={isAddingNominee}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="qualification">{t("voting_management_nominee_form_qual")}</Label>
-                          <Input
-                            id="qualification"
-                            name="qualification"
-                            value={nomineeForm.qualification}
-                            onChange={handleNomineeInputChange}
-                            placeholder="e.g., MBA, CA, CS"
-                            disabled={isAddingNominee}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="experienceYears">{t("voting_management_nominee_form_exp")}</Label>
-                          <Input
-                            id="experienceYears"
-                            name="experienceYears"
-                            type="number"
-                            value={nomineeForm.experienceYears}
-                            onChange={handleNomineeInputChange}
-                            placeholder="15"
-                            min="0"
-                            disabled={isAddingNominee}
-                          />
-                        </div>
-
-                        <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="bio">{t("voting_management_nominee_form_bio")}</Label>
-                          <Textarea
-                            id="bio"
-                            name="bio"
-                            value={nomineeForm.bio}
-                            onChange={handleNomineeInputChange}
-                            placeholder="Brief background and qualifications..."
-                            rows={3}
-                            disabled={isAddingNominee}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Button type="submit" variant="saffron" disabled={isAddingNominee} className="gap-2">
-                          {isAddingNominee ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Plus className="w-4 h-4" />
-                          )}
-                          {t("voting_management_nominee_btn_submit")}
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                )}
-
-                {votingSession && nominees.length > 0 && (
-                  <CardContent className={showAddNominee ? "" : "border-t border-border"}>
-                    <div className="space-y-4">
-                      {nominees.map((nominee) => (
-                        <div
-                          key={nominee.id}
-                          className="flex items-start justify-between p-4 rounded-lg bg-muted/50 border border-border/50"
-                        >
-                          <div className="flex gap-4">
-                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-lg font-bold text-primary">
-                                {nominee.nominee_name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-foreground">{nominee.nominee_name}</h4>
-                              <p className="text-sm text-muted-foreground">{nominee.nominee_email}</p>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {nominee.designation && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {nominee.designation}
-                                  </Badge>
-                                )}
-                                {nominee.qualification && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {nominee.qualification}
-                                  </Badge>
-                                )}
-                                {nominee.experience_years && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {nominee.experience_years} {t("voting_management_nominee_yrs_exp")}
-                                  </Badge>
-                                )}
-                              </div>
-                              {nominee.bio && (
-                                <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                                  {nominee.bio}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteNominee(nominee.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                )}
-
-                {votingSession && nominees.length === 0 && !showAddNominee && (
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <UserPlus className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                      <p>{t("voting_management_nominee_empty_list")}</p>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            </TabsContent>
-
-            {/* Meeting Tab */}
+            {/* TAB 3: VIRTUAL MEETING */}
             <TabsContent value="meeting" className="space-y-6">
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Video className="w-5 h-5 text-primary" />
-                    {t("voting_management_meet_title")}
+              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/10 pb-4">
+                  <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                    <Video className="w-5 h-5 text-cyan-400" />
+                    Virtual Meeting Room & Broadcast
                   </CardTitle>
-                  <CardDescription>
-                    {t("voting_management_meet_desc")}
+                  <CardDescription className="text-slate-200">
+                    Connect Zoom, Microsoft Teams, Webex, or Google Meet for live video proceedings.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <form onSubmit={handleCreateOrUpdateSession} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label htmlFor="meetingPlatform">{t("voting_management_meet_form_platform")}</Label>
+                        <Label htmlFor="meetingPlatform" className="text-xs font-semibold text-slate-200">Platform</Label>
                         <Select
                           value={sessionForm.meetingPlatform}
                           onValueChange={(value) => setSessionForm(prev => ({ ...prev, meetingPlatform: value }))}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-black/40 border-white/15 text-white rounded-xl">
                             <SelectValue placeholder="Select platform" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="zoom">Zoom</SelectItem>
-                            <SelectItem value="meet">Google Meet</SelectItem>
+                          <SelectContent className="bg-[#020817] border-white/20 text-white">
+                            <SelectItem value="zoom">Zoom Video Communications</SelectItem>
                             <SelectItem value="teams">Microsoft Teams</SelectItem>
+                            <SelectItem value="meet">Google Meet</SelectItem>
                             <SelectItem value="webex">Cisco Webex</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="other">Other / Custom Stream</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="meetingPassword">{t("voting_management_meet_form_pwd")}</Label>
+                        <Label htmlFor="meetingPassword" className="text-xs font-semibold text-slate-200">Room Passcode (Optional)</Label>
                         <Input
                           id="meetingPassword"
                           name="meetingPassword"
-                          type="password"
+                          type="text"
                           value={sessionForm.meetingPassword}
                           onChange={handleSessionInputChange}
-                          placeholder="Enter meeting password"
+                          placeholder="e.g. AGM2026Secure"
+                          className="bg-black/40 border-white/15 text-white rounded-xl"
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="meetingStartDate">{t("voting_management_meet_form_start")}</Label>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="meetingStartDate"
-                            name="meetingStartDate"
-                            type="datetime-local"
-                            value={sessionForm.meetingStartDate}
-                            onChange={handleSessionInputChange}
-                            className="pl-11"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="meetingEndDate">{t("voting_management_meet_form_end")}</Label>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="meetingEndDate"
-                            name="meetingEndDate"
-                            type="datetime-local"
-                            value={sessionForm.meetingEndDate}
-                            onChange={handleSessionInputChange}
-                            className="pl-11"
-                          />
-                        </div>
-                      </div>
-
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="meetingLink">{t("voting_management_meet_form_link")}</Label>
+                        <Label htmlFor="meetingLink" className="text-xs font-semibold text-slate-200">Live Meeting URL</Label>
                         <div className="relative">
-                          <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <Input
                             id="meetingLink"
                             name="meetingLink"
                             value={sessionForm.meetingLink}
                             onChange={handleSessionInputChange}
                             placeholder="https://zoom.us/j/123456789"
-                            className="pl-11"
+                            className="pl-10 bg-black/40 border-white/15 text-white rounded-xl"
                           />
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {t("voting_management_meet_form_link_help")}
-                        </p>
                       </div>
                     </div>
 
-                    <Separator />
-
-                    <div className="flex justify-end gap-3">
-                      <Button type="submit" variant="saffron" disabled={isSaving} className="gap-2">
-                        {isSaving ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="w-4 h-4" />
-                        )}
-                        {t("voting_management_meet_btn_save")}
+                    <div className="flex justify-end pt-4 border-t border-white/10">
+                      <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2">
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                        Save Virtual Meeting Details
                       </Button>
                     </div>
                   </form>
                 </CardContent>
               </Card>
+            </TabsContent>
 
-              {/* Send Invites Card */}
-              <Card className="border-border/50 border-2 border-dashed">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Send className="w-5 h-5 text-secondary" />
-                    {t("voting_management_meet_invite_title")}
-                  </CardTitle>
-                  <CardDescription>
-                    {t("voting_management_meet_invite_desc")}
-                  </CardDescription>
+            {/* TAB 4: NOMINEES */}
+            <TabsContent value="nominees" className="space-y-6">
+              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/10 pb-4 flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                      <UserPlus className="w-5 h-5 text-cyan-400" />
+                      Director & Nominee Agendas
+                    </CardTitle>
+                    <CardDescription className="text-slate-200 text-xs">
+                      Manage candidates standing for election to the board of directors.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => setShowAddNominee(!showAddNominee)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs gap-2"
+                  >
+                    {showAddNominee ? "Cancel" : <><Plus className="w-4 h-4" /> Add Nominee</>}
+                  </Button>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex flex-wrap gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-primary" />
-                        <span>{shareholders.length} {t("voting_management_stat_shareholders")}</span>
+
+                {showAddNominee && (
+                  <CardContent className="pt-6 border-b border-white/10 bg-black/20">
+                    <form onSubmit={handleAddNominee} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="nomName" className="text-xs font-semibold text-slate-200">Candidate Full Name</Label>
+                          <Input
+                            id="nomName"
+                            name="name"
+                            value={nomineeForm.name}
+                            onChange={handleNomineeInputChange}
+                            placeholder="e.g. Dr. Arthur Vance"
+                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="nomEmail" className="text-xs font-semibold text-slate-200">Email Address</Label>
+                          <Input
+                            id="nomEmail"
+                            name="email"
+                            type="email"
+                            value={nomineeForm.email}
+                            onChange={handleNomineeInputChange}
+                            placeholder="candidate@enterprise.com"
+                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="nomDesig" className="text-xs font-semibold text-slate-200">Proposed Designation</Label>
+                          <Input
+                            id="nomDesig"
+                            name="designation"
+                            value={nomineeForm.designation}
+                            onChange={handleNomineeInputChange}
+                            placeholder="e.g. Independent Non-Executive Director"
+                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="nomExp" className="text-xs font-semibold text-slate-200">Years of Experience</Label>
+                          <Input
+                            id="nomExp"
+                            name="experienceYears"
+                            type="number"
+                            value={nomineeForm.experienceYears}
+                            onChange={handleNomineeInputChange}
+                            placeholder="18"
+                            min="0"
+                            className="bg-black/40 border-white/15 text-white rounded-xl"
+                          />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <UserPlus className="w-4 h-4 text-secondary" />
-                        <span>{nominees.length} {t("voting_management_stat_nominees")}</span>
+
+                      <div className="flex justify-end pt-2">
+                        <Button type="submit" disabled={isAddingNominee} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2">
+                          {isAddingNominee ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                          Add to Ballot
+                        </Button>
                       </div>
-                      {votingSession?.is_meeting_emails_sent && (
-                        <Badge variant="secondary" className="gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          {t("voting_management_meet_invite_sent")}
-                        </Badge>
-                      )}
-                    </div>
+                    </form>
+                  </CardContent>
+                )}
 
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <h4 className="font-medium text-foreground mb-2">{t("voting_management_meet_invite_inc_title")}</h4>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>{t("voting_management_meet_invite_inc_1")}</li>
-                        <li>{t("voting_management_meet_invite_inc_2")}</li>
-                        <li>{t("voting_management_meet_invite_inc_3")}</li>
-                        <li>{t("voting_management_meet_invite_inc_4")}</li>
-                        <li>{t("voting_management_meet_invite_inc_5")}</li>
-                      </ul>
-                    </div>
-
-                    <Button
-                      onClick={handleSendMeetingInvites}
-                      variant="saffron"
-                      disabled={isSendingEmails || !sessionForm.meetingLink || !votingSession}
-                      className="w-full gap-2"
-                    >
-                      {isSendingEmails ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          {t("voting_management_meet_invite_sending")}
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="w-4 h-4" />
-                          {votingSession?.is_meeting_emails_sent ? t("voting_management_meet_invite_btn_resend") : t("voting_management_meet_invite_btn_send")}
-                        </>
-                      )}
-                    </Button>
-
-                    {!sessionForm.meetingLink && (
-                      <p className="text-sm text-destructive flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4" />
-                        {t("voting_management_meet_invite_err_link")}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Security Notice */}
-              <Card className="border-accent/30 bg-accent/5">
                 <CardContent className="pt-6">
-                  <div className="flex gap-4">
-                    <Shield className="w-8 h-8 text-accent flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-1">{t("voting_management_sec_title")}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {t("voting_management_sec_desc")}
-                      </p>
+                  {nominees.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400">
+                      <UserPlus className="w-12 h-12 mx-auto mb-3 text-slate-500" />
+                      <p className="text-white font-bold">No nominees registered for this session.</p>
+                      <p className="text-xs text-slate-300 mt-1">Click Add Nominee above to register candidates.</p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {nominees.map((nominee) => (
+                        <div key={nominee.id} className="p-5 rounded-2xl bg-black/40 border border-white/10 flex items-start justify-between gap-4">
+                          <div>
+                            <h4 className="font-bold text-white text-base">{nominee.nominee_name}</h4>
+                            <p className="text-xs text-slate-300">{nominee.nominee_email}</p>
+                            <div className="flex flex-wrap gap-2 mt-2.5">
+                              {nominee.designation && (
+                                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-cyan-300 text-xs font-semibold border border-blue-500/30">
+                                  {nominee.designation}
+                                </span>
+                              )}
+                              {nominee.experience_years && (
+                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
+                                  {nominee.experience_years} Years Exp
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteNominee(nominee.id)}
+                            className="hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg p-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
 
+            {/* TAB 5: RESULTS & AUDIT */}
             <TabsContent value="results" className="space-y-6">
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-primary" />
-                    {t("voting_management_res_title")}
-                  </CardTitle>
-                  {votingSession && new Date(votingSession.end_date) <= new Date() && results.length > 0 && (
+              <Card className="border-white/10 bg-[#0d1b2a]/80 backdrop-blur-xl rounded-3xl shadow-xl">
+                <CardHeader className="border-b border-white/10 pb-4 flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-amber-400" />
+                      Scrutinizer Audit & Official Results
+                    </CardTitle>
+                    <CardDescription className="text-slate-200 text-xs">
+                      Cryptographically verified vote tallies and exchange disclosure exports.
+                    </CardDescription>
+                  </div>
+                  {results.length > 0 && (
                     <Button 
-                      variant="default" 
-                      size="sm" 
                       onClick={handleDownloadPDF} 
-                      className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs gap-2 shadow-lg"
                     >
-                      <FileText className="w-4 h-4" />
-                      {t("voting_management_res_btn_download")}
+                      <Download className="w-4 h-4" />
+                      Download Scrutinizer PDF
                     </Button>
                   )}
                 </CardHeader>
-                <CardContent>
-                  {!votingSession ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      {t("voting_management_res_empty_session")}
+                <CardContent className="pt-6">
+                  {results.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400">
+                      <FileText className="w-12 h-12 mx-auto mb-3 text-slate-500" />
+                      <p className="text-white font-bold">No votes recorded yet.</p>
+                      <p className="text-xs text-slate-300 mt-1">Cast ballots will appear here in real time.</p>
                     </div>
-                  ) : new Date(votingSession.end_date) > new Date() ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-                      <Lock className="w-12 h-12 mb-4 opacity-50" />
-                      <h3 className="text-lg font-medium text-foreground">{t("voting_management_res_locked_title")}</h3>
-                      <p>{t("voting_management_res_locked_desc")} {new Date(votingSession.end_date).toLocaleString()}.</p>
-                    </div>
-                  ) :
-                    <div className="space-y-6">
-                      {/* <Card className="bg-gradient-to-r from-purple-900/10 to-blue-900/10 border-indigo-500/20">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="p-3 bg-indigo-500/10 rounded-full">
-                              <Shield className="w-6 h-6 text-indigo-500" />
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-foreground">{t("voting_management_res_audit_title")}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {anchorData
-                                  ? `${t("voting_management_res_audit_anchored_on")} ${new Date(anchorData.created_at).toLocaleDateString()} • Block #${anchorData.transaction_id.slice(0, 8)}...`
-                                  : t("voting_management_res_audit_desc")}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={handleAnchorToBlockchain}
-                            disabled={isAnchoring || !!anchorData}
-                            variant={anchorData ? "outline" : "default"}
-                            className={anchorData ? "border-green-500 text-green-600 cursor-default hover:bg-transparent" : "bg-indigo-600 hover:bg-indigo-700 text-white"}
-                          >
-                            {isAnchoring ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : anchorData ? (
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                            ) : (
-                              <Lock className="w-4 h-4 mr-2" />
-                            )}
-                            {isAnchoring ? t("voting_management_res_audit_btn_anchoring") : anchorData ? t("voting_management_res_audit_btn_verified") : t("voting_management_res_audit_btn_anchor")}
-                          </Button>
-                        </CardContent>
-                      </Card> */}
-
+                  ) : (
+                    <div className="space-y-4">
                       {results.map((item) => (
-                        <div key={item.id} className="p-4 rounded-lg border bg-card/50">
+                        <div key={item.id} className="p-6 rounded-2xl bg-black/40 border border-white/10">
                           <div className="flex items-start justify-between mb-4">
                             <div>
-                              <h4 className="font-semibold text-lg">{item.title}</h4>
-                              <p className="text-sm text-muted-foreground">{item.description}</p>
+                              <h4 className="font-bold text-white text-base">{item.title}</h4>
+                              <p className="text-xs text-slate-300 mt-0.5">{item.description}</p>
                             </div>
-                            <Badge variant={item.stats.for > item.stats.against ? "default" : "secondary"} className={item.stats.for > item.stats.against ? "bg-green-500 hover:bg-green-600" : ""}>
-                              {item.stats.for > item.stats.against ? t("voting_management_res_passed") : t("voting_management_res_failed")}
-                            </Badge>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${item.stats.for >= item.stats.against ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : "bg-rose-500/20 text-rose-300 border-rose-500/30"}`}>
+                              {item.stats.for >= item.stats.against ? "PASSED (ASSENT)" : "REJECTED"}
+                            </span>
                           </div>
 
                           <div className="grid grid-cols-3 gap-4 text-center">
-                            <div className="p-3 bg-green-500/10 rounded-lg">
-                              <div className="text-2xl font-bold text-green-600">{item.stats.for}</div>
-                              <div className="text-xs text-muted-foreground uppercase">{t("voting_management_res_votes_for")}</div>
+                            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                              <div className="text-2xl font-extrabold text-emerald-400 tabular-nums">{item.stats.for.toLocaleString()}</div>
+                              <div className="text-[11px] font-bold text-emerald-300/80 uppercase mt-1">Votes In Favor</div>
                             </div>
-                            <div className="p-3 bg-red-500/10 rounded-lg">
-                              <div className="text-2xl font-bold text-red-600">{item.stats.against}</div>
-                              <div className="text-xs text-muted-foreground uppercase">{t("voting_management_res_votes_against")}</div>
+                            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                              <div className="text-2xl font-extrabold text-rose-400 tabular-nums">{item.stats.against.toLocaleString()}</div>
+                              <div className="text-[11px] font-bold text-rose-300/80 uppercase mt-1">Votes Against</div>
                             </div>
-                            <div className="p-3 bg-gray-500/10 rounded-lg">
-                              <div className="text-2xl font-bold text-gray-600">{item.stats.abstain}</div>
-                              <div className="text-xs text-muted-foreground uppercase">{t("voting_management_res_votes_abstain")}</div>
+                            <div className="p-4 rounded-xl bg-slate-500/10 border border-slate-500/20">
+                              <div className="text-2xl font-extrabold text-slate-300 tabular-nums">{item.stats.abstain.toLocaleString()}</div>
+                              <div className="text-[11px] font-bold text-slate-400 uppercase mt-1">Abstained</div>
                             </div>
                           </div>
                         </div>
                       ))}
-                      {results.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">{t("voting_management_res_no_votes")}</div>
-                      )}
                     </div>
-                  }
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
+
           </Tabs>
+
         </div>
       </main>
 

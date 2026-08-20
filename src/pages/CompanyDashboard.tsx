@@ -1,10 +1,17 @@
 import { Helmet } from "react-helmet-async";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import {
@@ -21,7 +28,19 @@ import {
   Hash,
   Trash2,
   RefreshCw,
-  AlertTriangle,
+  Search,
+  Download,
+  Filter,
+  TrendingUp,
+  FileSpreadsheet,
+  Globe,
+  Sparkles,
+  FileText,
+  BrainCircuit,
+  ExternalLink,
+  ChevronRight,
+  Pencil,
+  X
 } from "lucide-react";
 import {
   AlertDialog,
@@ -41,12 +60,7 @@ import { useTranslation } from "react-i18next";
 import { votingApi } from "@/services/api/voting";
 import { DashboardFeedback } from "@/components/company/DashboardFeedback";
 import { env } from "@/config/env";
-import { DocumentSummarizer } from "@/components/ai/DocumentSummarizer";
-import { SentimentWidget } from "@/components/ai/SentimentWidget";
-import { AIAnalysisDemo } from "@/components/company/AIAnalysisDemo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea"; // Ensure we have this or import it
-import { Sparkles, FileText, BrainCircuit } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { AdminVotingResults } from "@/components/company/AdminVotingResults";
 import { Company, Shareholder } from "@/types";
@@ -58,20 +72,34 @@ const shareholderSchema = z.object({
   sharesHeld: z.number().min(1, "Shares must be at least 1"),
 });
 
-
-
 const CompanyDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingShareholder, setIsAddingShareholder] = useState(false);
   const [isSendingCredentials, setIsSendingCredentials] = useState<string | null>(null);
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isDeletingCompany, setIsDeletingCompany] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
   const [shareholders, setShareholders] = useState<Shareholder[]>([]);
   const [activeTab, setActiveTab] = useState("shareholders");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  
+  // Edit Shareholder State
+  const [editingShareholder, setEditingShareholder] = useState<Shareholder | null>(null);
+  const [isUpdatingShareholder, setIsUpdatingShareholder] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    sharesHeld: "",
+  });
+
+  // Search and Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -157,17 +185,63 @@ const CompanyDashboard = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  const generateSecureCredentials = () => {
-    // Generate numeric login ID (8 digits)
-    const loginId = Math.floor(10000000 + Math.random() * 90000000).toString();
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-    // Generate secure alphanumeric password (12 characters)
+  const handleOpenEdit = (shareholder: Shareholder) => {
+    setEditingShareholder(shareholder);
+    setEditFormData({
+      name: shareholder.shareholder_name,
+      email: shareholder.email,
+      phone: shareholder.phone || "",
+      sharesHeld: shareholder.shares_held.toString(),
+    });
+  };
+
+  const handleUpdateShareholder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingShareholder || !company) return;
+
+    const sharesParsed = parseInt(editFormData.sharesHeld.trim(), 10);
+    if (isNaN(sharesParsed) || sharesParsed < 1) {
+      toast.error("Please enter a valid number of shares (minimum 1).");
+      return;
+    }
+
+    setIsUpdatingShareholder(true);
+    try {
+      const { error } = await supabase
+        .from("shareholders")
+        .update({
+          shareholder_name: editFormData.name.trim(),
+          email: editFormData.email.trim().toLowerCase(),
+          phone: editFormData.phone.trim() || null,
+          shares_held: sharesParsed,
+        })
+        .eq("id", editingShareholder.id);
+
+      if (error) throw error;
+
+      toast.success(`Shareholder updated! Shares set to ${sharesParsed.toLocaleString()}`);
+      setEditingShareholder(null);
+      await loadShareholders(company.id);
+    } catch (err: unknown) {
+      console.error("Update failed:", err);
+      toast.error("Failed to update shareholder.");
+    } finally {
+      setIsUpdatingShareholder(false);
+    }
+  };
+
+  const generateSecureCredentials = () => {
+    const loginId = Math.floor(10000000 + Math.random() * 90000000).toString();
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
     let password = "";
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-
     return { loginId, password };
   };
 
@@ -185,11 +259,13 @@ const CompanyDashboard = () => {
     setErrors({});
 
     try {
+      const parsedShares = parseInt(String(formData.sharesHeld).trim(), 10) || 0;
+
       const validatedData = shareholderSchema.parse({
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim() || undefined,
-        sharesHeld: parseInt(formData.sharesHeld) || 0,
+        sharesHeld: parsedShares,
       });
 
       if (!company) {
@@ -198,11 +274,9 @@ const CompanyDashboard = () => {
         return;
       }
 
-      // Generate secure credentials
       const { loginId, password } = generateSecureCredentials();
       const passwordHash = await hashPassword(password);
 
-      // Parallelize DB insertion and Email sending
       try {
         const [insertResult, emailResult] = await Promise.all([
           supabase
@@ -245,7 +319,7 @@ const CompanyDashboard = () => {
 
         if (emailResult.error) {
           console.error("Email failed:", emailResult.error);
-          toast.success("Shareholder added! IMPORTANT: Save these credentials:", {
+          toast.success("Shareholder added! Save credentials:", {
             description: `User ID: ${loginId} | Password: ${password}`,
             duration: 30000,
             action: {
@@ -253,16 +327,15 @@ const CompanyDashboard = () => {
               onClick: () => navigator.clipboard.writeText(`ID: ${loginId}\nPassword: ${password}`)
             }
           });
-          toast.warning("Email sending service encountered an issue. Please manually share the credentials.");
+          toast.warning("Email service had an issue. Please manually share credentials.");
         } else {
-          toast.success("Shareholder added and credentials sent via email!");
+          toast.success(`Shareholder added with ${validatedData.sharesHeld.toLocaleString()} shares! Credentials sent via email.`);
         }
       } catch (err: unknown) {
         console.error("Operation failed:", err);
         toast.error("An error occurred while adding the shareholder.");
       }
 
-      // Reset form and reload
       setFormData({ name: "", email: "", phone: "", sharesHeld: "" });
       setShowAddForm(false);
       await loadShareholders(company.id);
@@ -288,11 +361,9 @@ const CompanyDashboard = () => {
     setIsSendingCredentials(shareholder.id);
 
     try {
-      // Generate new credentials
       const { loginId, password } = generateSecureCredentials();
       const passwordHash = await hashPassword(password);
 
-      // Parallelize update and email sending
       const [updateResult, emailResult] = await Promise.all([
         supabase
           .from("shareholders")
@@ -340,6 +411,85 @@ const CompanyDashboard = () => {
     }
   };
 
+  const handleBroadcastAllCredentials = async () => {
+    const pendingList = shareholders.filter(s => !s.is_credential_used);
+    if (pendingList.length === 0) {
+      toast.info("All registered shareholders have already accessed their credentials.");
+      return;
+    }
+
+    if (!confirm(`Broadcast credentials to all ${pendingList.length} pending shareholders?`)) return;
+
+    setIsBroadcasting(true);
+    let successCount = 0;
+
+    for (const sh of pendingList) {
+      try {
+        const { loginId, password } = generateSecureCredentials();
+        const passwordHash = await hashPassword(password);
+
+        await supabase
+          .from("shareholders")
+          .update({
+            login_id: loginId,
+            password_hash: passwordHash,
+            credential_created_at: new Date().toISOString(),
+          })
+          .eq("id", sh.id);
+
+        await supabase.functions.invoke('send-shareholder-credentials', {
+          body: {
+            shareholderEmail: sh.email,
+            shareholderName: sh.shareholder_name,
+            companyName: company?.company_name,
+            loginId: loginId,
+            password: password,
+          },
+          headers: {
+            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+          }
+        });
+
+        successCount++;
+      } catch (err) {
+        console.error(`Failed sending to ${sh.email}`, err);
+      }
+    }
+
+    setIsBroadcasting(false);
+    toast.success(`Broadcast complete: Sent credentials to ${successCount} shareholders.`);
+    if (company) await loadShareholders(company.id);
+  };
+
+  const handleExportCSV = () => {
+    if (shareholders.length === 0) {
+      toast.error("No shareholder data to export.");
+      return;
+    }
+
+    const headers = ["Shareholder Name", "Email Address", "Phone", "Shares Held", "Login ID", "Status", "Created At"];
+    const rows = filteredShareholders.map(s => [
+      `"${s.shareholder_name.replace(/"/g, '""')}"`,
+      `"${s.email}"`,
+      `"${s.phone || ''}"`,
+      s.shares_held,
+      `"${s.login_id}"`,
+      s.is_credential_used ? "Active / Voted" : "Pending Access",
+      `"${s.created_at || s.credential_created_at || new Date().toISOString()}"`
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${company?.company_name || 'shareholders'}_roster.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("Shareholder roster exported as CSV.");
+  };
+
   const handleDeleteShareholder = async (id: string) => {
     if (!confirm("Are you sure you want to delete this shareholder?")) return;
 
@@ -357,106 +507,30 @@ const CompanyDashboard = () => {
     if (company) await loadShareholders(company.id);
   };
 
-  // OTP States
-  const [otpSent, setOtpSent] = useState(false);
-  const [enteredOtp, setEnteredOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
-  const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
+  // Filtered Shareholders calculation
+  const filteredShareholders = useMemo(() => {
+    return shareholders.filter(s => {
+      const matchesSearch = 
+        s.shareholder_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (s.login_id && s.login_id.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (s.phone && s.phone.includes(searchQuery));
 
-  const handleSendDeregisterOtp = async () => {
-    if (!company) return;
+      if (!matchesSearch) return false;
 
-    setIsSendingCredentials("deregister"); // Reuse loading state
-    try {
-      // Generate 6-digit OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedOtp(otp);
+      if (statusFilter === "active") return s.is_credential_used;
+      if (statusFilter === "pending") return !s.is_credential_used;
+      return true;
+    });
+  }, [shareholders, searchQuery, statusFilter]);
 
-      // Get admin email (from current session/user context or query)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) throw new Error("User email not found");
+  const totalSharesRepresented = useMemo(() => {
+    return shareholders.reduce((acc, s) => acc + (s.shares_held || 0), 0);
+  }, [shareholders]);
 
-      // Use the updated Supabase Function that now handles OTPs
-      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
-        body: {
-          type: 'otp',
-          email: user.email,
-          companyName: company.company_name,
-          otp: otp
-        },
-        headers: {
-          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-        }
-      });
-
-      if (emailError) throw emailError;
-
-      toast.success("OTP sent to your registered email");
-      setOtpSent(true);
-    } catch (error: unknown) {
-      console.error("Failed to send OTP:", error);
-      toast.error(`Failed to send verification email: ${(error as Error).message}`);
-    } finally {
-      setIsSendingCredentials(null);
-    }
-  };
-
-  const handleVerifyAndDeregister = async () => {
-    if (enteredOtp !== generatedOtp) {
-      toast.error("Invalid OTP. Please try again.");
-      return;
-    }
-
-    if (!company) return;
-
-    setIsDeletingCompany(true);
-    try {
-      // 1. Delete Shareholders (Manual Cascade just in case)
-      await supabase.from("shareholders").delete().eq("company_id", company.id);
-
-      // 2. Delete Company Admin entry & User Role
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("company_admins").delete().eq("user_id", user.id);
-        await supabase.from("user_roles").delete().eq("user_id", user.id);
-      }
-
-      // 3. Delete Company
-      const { error } = await supabase
-        .from("companies")
-        .delete()
-        .eq("id", company.id);
-
-      if (error) {
-        throw error;
-      }
-
-      // 4. Delete Auth User (Allow reuse of email)
-      // Get the current session to pass the JWT token
-      const { data: { session } } = await supabase.auth.getSession();
-      const { error: deleteAccError } = await supabase.functions.invoke("delete-account", {
-        headers: {
-          "Authorization": `Bearer ${session?.access_token}`
-        }
-      });
-      if (deleteAccError) {
-        console.error("Auth deletion failed:", deleteAccError);
-        toast.warning("Company data deleted, but account reset had minor issues. Please contact support if re-registration fails.");
-      } else {
-        toast.success("Account fully reset. You can now re-register.");
-      }
-
-      toast.success("Company deregistered successfully");
-      await supabase.auth.signOut();
-      navigate("/");
-    } catch (error: unknown) {
-      console.error("Deregister failed:", error);
-      toast.error((error as Error).message || "Failed to deregister company");
-    } finally {
-      setIsDeletingCompany(false);
-      setShowDeregisterDialog(false);
-    }
-  };
+  const activeCredentialCount = useMemo(() => {
+    return shareholders.filter(s => s.is_credential_used).length;
+  }, [shareholders]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -468,352 +542,295 @@ const CompanyDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative bg-[#020817] text-white selection:bg-blue-500/30">
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <Navbar />
 
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <main className="pt-28 pb-20">
+        <div className="container mx-auto px-4 max-w-7xl">
+          
+          {/* Header Bar */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8 p-6 rounded-3xl bg-[#0d1b2a]/90 border border-white/20 backdrop-blur-xl shadow-2xl">
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
-                <Building2 className="w-4 h-4" />
-                <span>{t("company_dashboard_badge")}</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-2.5 shadow-sm">
+                <Building2 className="w-4 h-4 text-cyan-400" />
+                <span>Enterprise Governance Portal</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                {t("company_dashboard_welcome")}{" "}
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {company?.company_name}
-                </span>
+              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                {company?.company_name}
               </h1>
-              <p className="text-muted-foreground mt-2">
-                {t("company_dashboard_subtitle")}
+              <p className="text-slate-100 text-sm mt-1.5 font-medium leading-relaxed">
+                Manage corporate shareholder rosters, voting sessions, and compliance filings.
               </p>
             </div>
-            <div className="flex gap-3 self-start">
-              <Button variant="saffron" onClick={() => navigate("/voting-management")} className="gap-2">
+            <div className="flex flex-wrap gap-3 items-center">
+              <Button 
+                onClick={() => navigate("/voting-management")} 
+                className="bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white font-bold gap-2 rounded-xl px-5 py-5 shadow-lg shadow-blue-900/40 border border-blue-400/40"
+              >
                 <Shield className="w-4 h-4" />
-                {t("company_dashboard_manage_voting")}
+                Voting Management Hub
               </Button>
-              <Button variant="ghost" onClick={handleLogout} className="gap-2">
-                <LogOut className="w-4 h-4" />
-                {t("company_dashboard_logout")}
+              <Button 
+                variant="outline" 
+                onClick={handleLogout} 
+                className="border-white/30 hover:bg-white/10 text-white rounded-xl gap-2 px-4 py-5 font-bold shadow-sm"
+              >
+                <LogOut className="w-4 h-4 text-rose-400" />
+                Logout
               </Button>
             </div>
           </div>
 
-          {/* AI Tools Section - NEW */}
-          <div className="mb-8">
-            {/* AI Power Suite Link */}
-            <div className="mb-8">
-              <Card className="border-purple-500/20 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-900 overflow-hidden relative group cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/ai-power-suite")}>
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <Sparkles className="w-32 h-32 text-purple-600" />
-                </div>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-2xl">
-                    <Sparkles className="w-6 h-6 text-purple-600" />
-                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                      {t("company_dashboard_ai_title")}
-                    </span>
-                  </CardTitle>
-                  <CardDescription>
-                    {t("company_dashboard_ai_desc")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4 text-purple-700 dark:text-purple-300">
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30">
-                      <FileText className="w-4 h-4" /> {t("company_dashboard_ai_doc")}
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30">
-                      <BrainCircuit className="w-4 h-4" /> {t("company_dashboard_ai_sentiment")}
-                    </div>
+          {/* 4 Executive KPI Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl hover:border-blue-500/40 transition-all">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Total Shareholders</p>
+                    <p className="text-3xl font-black text-white mt-1 tabular-nums">{shareholders.length}</p>
+                    <p className="text-xs text-cyan-300 mt-1 font-bold">Registered on Ledger</p>
                   </div>
-                  <Button className="mt-6 bg-purple-600 hover:bg-purple-700 text-white gap-2">
-                    {t("company_dashboard_ai_open")} <Sparkles className="w-4 h-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shadow-md">
+                    <Users className="w-6 h-6 text-blue-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl hover:border-emerald-500/40 transition-all">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Voting Capital</p>
+                    <p className="text-3xl font-black text-white mt-1 tabular-nums">
+                      {totalSharesRepresented.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-emerald-300 mt-1 font-bold">Total Shares Represented</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shadow-md">
+                    <Hash className="w-6 h-6 text-emerald-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl hover:border-amber-500/40 transition-all">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Credential Usage</p>
+                    <p className="text-3xl font-black text-white mt-1 tabular-nums">
+                      {shareholders.length > 0 ? Math.round((activeCredentialCount / shareholders.length) * 100) : 0}%
+                    </p>
+                    <p className="text-xs text-amber-300 mt-1 font-bold">{activeCredentialCount} of {shareholders.length} Activated</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center shadow-md">
+                    <CheckCircle2 className="w-6 h-6 text-amber-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl hover:border-purple-500/40 transition-all">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">AGM Status</p>
+                    <p className="text-2xl font-black text-white mt-1">
+                      {sessionId ? "Live / Active" : "Configured"}
+                    </p>
+                    <p className="text-xs text-purple-300 mt-1 font-bold">Session Infrastructure</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center shadow-md">
+                    <TrendingUp className="w-6 h-6 text-purple-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
+          {/* AI Power Suite Banner */}
+          <div className="mb-8">
+            <Card 
+              className="border-purple-400/40 bg-gradient-to-r from-purple-950/60 via-[#0d1b2a]/90 to-blue-950/60 backdrop-blur-xl overflow-hidden relative group cursor-pointer hover:border-purple-400/70 transition-all rounded-3xl p-2 shadow-2xl" 
+              onClick={() => navigate("/ai-power-suite")}
+            >
+              <div className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/30 border border-purple-400/50 flex items-center justify-center shrink-0 shadow-lg">
+                    <Sparkles className="w-6 h-6 text-purple-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white flex items-center gap-2">
+                      AI Document & Investor Sentiment Suite
+                      <span className="px-2.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 text-xs font-bold border border-purple-400/40">Enterprise</span>
+                    </h3>
+                    <p className="text-sm text-slate-100 mt-1 font-normal leading-relaxed">
+                      Generate executive summaries of annual reports and analyze live shareholder sentiment during meetings.
+                    </p>
+                  </div>
+                </div>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl px-5 py-5 gap-2 shrink-0 border border-purple-400/50 shadow-lg">
+                  Launch AI Suite <Sparkles className="w-4 h-4" />
+                </Button>
+              </div>
+            </Card>
+          </div>
 
-
-          {/* Main Dashboard Content - Tabs */}
+          {/* Main Tabs */}
           <Tabs defaultValue="shareholders" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-[#0f172a]/80 backdrop-blur border border-white/5">
-              <TabsTrigger value="shareholders" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users className="w-4 h-4" /> {t("company_dashboard_tab_shareholders")}</TabsTrigger>
-              <TabsTrigger value="results" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><FileText className="w-4 h-4" /> {t("company_dashboard_tab_results")}</TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Building2 className="w-4 h-4" /> Company Profile</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-[#0d1b2a]/95 backdrop-blur border border-white/20 p-1.5 rounded-2xl shadow-xl">
+              <TabsTrigger value="shareholders" className="gap-2 font-bold text-slate-200 data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl">
+                <Users className="w-4 h-4" /> Shareholder Roster
+              </TabsTrigger>
+              <TabsTrigger value="results" className="gap-2 font-bold text-slate-200 data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl">
+                <FileText className="w-4 h-4" /> Live Results
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="gap-2 font-bold text-slate-200 data-[state=active]:bg-[#1e3a8a] data-[state=active]:text-white rounded-xl">
+                <Building2 className="w-4 h-4" /> Enterprise Profile
+              </TabsTrigger>
             </TabsList>
 
-            {/* PROFILE TAB */}
-            <TabsContent value="profile" className="space-y-6 animate-fade-in-up">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* Basic Details */}
-                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                  <CardHeader className="pb-3 border-b border-white/5">
-                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                      <Building2 className="w-5 h-5" /> Basic Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Company Name</p>
-                      <p className="font-semibold text-foreground">{company?.company_name}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Company Type</p>
-                      <p className="font-medium text-foreground">{company?.company_type || "N/A"}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">CIN Number</p>
-                      <p className="font-mono text-sm text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded w-fit">{company?.cin_number}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">PAN Number</p>
-                      <p className="font-mono text-sm text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded w-fit">{company?.pan_number}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Date of Incorporation</p>
-                      <p className="text-foreground">{company?.date_of_incorporation ? new Date(company.date_of_incorporation).toLocaleDateString('en-IN') : "N/A"}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">GSTIN</p>
-                      <p className="font-mono text-sm text-foreground">{company?.gstin || "N/A"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Financial & Listing */}
-                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                  <CardHeader className="pb-3 border-b border-white/5">
-                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                      <FileText className="w-5 h-5" /> Financial & Listing
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Authorized Capital</p>
-                      <p className="font-semibold text-foreground text-lg">₹{company?.authorized_capital?.toLocaleString('en-IN')}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Paid-up Capital</p>
-                      <p className="font-semibold text-foreground text-lg">₹{company?.paid_up_capital?.toLocaleString('en-IN')}</p>
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Listed Exchanges</p>
-                      <div className="flex gap-2 flex-wrap mt-1">
-                        {company?.exchanges?.map(ex => (
-                           <span key={ex} className="text-xs font-medium bg-secondary text-secondary-foreground px-2 py-1 rounded-md">{ex}</span>
-                        )) || <span className="text-muted-foreground text-sm">Unlisted</span>}
-                      </div>
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">ISIN Number</p>
-                      <p className="font-mono text-foreground tracking-widest">{company?.isin_number || "N/A"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Contact & Location */}
-                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                  <CardHeader className="pb-3 border-b border-white/5">
-                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                      <Mail className="w-5 h-5" /> Contact & Location
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Official Email</p>
-                      <p className="text-sm text-blue-400 break-all">{company?.contact_email}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Admin Phone</p>
-                      <p className="text-sm text-foreground">{company?.contact_phone || "N/A"}</p>
-                    </div>
-                    <div className="space-y-1 col-span-2 mt-2">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Registered Address</p>
-                      <p className="text-sm text-foreground leading-relaxed">{company?.registered_address}</p>
-                      <p className="text-sm text-foreground mt-1">
-                        {company?.district ? `${company.district}, ` : ''}{company?.state} - {company?.pin_code}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{company?.country}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Compliance & RTA */}
-                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                  <CardHeader className="pb-3 border-b border-white/5">
-                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                      <Shield className="w-5 h-5" /> Compliance & RTA
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Scrutinizer (CS)</p>
-                      <p className="font-medium text-foreground text-sm">{company?.cs_name}</p>
-                      <p className="text-xs text-muted-foreground bg-white/5 px-2 py-0.5 rounded w-fit mt-1">{company?.cs_membership_number}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">CS Contact</p>
-                      <p className="text-sm text-blue-400 break-all">{company?.cs_email}</p>
-                      <p className="text-xs text-foreground mt-1">{company?.cs_phone}</p>
-                    </div>
-                    
-                    <div className="col-span-2 border-t border-white/5 my-2"></div>
-                    
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Registrar (RTA)</p>
-                      <p className="font-medium text-foreground text-sm">{company?.rta_name || "N/A"}</p>
-                      {company?.rta_reg_number && <p className="text-xs text-muted-foreground mt-1">Reg: {company.rta_reg_number}</p>}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">SEBI Details</p>
-                      <p className="text-sm text-blue-400 break-all">{company?.sebi_email || "N/A"}</p>
-                      {company?.sebi_reg_number && <p className="text-xs text-muted-foreground mt-1">Reg: {company.sebi_reg_number}</p>}
-                    </div>
-                  </CardContent>
-                </Card>
-
-              </div>
-            </TabsContent>
-
-            <TabsContent value="shareholders" className="space-y-6 animate-fade-in-up">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Users className="w-6 h-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-3xl font-bold text-foreground">{shareholders.length}</p>
-                        <p className="text-sm text-muted-foreground">{t("company_dashboard_stat_total")}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                        <CheckCircle2 className="w-6 h-6 text-accent" />
-                      </div>
-                      <div>
-                        <p className="text-3xl font-bold text-foreground">
-                          {shareholders.filter(s => s.is_credential_used).length}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{t("company_dashboard_stat_used")}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
-                        <Hash className="w-6 h-6 text-secondary" />
-                      </div>
-                      <div>
-                        <p className="text-3xl font-bold text-foreground">
-                          {shareholders.reduce((acc, s) => acc + s.shares_held, 0).toLocaleString()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{t("company_dashboard_stat_shares")}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Add Shareholder Section */}
-              <Card className="mb-8 border-white/10 bg-card/10 backdrop-blur-md shadow-large">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary" />
-                        {t("company_dashboard_sm_title")}
-                      </CardTitle>
-                      <CardDescription>
-                        {t("company_dashboard_sm_desc")}
-                      </CardDescription>
-                    </div>
-                    <Button
-                      variant={showAddForm ? "ghost" : "saffron"}
-                      onClick={() => setShowAddForm(!showAddForm)}
-                      className="gap-2"
-                    >
-                      {showAddForm ? t("company_dashboard_sm_cancel") : <><Plus className="w-4 h-4" /> {t("company_dashboard_sm_add")}</>}
-                    </Button>
+            {/* TAB 1: SHAREHOLDERS */}
+            <TabsContent value="shareholders" className="space-y-6">
+              
+              {/* Controls Bar: Search, Status Filter, Bulk Actions */}
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-5 rounded-3xl bg-[#0d1b2a]/90 border border-white/20 backdrop-blur-xl shadow-xl">
+                <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    <Input
+                      placeholder="Search by name, email, or login ID..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-black/60 border-white/25 text-white placeholder:text-slate-300 rounded-xl font-medium"
+                    />
                   </div>
-                </CardHeader>
 
-                {showAddForm && (
-                  <CardContent className="border-t border-white/10 pt-6">
-                    <form onSubmit={handleAddShareholder} className="space-y-4 animate-fade-in-up">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <Select
+                      value={statusFilter}
+                      onValueChange={(val) => setStatusFilter(val as "all" | "active" | "pending")}
+                    >
+                      <SelectTrigger className="w-[185px] bg-[#020817] border-white/25 text-white font-bold rounded-xl text-xs h-10 px-3.5 shadow-md">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#020817] border-white/20 text-white rounded-xl shadow-2xl z-50 p-1.5">
+                        <SelectItem value="all" className="text-white hover:bg-blue-600 hover:text-white font-bold cursor-pointer rounded-lg px-3 py-2 text-xs focus:bg-blue-600 focus:text-white">
+                          All Statuses ({shareholders.length})
+                        </SelectItem>
+                        <SelectItem value="active" className="text-emerald-300 hover:bg-emerald-600 hover:text-white font-bold cursor-pointer rounded-lg px-3 py-2 text-xs focus:bg-emerald-600 focus:text-white">
+                          Active / Voted ({activeCredentialCount})
+                        </SelectItem>
+                        <SelectItem value="pending" className="text-amber-300 hover:bg-amber-600 hover:text-white font-bold cursor-pointer rounded-lg px-3 py-2 text-xs focus:bg-amber-600 focus:text-white">
+                          Pending Access ({shareholders.length - activeCredentialCount})
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Button
+                    variant="outline"
+                    onClick={handleExportCSV}
+                    className="border-white/30 hover:bg-white/10 text-white font-bold rounded-xl gap-2 text-xs shadow-sm"
+                  >
+                    <Download className="w-4 h-4 text-cyan-300" />
+                    Export CSV
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={handleBroadcastAllCredentials}
+                    disabled={isBroadcasting}
+                    className="border-white/30 hover:bg-white/10 text-white font-bold rounded-xl gap-2 text-xs shadow-sm"
+                  >
+                    {isBroadcasting ? <Loader2 className="w-4 h-4 animate-spin text-amber-300" /> : <Send className="w-4 h-4 text-amber-300" />}
+                    Broadcast Credentials
+                  </Button>
+
+                  <Button
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    className="bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white font-bold rounded-xl gap-2 text-xs border border-blue-400/40 shadow-md"
+                  >
+                    {showAddForm ? "Cancel" : <><Plus className="w-4 h-4" /> Add Shareholder</>}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Add Shareholder Drawer/Form */}
+              {showAddForm && (
+                <Card className="border-blue-500/40 bg-[#0d1b2a]/95 backdrop-blur-xl rounded-3xl shadow-2xl">
+                  <CardHeader className="border-b border-white/15">
+                    <CardTitle className="text-xl font-black text-white flex items-center gap-2">
+                      <Plus className="w-5 h-5 text-cyan-400" />
+                      Register New Shareholder
+                    </CardTitle>
+                    <CardDescription className="text-slate-100 font-normal">
+                      Credentials and secure voting access links will be instantly generated and dispatched via email.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <form onSubmit={handleAddShareholder} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="name">{t("company_dashboard_form_name")}</Label>
+                          <Label htmlFor="name" className="text-slate-100 font-bold text-xs">Shareholder Full Name</Label>
                           <Input
                             id="name"
                             name="name"
                             value={formData.name}
                             onChange={handleInputChange}
-                            placeholder="Full Name"
-                            className={errors.name ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
+                            placeholder="e.g. Eleanor Vance"
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                             required
                             disabled={isAddingShareholder}
                           />
-                          {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                          {errors.name && <p className="text-xs text-rose-400 font-bold">{errors.name}</p>}
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="email">{t("company_dashboard_form_email")}</Label>
+                          <Label htmlFor="email" className="text-slate-100 font-bold text-xs">Official Email Address</Label>
                           <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                             <Input
                               id="email"
                               name="email"
                               type="email"
                               value={formData.email}
                               onChange={handleInputChange}
-                              placeholder="shareholder@email.com"
-                              className={`pl-11 bg-black/20 border-white/10 ${errors.email ? "border-destructive" : ""}`}
+                              placeholder="shareholder@enterprise.com"
+                              className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium"
                               required
                               disabled={isAddingShareholder}
                             />
                           </div>
-                          {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                          {errors.email && <p className="text-xs text-rose-400 font-bold">{errors.email}</p>}
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="phone">{t("company_dashboard_form_phone")}</Label>
+                          <Label htmlFor="phone" className="text-slate-100 font-bold text-xs">Phone (Optional / SMS OTP)</Label>
                           <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                             <Input
                               id="phone"
                               name="phone"
                               value={formData.phone}
                               onChange={handleInputChange}
-                              placeholder="+91 9876543210"
-                              className="pl-11 bg-black/20 border-white/10"
+                              placeholder="+1 (555) 019-2834"
+                              className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium"
                               disabled={isAddingShareholder}
                             />
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="sharesHeld">{t("company_dashboard_form_shares")}</Label>
+                          <Label htmlFor="sharesHeld" className="text-slate-100 font-bold text-xs">Voting Shares Held</Label>
                           <Input
                             id="sharesHeld"
                             name="sharesHeld"
@@ -822,109 +839,201 @@ const CompanyDashboard = () => {
                             onChange={handleInputChange}
                             placeholder="1000"
                             min="1"
-                            className={errors.sharesHeld ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
                             required
                             disabled={isAddingShareholder}
                           />
-                          {errors.sharesHeld && <p className="text-sm text-destructive">{errors.sharesHeld}</p>}
+                          {errors.sharesHeld && <p className="text-xs text-rose-400 font-bold">{errors.sharesHeld}</p>}
                         </div>
                       </div>
 
-                      <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
-                        <Shield className="w-5 h-5 text-accent mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{t("company_dashboard_form_secure_title")}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("company_dashboard_form_secure_desc")}
-                          </p>
-                        </div>
+                      <div className="flex items-center justify-end gap-3 pt-2">
+                        <Button type="button" variant="ghost" onClick={() => setShowAddForm(false)} className="text-slate-200 hover:text-white rounded-xl font-semibold">
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={isAddingShareholder} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2 shadow-lg">
+                          {isAddingShareholder ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                          Issue Credentials & Register
+                        </Button>
                       </div>
-
-                      <Button type="submit" variant="hero" className="gap-2" disabled={isAddingShareholder}>
-                        {isAddingShareholder ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                        {t("company_dashboard_form_submit")}
-                      </Button>
                     </form>
                   </CardContent>
-                )}
-              </Card>
+                </Card>
+              )}
 
-              {/* Shareholders List */}
-              <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-                <CardHeader>
-                  <CardTitle className="text-xl">{t("company_dashboard_list_title")}</CardTitle>
-                  <CardDescription>
-                    {t("company_dashboard_list_desc")}
-                  </CardDescription>
+              {/* Edit Shareholder Modal / Dialog */}
+              {editingShareholder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+                  <Card className="w-full max-w-lg border-cyan-500/40 bg-[#0d1b2a] backdrop-blur-2xl rounded-3xl shadow-2xl">
+                    <CardHeader className="border-b border-white/15 flex flex-row items-center justify-between pb-4">
+                      <div>
+                        <CardTitle className="text-xl font-black text-white flex items-center gap-2">
+                          <Pencil className="w-5 h-5 text-cyan-400" />
+                          Edit Shareholder Details
+                        </CardTitle>
+                        <CardDescription className="text-slate-200 text-xs mt-0.5">
+                          Update name, email, or exact shares held for this stakeholder.
+                        </CardDescription>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setEditingShareholder(null)} className="text-slate-300 hover:text-white rounded-lg p-2">
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <form onSubmit={handleUpdateShareholder} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-slate-100 font-bold text-xs">Shareholder Name</Label>
+                          <Input
+                            name="name"
+                            value={editFormData.name}
+                            onChange={handleEditInputChange}
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-slate-100 font-bold text-xs">Email Address</Label>
+                          <Input
+                            name="email"
+                            type="email"
+                            value={editFormData.email}
+                            onChange={handleEditInputChange}
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-slate-100 font-bold text-xs">Phone (Optional)</Label>
+                          <Input
+                            name="phone"
+                            value={editFormData.phone}
+                            onChange={handleEditInputChange}
+                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-cyan-300 font-black text-xs uppercase tracking-wider">
+                            Exact Shares Held
+                          </Label>
+                          <Input
+                            name="sharesHeld"
+                            type="number"
+                            min="1"
+                            value={editFormData.sharesHeld}
+                            onChange={handleEditInputChange}
+                            className="bg-black/60 border-cyan-500/40 text-cyan-300 font-extrabold text-lg rounded-xl"
+                            required
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                          <Button type="button" variant="ghost" onClick={() => setEditingShareholder(null)} className="text-slate-200 hover:text-white rounded-xl font-semibold">
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={isUpdatingShareholder} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 shadow-lg gap-2">
+                            {isUpdatingShareholder ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                            Save Changes
+                          </Button>
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Shareholders Table Card */}
+              <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl">
+                <CardHeader className="border-b border-white/15 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg font-black text-white">Shareholder Registry</CardTitle>
+                      <CardDescription className="text-slate-100 text-xs font-medium">
+                        Showing {filteredShareholders.length} of {shareholders.length} registered stakeholders
+                      </CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  {shareholders.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-                      <p className="text-muted-foreground">{t("company_dashboard_empty_title")}</p>
-                      <p className="text-sm text-muted-foreground/80">{t("company_dashboard_empty_desc")}</p>
+                <CardContent className="p-0">
+                  {filteredShareholders.length === 0 ? (
+                    <div className="text-center py-16">
+                      <Users className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                      <p className="text-white font-bold">No shareholders match your search.</p>
+                      <p className="text-xs text-slate-200 mt-1">Try modifying your search term or status filter.</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full">
+                      <table className="w-full text-left">
                         <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_name")}</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_email")}</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_shares")}</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_login_id")}</th>
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_status")}</th>
-                            <th className="text-right py-3 px-4 font-medium text-muted-foreground">{t("company_dashboard_th_actions")}</th>
+                          <tr className="border-b border-white/15 bg-black/60 text-xs font-black text-slate-100 tracking-wider">
+                            <th className="py-4 px-6">NAME</th>
+                            <th className="py-4 px-6">EMAIL</th>
+                            <th className="py-4 px-6">SHARES HELD</th>
+                            <th className="py-4 px-6">LOGIN ID</th>
+                            <th className="py-4 px-6">STATUS</th>
+                            <th className="py-4 px-6 text-right">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody>
-                          {shareholders.map((shareholder) => (
-                            <tr key={shareholder.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                              <td className="py-4 px-4 font-medium text-foreground">{shareholder.shareholder_name}</td>
-                              <td className="py-4 px-4 text-muted-foreground">{shareholder.email}</td>
-                              <td className="py-4 px-4 text-muted-foreground">{shareholder.shares_held.toLocaleString()}</td>
-                              <td className="py-4 px-4">
-                                <code className="px-2 py-1 rounded bg-muted text-sm">{shareholder.login_id}</code>
+                        <tbody className="divide-y divide-white/10">
+                          {filteredShareholders.map((shareholder) => (
+                            <tr key={shareholder.id} className="hover:bg-white/[0.04] transition-colors">
+                              <td className="py-4 px-6 font-bold text-white text-sm">{shareholder.shareholder_name}</td>
+                              <td className="py-4 px-6 text-slate-100 text-sm font-medium">{shareholder.email}</td>
+                              <td className="py-4 px-6 text-cyan-300 font-extrabold tabular-nums text-base">
+                                {shareholder.shares_held.toLocaleString()}
                               </td>
-                              <td className="py-4 px-4">
+                              <td className="py-4 px-6">
+                                <code className="px-2.5 py-1 rounded-lg bg-black/80 border border-white/20 text-xs font-mono text-slate-100 font-bold">
+                                  {shareholder.login_id}
+                                </code>
+                              </td>
+                              <td className="py-4 px-6">
                                 {shareholder.is_credential_used ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-medium">
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    {t("company_dashboard_status_active")}
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                    Active / Voted
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 text-xs font-medium">
-                                    {t("company_dashboard_status_pending")}
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
+                                    Pending Access
                                   </span>
                                 )}
                               </td>
-                              <td className="py-4 px-4">
+                              <td className="py-4 px-6 text-right">
                                 <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleOpenEdit(shareholder)}
+                                    className="hover:bg-blue-500/20 text-cyan-300 hover:text-cyan-200 rounded-lg text-xs font-bold gap-1.5"
+                                    title="Edit Shareholder and Shares"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    Edit
+                                  </Button>
                                   <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleResendCredentials(shareholder)}
                                     disabled={isSendingCredentials === shareholder.id}
-                                    className="gap-1"
+                                    className="hover:bg-white/15 text-slate-100 hover:text-white rounded-lg text-xs font-bold gap-1.5"
                                   >
                                     {isSendingCredentials === shareholder.id ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                     ) : (
-                                      <RefreshCw className="w-4 h-4" />
+                                      <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
                                     )}
-                                    {t("company_dashboard_action_resend")}
+                                    Resend
                                   </Button>
                                   <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleDeleteShareholder(shareholder.id)}
-                                    className="text-destructive hover:text-destructive"
+                                    className="hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg p-2"
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-3.5 h-3.5" />
                                   </Button>
                                 </div>
                               </td>
@@ -938,148 +1047,92 @@ const CompanyDashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="results">
-              {/* Note: In a real app we'd need to pass the selected Session ID. 
-                    For MVP, we will fetch the Active session inside the component or just pass a known one if we had state for it.
-                    Ideally, we should likely fetch the active session in CompanyDashboard parent state.
-                    We did fetch 'companyData' but not 'session'. Let's assume there's one active session or we'll fetch it in the component for now.
-                    Wait, let's properly fetch the session in the Dashboard to pass it down.
-                    For now, passing the company ID and letting the child component utilize it or fetching active session there is better separation?
-                    Actually, AdminVotingResults took `sessionId`. We don't have it in state here yet.
-                    Let's quickly fetch active session ID here or modify AdminVotingResults to take CompanyID and find active session.
-                    AdminVotingResults takes `sessionId`.
-                    Let's update AdminVotingResults to optionally take companyId and find active session, OR fetch it here.
-                    Fetching it here is cleaner.
-                */}
-              {/* Placeholder for now until we add session fetching logic */}
-              <div className="p-8 text-center border border-dashed border-white/10 rounded-xl">
-                <p className="text-muted-foreground mb-4">{t("company_dashboard_results_empty")}</p>
-                {/* We need to implement session selection or auto-select active */}
-                <AdminVotingResults sessionId={sessionId || ""} companyName={company?.company_name || ""} />
-                {/* The component will just return empty/loading if no session ID. We need to fix this. */}
+            {/* TAB 2: LIVE RESULTS */}
+            <TabsContent value="results" className="space-y-6">
+              {sessionId ? (
+                <AdminVotingResults sessionId={sessionId} companyName={company?.company_name || ""} />
+              ) : (
+                <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl p-12 text-center rounded-3xl shadow-2xl">
+                  <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">No Active Voting Session</h3>
+                  <p className="text-slate-100 text-sm max-w-md mx-auto mb-6 font-normal">
+                    Schedule resolutions and launch an AGM session in Voting Management to monitor live results.
+                  </p>
+                  <Button onClick={() => navigate("/voting-management")} className="bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-white">
+                    Go to Voting Management
+                  </Button>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* TAB 3: ENTERPRISE PROFILE */}
+            <TabsContent value="profile" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Basic Details */}
+                <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                  <CardHeader className="pb-3 border-b border-white/15">
+                    <CardTitle className="text-base font-bold flex items-center gap-2 text-cyan-400">
+                      <Building2 className="w-5 h-5" /> Organization Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-5 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Company Name</p>
+                      <p className="font-bold text-white text-base">{company?.company_name}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Company Type</p>
+                      <p className="font-semibold text-slate-100">{company?.company_type || "Corporation"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Corporate ID / CIN</p>
+                      <p className="font-mono text-sm text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded-lg w-fit border border-cyan-400/40 font-bold">{company?.cin_number}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Tax ID / PAN</p>
+                      <p className="font-mono text-sm text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-lg w-fit border border-emerald-400/40 font-bold">{company?.pan_number}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Capital & Governance */}
+                <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                  <CardHeader className="pb-3 border-b border-white/15">
+                    <CardTitle className="text-base font-bold flex items-center gap-2 text-cyan-400">
+                      <FileText className="w-5 h-5" /> Capital & Scrutinizer
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-5 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Authorized Capital</p>
+                      <p className="font-black text-white text-lg tabular-nums">
+                        ${company?.authorized_capital?.toLocaleString() || "10,000,000"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Paid-Up Capital</p>
+                      <p className="font-black text-white text-lg tabular-nums">
+                        ${company?.paid_up_capital?.toLocaleString() || "5,000,000"}
+                      </p>
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Official Scrutinizer / Auditor</p>
+                      <p className="text-sm font-bold text-white">{company?.cs_name || "Assigned Independent Scrutinizer"}</p>
+                      <p className="text-xs text-slate-200 font-medium">{company?.cs_email}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
               </div>
             </TabsContent>
+
           </Tabs>
 
-          {/* Feedback Section */}
-          <div className="mb-8">
-            <DashboardFeedback
-              email={company?.contact_email || ""}
-              companyName={company?.company_name || ""}
-            />
-          </div>
+        </div>
+      </main>
 
-          {/* Danger Zone */}
-          <Card className="mt-8 border-destructive/20 shadow-none bg-destructive/5">
-            <CardHeader>
-              <CardTitle className="text-xl text-destructive flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5" />
-                {t("company_dashboard_danger_title")}
-              </CardTitle>
-              <CardDescription className="text-destructive/80">
-                {t("company_dashboard_danger_desc")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-destructive/20 rounded-lg bg-background">
-                <div>
-                  <h4 className="font-medium text-foreground">{t("company_dashboard_deregister_title")}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {t("company_dashboard_deregister_desc")}
-                  </p>
-                </div>
-
-                <AlertDialog open={showDeregisterDialog} onOpenChange={(open) => {
-                  setShowDeregisterDialog(open);
-                  if (!open) {
-                    setOtpSent(false);
-                    setEnteredOtp("");
-                    setGeneratedOtp("");
-                  }
-                }}>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={isDeletingCompany}>
-                      {isDeletingCompany ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : (
-                        <Trash2 className="w-4 h-4 mr-2" />
-                      )}
-                      {t("company_dashboard_btn_deregister")}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    {!otpSent ? (
-                      <>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t("company_dashboard_dialog_title")}</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t("company_dashboard_dialog_desc")}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t("company_dashboard_sm_cancel")}</AlertDialogCancel>
-                          <Button
-                            variant="destructive"
-                            onClick={handleSendDeregisterOtp}
-                            disabled={isSendingCredentials === "deregister"}
-                          >
-                            {isSendingCredentials === "deregister" ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <Send className="w-4 h-4 mr-2" />
-                            )}
-                            {t("company_dashboard_dialog_send_otp")}
-                          </Button>
-                        </AlertDialogFooter>
-                      </>
-                    ) : (
-                      <>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t("company_dashboard_dialog_enter_otp_title")}</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t("company_dashboard_dialog_enter_otp_desc")}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <div className="py-4">
-                          <Label htmlFor="otp" className="mb-2 block">{t("company_dashboard_dialog_enter_otp_title")}</Label>
-                          <Input
-                            id="otp"
-                            placeholder="Enter 6-digit code"
-                            value={enteredOtp}
-                            onChange={(e) => setEnteredOtp(e.target.value)}
-                            className="text-center text-lg tracking-widest"
-                            maxLength={6}
-                          />
-                        </div>
-                        <AlertDialogFooter>
-                          <Button variant="ghost" onClick={() => setShowDeregisterDialog(false)}>
-                            {t("company_dashboard_sm_cancel")}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            onClick={handleVerifyAndDeregister}
-                            disabled={isDeletingCompany || enteredOtp.length !== 6}
-                          >
-                            {isDeletingCompany ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <Trash2 className="w-4 h-4 mr-2" />
-                            )}
-                            {t("company_dashboard_dialog_verify")}
-                          </Button>
-                        </AlertDialogFooter>
-                      </>
-                    )}
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </CardContent>
-          </Card>
-        </div >
-      </main >
-
-      <Footer />
-    </div >
+    </div>
   );
 };
 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { votingApi } from "@/services/api/voting";
 import { Resolution, ResolutionStats } from "@/types/voting";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { Loader2, Download, FileText, RefreshCw } from "lucide-react";
+import { Loader2, Download, FileText, RefreshCw, Trophy } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -42,7 +42,7 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
             }
         } catch (error) {
             console.error("Failed to fetch results:", error);
-            toast.error(t("admin_voting_results_toast_load_fail"));
+            toast.error(t("admin_voting_results_toast_load_fail") || "Failed to load voting results");
         } finally {
             setIsLoading(false);
         }
@@ -73,7 +73,6 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
                     setStats((prevStats) => {
                         const resolutionId = newVote.resolution_id;
-                        // Only update if this resolution is in our list
                         if (!resolutions.find(r => r.id === resolutionId)) return prevStats;
 
                         const currentStat = prevStats[resolutionId] || {
@@ -82,22 +81,28 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                             against_count: 0,
                             abstain_count: 0,
                             total_weighted_votes: 0,
-                            total_vote_count: 0,
-                            last_updated: new Date().toISOString()
+                            total_vote_count: 0
                         };
 
-                        const updatedStat = { ...currentStat };
-                        updatedStat.total_vote_count += 1;
-                        updatedStat.total_weighted_votes += newVote.weighted_votes || 1;
+                        const weight = newVote.weighted_votes || 1;
+                        let forAdd = 0;
+                        let againstAdd = 0;
+                        let abstainAdd = 0;
 
-                        const voteValue = newVote.vote_value.toUpperCase();
-                        if (voteValue === 'FOR') updatedStat.for_count += newVote.weighted_votes || 1;
-                        else if (voteValue === 'AGAINST') updatedStat.against_count += newVote.weighted_votes || 1;
-                        else if (voteValue === 'ABSTAIN') updatedStat.abstain_count += newVote.weighted_votes || 1;
+                        if (newVote.vote_value === 'FOR') forAdd = weight;
+                        else if (newVote.vote_value === 'AGAINST') againstAdd = weight;
+                        else if (newVote.vote_value === 'ABSTAIN') abstainAdd = weight;
 
                         return {
                             ...prevStats,
-                            [resolutionId]: updatedStat
+                            [resolutionId]: {
+                                ...currentStat,
+                                for_count: currentStat.for_count + forAdd,
+                                against_count: currentStat.against_count + againstAdd,
+                                abstain_count: currentStat.abstain_count + abstainAdd,
+                                total_weighted_votes: currentStat.total_weighted_votes + weight,
+                                total_vote_count: currentStat.total_vote_count + 1
+                            }
                         };
                     });
                 }
@@ -109,9 +114,9 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
         };
     }, [sessionId, resolutions]);
 
-    const refreshData = async () => {
-        await fetchResults();
-        toast.success(t("admin_voting_results_toast_success"));
+    const refreshData = () => {
+        fetchResults();
+        toast.success(t("admin_voting_results_toast_refresh") || "Results refreshed");
     };
 
     const exportPDF = () => {
@@ -121,39 +126,36 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
             // Header
             doc.setFontSize(20);
-            doc.setTextColor(41, 128, 185);
-            doc.text(companyName, 14, 22);
-
-            doc.setFontSize(14);
-            doc.setTextColor(0, 0, 0);
-            doc.text("Official Voting Results Report", 14, 32);
+            doc.text("Official Scrutinizer Resolution Report", 14, 22);
 
             doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 40);
-            doc.text(`Session ID: ${sessionId}`, 14, 46);
+            doc.text(`Company: ${companyName}`, 14, 30);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 35);
+            doc.text(`Status: Official Scrutinizer Audit Record`, 14, 40);
 
             // Table Data
             const tableData = resolutions.map((res, index) => {
-                const stat = stats[res.id] || { for_count: 0, against_count: 0, abstain_count: 0, total_weighted_votes: 0, total_vote_count: 0 };
-                const validVotesForAgainst = stat.for_count + stat.against_count;
+                const stat = stats[res.id] || { for_count: 0, against_count: 0, abstain_count: 0, total_weighted_votes: 0 };
+                const total = stat.total_weighted_votes || 1;
+                const approvalPct = total > 0 ? ((stat.for_count / total) * 100).toFixed(2) : "0.00";
+
                 return [
                     index + 1,
                     res.title,
                     stat.for_count.toLocaleString(),
                     stat.against_count.toLocaleString(),
                     stat.abstain_count.toLocaleString(),
-                    stat.total_weighted_votes.toLocaleString(),
-                    `${validVotesForAgainst > 0 ? ((stat.for_count / validVotesForAgainst) * 100).toFixed(1) : 0}%`
+                    total.toLocaleString(),
+                    `${approvalPct}%`
                 ];
             });
 
             autoTable(doc, {
-                startY: 55,
-                head: [['#', 'Resolution', 'For', 'Against', 'Abstain', 'Total', 'Approval %']],
+                startY: 48,
+                head: [['#', 'Resolution', 'For', 'Against', 'Abstain', 'Total Shares', 'Approval %']],
                 body: tableData,
                 theme: 'grid',
-                headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+                headStyles: { fillColor: [30, 58, 138], textColor: 255 },
                 styles: { fontSize: 9 },
                 columnStyles: {
                     0: { cellWidth: 10 },
@@ -166,16 +168,16 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(8);
-                doc.text('Vote India Secure - Immutable Blockchain Record', 14, doc.internal.pageSize.height - 10);
+                doc.text('Vote Secure - Immutable Audit Ledger', 14, doc.internal.pageSize.height - 10);
                 doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
             }
 
             doc.save(`voting-results-${new Date().toISOString().slice(0, 10)}.pdf`);
-            toast.success(t("admin_voting_results_toast_pdf_success"));
+            toast.success(t("admin_voting_results_toast_pdf_success") || "PDF downloaded successfully");
 
         } catch (error) {
             console.error("Export failed:", error);
-            toast.error(t("admin_voting_results_toast_pdf_fail"));
+            toast.error(t("admin_voting_results_toast_pdf_fail") || "Failed to export PDF");
         } finally {
             setIsExporting(false);
         }
@@ -185,33 +187,33 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
 
     if (!sessionId) {
         return (
-            <div className="p-12 text-center border border-dashed border-white/10 rounded-xl bg-card/10">
-                <p className="text-muted-foreground">{t("admin_voting_results_empty")}</p>
+            <div className="p-12 text-center border border-dashed border-white/20 rounded-3xl bg-black/40">
+                <p className="text-slate-200 font-medium">{t("admin_voting_results_empty") || "No active voting session selected"}</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 animate-fade-in-up">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-3xl bg-[#0d1b2a]/90 border border-white/20 backdrop-blur-xl shadow-2xl">
                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <FileText className="w-6 h-6 text-primary" />
-                        {t("admin_voting_results_title")}
+                    <h2 className="text-xl font-black text-white flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-400" />
+                        Live General Meeting Results
                     </h2>
-                    <p className="text-muted-foreground text-sm">{t("admin_voting_results_desc")}</p>
+                    <p className="text-slate-100 text-xs sm:text-sm mt-0.5 font-normal">Real-time vote tallies and shareholder consensus breakdown</p>
                 </div>
-                <div className="flex gap-2 items-center">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium animate-pulse mr-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                        {t("admin_voting_results_live")}
+                <div className="flex gap-2.5 items-center">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold animate-pulse">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                        LIVE FEED
                     </div>
-                    <Button variant="outline" size="sm" onClick={refreshData}>
-                        <RefreshCw className="w-4 h-4 mr-2" /> {t("admin_voting_results_btn_refresh")}
+                    <Button variant="outline" size="sm" onClick={refreshData} className="border-white/30 hover:bg-white/10 text-white font-bold rounded-xl text-xs">
+                        <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-cyan-400" /> Refresh
                     </Button>
-                    <Button variant="default" size="sm" onClick={exportPDF} disabled={isExporting} className="bg-emerald-600 hover:bg-emerald-700">
-                        {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-                        {t("admin_voting_results_btn_export")}
+                    <Button size="sm" onClick={exportPDF} disabled={isExporting} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md">
+                        {isExporting ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1.5" />}
+                        Export Scrutinizer PDF
                     </Button>
                 </div>
             </div>
@@ -228,38 +230,38 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                     const chartData = [
                         { name: 'For', value: forCount, color: '#10b981' },
                         { name: 'Against', value: againstCount, color: '#ef4444' },
-                        { name: 'Abstain', value: abstainCount, color: '#eab308' },
+                        { name: 'Abstain', value: abstainCount, color: '#64748b' },
                     ];
 
                     return (
-                        <Card key={res.id} className="border-border/50 bg-card/40 backdrop-blur-sm">
-                            <CardHeader className="pb-2">
+                        <Card key={res.id} className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
+                            <CardHeader className="pb-2 border-b border-white/15">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <span className="text-xs font-mono text-muted-foreground mb-1 block">{t("admin_voting_results_res_label")}{index + 1}</span>
-                                        <CardTitle className="text-lg">{res.title}</CardTitle>
+                                        <span className="text-xs font-mono text-cyan-300 font-bold mb-1 block">RESOLUTION #{index + 1}</span>
+                                        <CardTitle className="text-lg font-black text-white">{res.title}</CardTitle>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-2xl font-bold">{Number(totalWeightedVotes).toLocaleString()}</span>
-                                        <span className="text-xs text-muted-foreground block">{t("admin_voting_results_weighted_label")}</span>
-                                        <span className="text-[10px] text-muted-foreground block mt-1">
-                                            {t("admin_voting_results_from_label")} {totalVoteCount} {t("admin_voting_results_sh_label")}
+                                        <span className="text-2xl font-black text-white tabular-nums">{Number(totalWeightedVotes).toLocaleString()}</span>
+                                        <span className="text-xs text-slate-200 font-semibold block">Total Shares Cast</span>
+                                        <span className="text-[11px] text-cyan-300 font-bold block mt-0.5">
+                                            From {totalVoteCount} Shareholders
                                         </span>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent>
-                                <div className="h-[200px] w-full mt-4">
+                            <CardContent className="pt-4">
+                                <div className="h-[180px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ffffff10" />
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ffffff15" />
                                             <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={60} tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                            <YAxis dataKey="name" type="category" width={60} tick={{ fill: '#e2e8f0', fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
-                                                cursor={{ fill: '#ffffff05' }}
+                                                contentStyle={{ backgroundColor: '#020817', borderColor: 'rgba(255,255,255,0.2)', color: '#f8fafc', borderRadius: '12px' }}
+                                                cursor={{ fill: '#ffffff08' }}
                                             />
-                                            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
+                                            <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
                                                 {chartData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                                 ))}
@@ -267,18 +269,18 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border/50 text-center">
-                                    <div>
-                                        <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_for")}</p>
-                                        <p className="font-bold text-emerald-500">{stat.for_count.toLocaleString()}</p>
+                                <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-white/15 text-center">
+                                    <div className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30">
+                                        <p className="text-xs text-emerald-300 font-bold uppercase mb-0.5">Votes In Favor</p>
+                                        <p className="text-xl font-black text-emerald-400 tabular-nums">{forCount.toLocaleString()}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_against")}</p>
-                                        <p className="font-bold text-red-500">{stat.against_count.toLocaleString()}</p>
+                                    <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30">
+                                        <p className="text-xs text-rose-300 font-bold uppercase mb-0.5">Votes Against</p>
+                                        <p className="text-xl font-black text-rose-400 tabular-nums">{againstCount.toLocaleString()}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground mb-1">{t("admin_voting_results_abstain")}</p>
-                                        <p className="font-bold text-yellow-500">{stat.abstain_count.toLocaleString()}</p>
+                                    <div className="p-3 rounded-2xl bg-slate-500/15 border border-slate-500/30">
+                                        <p className="text-xs text-slate-300 font-bold uppercase mb-0.5">Abstained</p>
+                                        <p className="text-xl font-black text-slate-200 tabular-nums">{abstainCount.toLocaleString()}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -287,8 +289,8 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                 })}
 
                 {resolutions.length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground">
-                        {t("admin_voting_results_no_votes")}
+                    <div className="text-center py-12 text-slate-200 font-medium">
+                        No active voting resolutions found for this session.
                     </div>
                 )}
             </div>
