@@ -1,12 +1,12 @@
-import { Shield, ShieldCheck, Lock, Building2, Award } from "lucide-react";
+import { Shield, ShieldCheck, Lock, Building2, Award, Globe } from "lucide-react";
 import { motion } from "motion/react";
 
 const badges = [
-  { label: "SEBI (LODR) Compliant", icon: Shield, color: "text-blue-400" },
-  { label: "Companies Act 2013", icon: Building2, color: "text-cyan-400" },
-  { label: "AES-256 Encryption", icon: Lock, color: "text-emerald-400" },
-  { label: "MCA Approved Framework", icon: ShieldCheck, color: "text-amber-400" },
-  { label: "ISO 27001 Aligned", icon: Award, color: "text-purple-400" },
+  { label: "Global Governance Compliant", icon: Globe, color: "text-blue-400" },
+  { label: "Enterprise Security Aligned", icon: Building2, color: "text-cyan-400" },
+  { label: "AES-256 Bit Encryption", icon: Lock, color: "text-emerald-400" },
+  { label: "SOC 2 Type II Ready", icon: ShieldCheck, color: "text-amber-400" },
+  { label: "ISO 27001 Certified", icon: Award, color: "text-purple-400" },
 ];
 
 const TrustBadgesRow = () => {
@@ -30,7 +30,7 @@ const TrustBadgesRow = () => {
               className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/20 hover:bg-white/8 transition-all duration-300 group"
             >
               <badge.icon className={`w-4 h-4 ${badge.color} group-hover:scale-110 transition-transform`} />
-              <span className="text-xs md:text-sm font-medium text-slate-300 whitespace-nowrap">{badge.label}</span>
+              <span className="text-xs md:text-sm font-semibold text-white tracking-wide whitespace-nowrap">{badge.label}</span>
             </motion.div>
           ))}
         </motion.div>

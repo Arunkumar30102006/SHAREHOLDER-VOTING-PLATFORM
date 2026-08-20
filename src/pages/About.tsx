@@ -9,8 +9,8 @@ const About = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
       <SEO
-        title="About Us | India's Trusted E-Voting Company"
-        description="Learn about Vote India Secure's mission, vision, and the team building India's most secure SEBI-compliant corporate e-voting platform for shareholder meetings."
+        title="About Us | Trusted Global E-Voting Platform"
+        description="Learn about Vote Secure's mission, vision, and the team building the world's most secure enterprise e-voting platform for shareholder meetings."
         canonical="/about"
       />
 
@@ -21,7 +21,7 @@ const About = () => {
             Building the Future of <span className="text-[#1e3a8a]">Corporate Governance</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Vote India Secure was founded with a singular purpose: to modernize and secure the way Indian enterprises conduct shareholder meetings and proxy voting.
+            Vote Secure was founded with a singular purpose: to modernize and secure the way global enterprises conduct shareholder meetings and proxy voting.
           </p>
         </div>
       </section>
@@ -33,14 +33,14 @@ const About = () => {
             <Target className="w-10 h-10 text-[#1e3a8a] mb-6" />
             <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
             <p className="text-muted-foreground leading-relaxed">
-              To empower Indian listed companies and RTAs with a highly secure, intuitive, and fully SEBI-compliant electronic voting infrastructure that maximizes shareholder participation and ensures absolute integrity in corporate decision-making.
+              To empower listed corporations, private enterprises, and transfer agents worldwide with a highly secure, intuitive, and compliant electronic voting infrastructure that maximizes shareholder participation and ensures absolute integrity in corporate decision-making.
             </p>
           </div>
           <div className="bg-card/40 border border-white/10 p-10 rounded-3xl shadow-sm">
             <Eye className="w-10 h-10 text-[#1e3a8a] mb-6" />
             <h2 className="text-2xl font-bold mb-4">Our Vision</h2>
             <p className="text-muted-foreground leading-relaxed">
-              To become the standard for digital corporate governance in India, where every shareholder vote is cryptographically secure, instantly verifiable, and universally accessible, driving greater transparency in the capital markets.
+              To become the global standard for digital corporate governance, where every shareholder vote is cryptographically secure, instantly verifiable, and universally accessible across capital markets.
             </p>
           </div>
         </div>
@@ -52,10 +52,10 @@ const About = () => {
           <h2 className="text-3xl font-bold mb-6">Our Story</h2>
           <div className="prose prose-invert max-w-none text-muted-foreground">
             <p className="mb-4 text-lg">
-              The idea for Vote India Secure was born out of frustration with the status quo. For years, Indian corporations relied on outdated, clunky legacy systems provided by standard depositories. These systems were often difficult for retail investors to navigate, leading to poor AGM participation and frustrating proxy seasons for Company Secretaries.
+              The idea for Vote Secure was born out of frustration with outdated legacy voting portals. For years, corporations relied on clunky, fragmented systems that were difficult for retail investors to navigate, leading to low general meeting turnout and arduous proxy seasons for corporate governance teams.
             </p>
             <p className="text-lg">
-              Recognizing the gap between regulatory requirements and modern technological capabilities, our founders set out to build a platform that doesn't just "tick the compliance box," but actually delivers an enterprise-grade software experience. Today, we bridge the gap between strict SEBI regulations and modern, user-centric design.
+              Recognizing the gap between global regulatory requirements and modern technological capabilities, our team built an enterprise-grade platform that delivers cutting-edge cryptographic security, real-time auditability, and a world-class user experience.
             </p>
           </div>
         </div>

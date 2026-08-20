@@ -1,4 +1,4 @@
-import { Vote, Building2, Activity, Shield } from "lucide-react";
+import { Vote, Building2, Activity, ShieldCheck } from "lucide-react";
 import { motion, useInView } from "motion/react";
 import { useRef, useState, useEffect } from "react";
 
@@ -13,25 +13,24 @@ interface StatItem {
 
 const stats: StatItem[] = [
   { value: "10M+", numericValue: 10, suffix: "M+", label: "Votes Processed", icon: Vote, color: "text-blue-400" },
-  { value: "500+", numericValue: 500, suffix: "+", label: "Companies Served", icon: Building2, color: "text-amber-400" },
-  { value: "99.99%", numericValue: 99.99, suffix: "%", label: "Uptime", icon: Activity, color: "text-emerald-400" },
-  { value: "2023", numericValue: 2023, suffix: "", label: "SEBI Compliant Since", icon: Shield, color: "text-purple-400" },
+  { value: "500+", numericValue: 500, suffix: "+", label: "Enterprises Worldwide", icon: Building2, color: "text-amber-400" },
+  { value: "99.99%", numericValue: 99.99, suffix: "%", label: "Cloud Uptime SLA", icon: Activity, color: "text-emerald-400" },
+  { value: "100%", numericValue: 100, suffix: "%", label: "Audit Verifiable", icon: ShieldCheck, color: "text-purple-400" },
 ];
 
-const useCountUp = (end: number, duration: number, shouldStart: boolean, isYear: boolean) => {
+const useCountUp = (end: number, duration: number, shouldStart: boolean) => {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     if (!shouldStart) return;
 
-    const startValue = isYear ? 2000 : 0;
+    const startValue = 0;
     const range = end - startValue;
     const startTime = performance.now();
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       const currentValue = startValue + range * eased;
 
@@ -45,7 +44,7 @@ const useCountUp = (end: number, duration: number, shouldStart: boolean, isYear:
     };
 
     requestAnimationFrame(animate);
-  }, [end, duration, shouldStart, isYear]);
+  }, [end, duration, shouldStart]);
 
   return count;
 };
@@ -54,13 +53,10 @@ const StatCard = ({ stat, index }: { stat: StatItem; index: number }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
-  const isYear = stat.suffix === "";
-  const isDecimal = stat.suffix === "%";
-  const count = useCountUp(stat.numericValue, 2000, isInView, isYear);
+  const isDecimal = stat.suffix === "%" && stat.numericValue !== 100;
+  const count = useCountUp(stat.numericValue, 2000, isInView);
 
-  const displayValue = isYear
-    ? Math.round(count).toString()
-    : isDecimal
+  const displayValue = isDecimal
     ? count.toFixed(2)
     : Math.round(count).toString();
 
@@ -79,10 +75,10 @@ const StatCard = ({ stat, index }: { stat: StatItem; index: number }) => {
           <stat.icon className={`w-5 h-5 ${stat.color}`} />
         </div>
       </div>
-      <p className="text-3xl md:text-4xl font-bold text-white mb-1 tracking-tight tabular-nums">
+      <p className="text-3xl md:text-4xl font-extrabold text-white mb-1.5 tracking-tight tabular-nums">
         {displayValue}{stat.suffix}
       </p>
-      <p className="text-xs md:text-sm text-slate-400 font-medium">{stat.label}</p>
+      <p className="text-xs md:text-sm text-slate-200 font-semibold tracking-wide">{stat.label}</p>
     </motion.div>
   );
 };

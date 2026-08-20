@@ -25,10 +25,9 @@
     --secondary: 222 65% 35%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Darker muted for dark mode */
     --muted: 222 30% 6%;
     /* Darker than background */
-    --muted-foreground: 220 15% 65%;
+    --muted-foreground: 220 20% 86%;
 
     /* Emerald Green - Success */
     --accent: 160 84% 45%;
@@ -84,7 +83,7 @@
     --secondary-foreground: 0 0% 100%;
 
     --muted: 222 30% 18%;
-    --muted-foreground: 220 15% 65%;
+    --muted-foreground: 220 20% 86%;
 
     --accent: 160 84% 45%;
     --accent-foreground: 0 0% 100%;

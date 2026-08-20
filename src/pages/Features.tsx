@@ -158,8 +158,8 @@ const Features = () => {
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Features | Shareholder Voting Software — Vote India Secure"
-        description="Explore Vote India Secure's features: blockchain integrity, real-time results, SEBI compliance, end-to-end encryption, and more for online shareholder voting."
+        title="Features | Enterprise Shareholder Voting Software — Vote Secure"
+        description="Explore Vote Secure's global enterprise features: cryptographic vote integrity, real-time quorum analytics, regulatory compliance, and multi-channel shareholder engagement."
         canonical="/features"
       />
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">

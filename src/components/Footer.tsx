@@ -62,7 +62,7 @@ const Footer = () => {
                 const paths = ["/", "/about", "/services", "/compliance", "/blog", "/contact", "/company-login"];
                 return (
                   <li key={item}>
-                    <Link to={paths[index]} className="text-sm text-foreground/80 hover:text-secondary transition-colors">
+                    <Link to={paths[index]} className="text-sm text-slate-200 hover:text-white font-medium transition-colors">
                       {item}
                     </Link>
                   </li>
@@ -73,13 +73,13 @@ const Footer = () => {
 
           {/* Legal */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Legal</h3>
+            <h3 className="font-semibold text-lg mb-4 text-white">Legal</h3>
             <ul className="space-y-3">
-              {["Privacy Policy", "Terms of Service", "SEBI Compliance", "Data Protection"].map((item, index) => {
-                const paths = ["/privacy-policy", "/terms-of-service", "/sebi-compliance", "/data-protection"];
+              {["Privacy Policy", "Terms of Service", "Compliance", "Data Protection"].map((item, index) => {
+                const paths = ["/privacy-policy", "/terms-of-service", "/compliance", "/data-protection"];
                 return (
                   <li key={item}>
-                    <Link to={paths[index]} className="text-sm text-foreground/80 hover:text-secondary transition-colors">
+                    <Link to={paths[index]} className="text-sm text-slate-200 hover:text-white font-medium transition-colors">
                       {item}
                     </Link>
                   </li>
@@ -90,23 +90,23 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">{t("footer_contact")}</h3>
+            <h3 className="font-semibold text-lg mb-4 text-white">{t("footer_contact")}</h3>
             <ul className="space-y-3">
-              <li className="flex items-center gap-3 text-sm text-foreground/80">
-                <Mail className="w-4 h-4 text-secondary" />
+              <li className="flex items-center gap-3 text-sm text-slate-200 font-medium">
+                <Mail className="w-4 h-4 text-cyan-400" />
                 <span>support@shareholdervoting.in</span>
               </li>
-              <li className="flex items-center gap-3 text-sm text-foreground/80">
-                <Mail className="w-4 h-4 text-secondary" />
+              <li className="flex items-center gap-3 text-sm text-slate-200 font-medium">
+                <Mail className="w-4 h-4 text-cyan-400" />
                 <span>admin@shareholdervoting.in</span>
               </li>
-              <li className="flex items-center gap-3 text-sm text-foreground/80">
-                <Phone className="w-4 h-4 text-secondary" />
-                <span>+91-987654321</span>
+              <li className="flex items-center gap-3 text-sm text-slate-200 font-medium">
+                <Phone className="w-4 h-4 text-cyan-400" />
+                <span>+1 (800) 555-VOTE</span>
               </li>
-              <li className="flex items-start gap-3 text-sm text-foreground/80">
-                <MapPin className="w-4 h-4 text-secondary mt-0.5" />
-                <span>Registered in India<br />Operated by: VoteTech Solutions Pvt Ltd (Proposed)</span>
+              <li className="flex items-start gap-3 text-sm text-slate-200 font-medium">
+                <MapPin className="w-4 h-4 text-cyan-400 mt-0.5" />
+                <span>Global Digital Infrastructure<br />Operated by: VoteTech Solutions</span>
               </li>
             </ul>
           </div>
@@ -121,13 +121,9 @@ const Footer = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="border-t border-white/10"
       >
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© 2026 Vote India Secure. All rights reserved.</p>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-primary transition-colors">LinkedIn</a>
-              <a href="#" className="hover:text-primary transition-colors">Twitter</a>
-            </div>
+        <div className="container mx-auto px-4 py-5">
+          <div className="flex items-center justify-center text-center text-sm text-slate-300 font-medium">
+            <p>© 2026 Vote Secure. All rights reserved.</p>
           </div>
         </div>
       </motion.div>

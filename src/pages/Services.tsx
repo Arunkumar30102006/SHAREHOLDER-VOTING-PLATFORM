@@ -41,8 +41,8 @@ const Services = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
       <SEO
-        title="Services | Enterprise Shareholder Voting Solutions"
-        description="Comprehensive e-voting services for Indian companies: AGM/EGM voting, compliance reporting, shareholder engagement tools, and RTA integration."
+        title="Services | Global Enterprise Shareholder Voting Solutions"
+        description="Comprehensive e-voting services for organizations worldwide: AGM/EGM voting, statutory audit reporting, investor engagement tools, and registrar integration."
         canonical="/services"
       />
 

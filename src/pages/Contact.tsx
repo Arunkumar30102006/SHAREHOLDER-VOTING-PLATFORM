@@ -57,8 +57,8 @@ const Contact = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
       <SEO
-        title="Contact Us | Shareholder E-Voting Support"
-        description="Get in touch with Vote India Secure for SEBI-compliant e-voting solutions, pricing, and dedicated support for your shareholder meetings."
+        title="Contact Us | Enterprise E-Voting Support & Sales"
+        description="Get in touch with Vote Secure for enterprise e-voting solutions, global pricing, and dedicated support for your shareholder meetings."
         canonical="/contact"
       />
 

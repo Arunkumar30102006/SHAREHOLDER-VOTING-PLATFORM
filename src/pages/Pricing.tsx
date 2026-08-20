@@ -94,8 +94,8 @@ const Pricing = () => {
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Pricing | E-Voting Platform for Indian Companies — Vote India Secure"
-        description="Transparent pricing for India's leading shareholder e-voting platform. SEBI-compliant online AGM voting for companies of all sizes."
+        title="Pricing | E-Voting Platform for Global Enterprises — Vote Secure"
+        description="Transparent pricing for the world's leading shareholder e-voting platform. Secure online AGM and proxy voting for organizations of all sizes."
         canonical="/pricing"
       />
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">

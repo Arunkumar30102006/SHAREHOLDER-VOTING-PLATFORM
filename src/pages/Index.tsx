@@ -1,22 +1,26 @@
+import { useState } from "react";
 import { SEO } from "@/components/layout/SEO";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  ShieldCheck, Lock, Award, Building2, 
-  Vote, BarChart3, Globe2, FileCheck2,
-  UserPlus, UploadCloud, Smartphone, CheckCircle2,
-  HelpCircle
+  ShieldCheck, Lock, Building2, FileCheck2,
+  UploadCloud, Smartphone, HelpCircle, ChevronDown, 
+  Sparkles, ArrowRight, Play, Check, Shield,
+  Users, BarChart3, Globe, Award, CheckCircle2,
+  Zap, FileText, ArrowUpRight
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import StatsSection from "@/components/home/StatsSection";
+import TrustBadgesRow from "@/components/home/TrustBadgesRow";
 
-// JSON-LD Schemas for SEO
+// JSON-LD Structured Data
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "Vote India Secure",
+  "name": "Vote Secure",
   "url": "https://www.shareholdervoting.in",
   "logo": "https://www.shareholdervoting.in/logo.png",
-  "description": "SEBI-compliant e-voting platform for Indian companies",
+  "description": "Enterprise-grade global e-voting platform for public and private corporations worldwide",
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "customer support",
@@ -28,13 +32,13 @@ const organizationSchema = {
 const softwareAppSchema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "Vote India Secure",
+  "name": "Vote Secure",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
-  "description": "Secure, transparent, and SEBI-compliant e-voting platform for Indian companies with blockchain-backed integrity.",
+  "description": "Secure, transparent, and enterprise-compliant electronic shareholder voting platform with blockchain-backed integrity.",
   "offers": {
     "@type": "Offer",
-    "priceCurrency": "INR",
+    "priceCurrency": "USD",
     "price": "Contact for pricing"
   },
   "url": "https://www.shareholdervoting.in"
@@ -42,24 +46,24 @@ const softwareAppSchema = {
 
 const faqItems = [
   {
-    question: "Is Vote India Secure SEBI compliant?",
-    answer: "Yes, Vote India Secure is fully SEBI-compliant and meets all regulatory requirements for electronic shareholder voting in India. Our platform adheres to SEBI (LODR) Regulations 2015, Companies Act 2013 (Section 108), and Rule 20 of the Companies (Management and Administration) Rules, 2014. We maintain complete audit trails and support independent scrutinizer access as required by law."
+    question: "Is Vote Secure compliant with international corporate governance standards?",
+    answer: "Yes, Vote Secure is built to adhere to global electronic voting and corporate governance standards. Our platform supports statutory general meeting requirements, proxy voting regulations, cryptographic audit trail preservation, and independent scrutinizer/auditor access."
   },
   {
-    question: "How does online shareholder voting work?",
-    answer: "Companies register on our platform, upload their shareholder data, and schedule a voting event (AGM, EGM, or Postal Ballot). Shareholders receive secure, unique login credentials via email. They can then log in to the platform from any device — desktop, tablet, or mobile — to review resolutions and cast their votes electronically. All votes are encrypted end-to-end and recorded with tamper-proof audit trails. Results are generated instantly after the voting window closes."
+    question: "How does online shareholder voting work globally?",
+    answer: "Companies onboard and configure their general meeting (AGM, EGM, or Special Ballot), upload their shareholder registry, and set resolution schedules. Shareholders worldwide receive secure access links via email/SMS, authenticate using two-factor verification, and cast weighted ballots on any device. Results and cryptographic receipts are generated instantly."
   },
   {
-    question: "What types of companies can use this platform?",
-    answer: "Any SEBI-registered Indian company that needs to conduct shareholder voting, AGMs, EGMs, or board resolutions can use Vote India Secure. Our platform serves listed companies of all sizes, from emerging businesses to large-cap corporations, as well as Registrar and Transfer Agents (RTAs) managing multiple company portfolios."
+    question: "What types of organizations can use this platform?",
+    answer: "Any publicly listed enterprise, private corporation, cooperative, investment fund, or Registrar and Transfer Agent (RTA) conducting shareholder ballots, board elections, or proxy meetings can use Vote Secure across multiple jurisdictions."
   },
   {
     question: "How secure is the e-voting process?",
-    answer: "Vote India Secure uses military-grade AES-256 encryption for all data at rest and in transit. Every vote is cryptographically hashed using SHA-256 and recorded with an immutable audit trail. We employ two-factor authentication (credentials + OTP) for all shareholders, and our infrastructure is hosted entirely within India to comply with data residency regulations. The platform is ISO 27001 framework-ready and CERT-In auditor verified."
+    answer: "Vote Secure utilizes military-grade AES-256 encryption for all data at rest and in transit. Every vote is cryptographically sealed with SHA-256 hashing and recorded to an immutable audit ledger. We enforce multi-factor authentication (MFA) and host our infrastructure on SOC 2 and ISO 27001 compliant cloud servers."
   },
   {
-    question: "Can shareholders vote from their mobile phones?",
-    answer: "Absolutely. Vote India Secure is a fully responsive web application that works seamlessly on smartphones, tablets, and desktops. The platform is Progressive Web App (PWA) enabled, optimized for low-bandwidth connections, and works on all modern browsers — ensuring that every shareholder can participate regardless of their device or internet speed."
+    question: "Can international investors vote from their mobile devices?",
+    answer: "Yes. Vote Secure is a fully responsive web application and Progressive Web App (PWA) that functions smoothly on smartphones, tablets, and desktops globally, requiring no special software installation."
   }
 ];
 
@@ -76,172 +80,386 @@ const faqSchema = {
   }))
 };
 
+const audienceCards = [
+  {
+    title: "For Shareholders",
+    subtitle: "Accessible Worldwide",
+    icon: Users,
+    color: "from-blue-500/20 to-cyan-500/20",
+    border: "border-blue-500/40",
+    badgeColor: "bg-blue-500/20 text-blue-300 border-blue-400/30",
+    link: "/shareholder-login",
+    linkText: "Shareholder Portal",
+    points: [
+      "Instant 2-Factor OTP & biometric authentication",
+      "Vote from any smartphone, tablet, or desktop browser worldwide",
+      "Cryptographic vote confirmation receipt with verifiable QR",
+      "AI-powered resolution summaries and annual report briefings"
+    ]
+  },
+  {
+    title: "For Enterprises & RTAs",
+    subtitle: "Global Governance Hub",
+    icon: Building2,
+    color: "from-amber-500/20 to-orange-500/20",
+    border: "border-amber-500/40",
+    badgeColor: "bg-amber-500/20 text-amber-300 border-amber-400/30",
+    link: "/company-register",
+    linkText: "Register Organization",
+    points: [
+      "Import global shareholder registries and depository records",
+      "Configure ordinary, special, and multi-class share resolutions",
+      "Live real-time quorum progression and investor analytics",
+      "Full compliance with international corporate governance laws"
+    ]
+  },
+  {
+    title: "For Scrutinizers & Auditors",
+    subtitle: "Independent Verification",
+    icon: ShieldCheck,
+    color: "from-emerald-500/20 to-teal-500/20",
+    border: "border-emerald-500/40",
+    badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
+    link: "/live-demo",
+    linkText: "View Auditor Demo",
+    points: [
+      "Digital key unblocking with multi-witness authentication",
+      "Automated official scrutinizer audit reports in 1-click",
+      "Instant data export for stock exchange and regulatory filings",
+      "Immutable Merkle tree audit trail verification"
+    ]
+  }
+];
+
+const comparisonPoints = [
+  { feature: "Universal Mobile UX", us: "Seamless PWA on any phone with 2-tap voting", them: "Outdated legacy web portals designed decades ago" },
+  { feature: "Authentication Speed", us: "Instant multi-channel OTP verification (<10s)", them: "Slow postal mail or complex hardware tokens" },
+  { feature: "Live Quorum & Analytics", us: "Real-time visual charts & global participation metrics", them: "Static spreadsheets compiled hours after meetings" },
+  { feature: "Audit Report Generation", us: "1-Click automated statutory scrutinizer reports", them: "Manual calculation prone to tabulation errors" },
+  { feature: "AI Document Summarizer", us: "Instant bullet-point executive summaries", them: "Not available" },
+];
+
 const Index = () => {
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Vote India Secure | SEBI-Compliant Shareholder E-Voting Platform"
-        description="India's most trusted SEBI-compliant e-voting platform for companies. Conduct shareholder voting, AGMs, and board resolutions securely online with blockchain-backed integrity."
+        title="Vote Secure | Global Enterprise E-Voting Platform"
+        description="The world's most trusted enterprise e-voting platform for corporations. Conduct shareholder voting, AGMs, and board resolutions securely online with blockchain-backed integrity."
         canonical="/"
         schemas={[organizationSchema, softwareAppSchema, faqSchema]}
       />
 
-      {/* HERO SECTION */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#1e3a8a]/20 via-background to-background" />
-        <div className="container mx-auto px-4 text-center max-w-5xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1e3a8a]/10 border border-[#1e3a8a]/20 text-[#1e3a8a] text-sm font-medium mb-8">
-              <ShieldCheck className="w-4 h-4" />
-              <span>SEBI-Compliant E-Voting for Indian Companies</span>
-            </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-foreground tracking-tight">
-              India's Most Trusted{" "}
-              <span className="text-[#1e3a8a]">SEBI-Compliant E-Voting</span> Platform
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-6 max-w-3xl mx-auto">
-              End-to-end encrypted shareholder voting software engineered for Indian regulatory frameworks. Ensure transparency, maximize participation, and guarantee compliance.
-            </p>
-            <p className="text-base md:text-lg text-muted-foreground mb-10 max-w-4xl mx-auto leading-relaxed">
-              Vote India Secure is a next-generation electronic voting platform purpose-built for Indian listed companies, registrars, and transfer agents. 
-              Our platform enables companies to conduct Annual General Meetings (AGMs), Extraordinary General Meetings (EGMs), and Postal Ballot voting 
-              entirely online — with full adherence to SEBI (LODR) Regulations 2015 and the Companies Act, 2013. From secure shareholder authentication 
-              using two-factor OTP verification to real-time result tabulation with cryptographic audit trails, every aspect of the voting process is 
-              designed for maximum transparency, security, and accessibility. Whether you're a mid-cap company conducting your first digital AGM or a 
-              large-cap corporation managing complex multi-resolution proxy seasons, Vote India Secure provides the enterprise-grade infrastructure 
-              you need to modernize your corporate governance.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/contact">
-                <Button size="xl" className="w-full sm:w-auto bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-lg px-8 py-6 rounded-xl">
-                  Contact Us
-                </Button>
-              </Link>
-              <Link to="/features">
-                <Button variant="outline" size="xl" className="w-full sm:w-auto text-lg px-8 py-6 rounded-xl border-[#1e3a8a]/20 hover:bg-[#1e3a8a]/5">
-                  Explore Features
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
+      {/* ─── 1. HERO SECTION ─── */}
+      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
+        {/* Dynamic Glowing Lighting */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-blue-600/25 via-cyan-500/20 to-transparent rounded-full blur-[140px]" />
+          <div className="absolute top-1/3 -left-32 w-80 h-80 bg-blue-700/15 rounded-full blur-[100px]" />
+          <div className="absolute top-1/2 -right-32 w-80 h-80 bg-teal-600/15 rounded-full blur-[100px]" />
         </div>
-      </section>
 
-      {/* TRUST BAR */}
-      <section className="py-12 border-y border-white/5 bg-card/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { icon: ShieldCheck, text: "SEBI Compliant Platform" },
-              { icon: Lock, text: "End-to-End Encrypted" },
-              { icon: Award, text: "ISO 27001 Ready" },
-              { icon: Building2, text: "Trusted by Emerging Listed Companies" }
-            ].map((badge, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex flex-col items-center text-center gap-3"
-              >
-                <badge.icon className="w-8 h-8 text-[#1e3a8a]" />
-                <span className="text-sm md:text-base font-medium text-muted-foreground">{badge.text}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section className="py-24">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Enterprise-Grade <span className="text-[#1e3a8a]">Shareholder Voting Software</span></h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">Everything you need to conduct flawless shareholder meetings — from secure authentication to automated compliance reporting.</p>
+          <div className="text-center max-w-4xl mx-auto">
+            
+            {/* Top Regulatory Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs md:text-sm font-semibold mb-8 shadow-md backdrop-blur-md"
+            >
+              <Globe className="w-4 h-4 text-cyan-400" />
+              <span className="text-slate-100">Global Governance Standards · ISO 27001 Ready · AES-256 Bit</span>
+            </motion.div>
+
+            {/* Main Headline */}
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.1]"
+            >
+              The World's Most Trusted <br className="hidden sm:inline" />
+              <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent drop-shadow-sm">
+                Enterprise E-Voting
+              </span> Platform
+            </motion.h1>
+
+            {/* Concise Subtitle with High Contrast */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-base sm:text-lg md:text-xl text-slate-100 max-w-2xl mx-auto mb-8 font-normal leading-relaxed"
+            >
+              Purpose-built electronic voting software for global public corporations, private enterprises, and transfer agents. Conduct secure AGMs, EGMs, and proxy ballots with real-time auditability.
+            </motion.p>
+
+            {/* Quick Feature Pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-wrap justify-center gap-2.5 mb-10 max-w-2xl mx-auto"
+            >
+              {[
+                "🔒 AES-256 Bit Encryption",
+                "⚡ Instant Quorum Tallying",
+                "📜 Automated Audit Reports",
+                "📱 Universal Mobile PWA"
+              ].map((feat, i) => (
+                <span key={i} className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-slate-100 shadow-sm">
+                  {feat}
+                </span>
+              ))}
+            </motion.div>
+
+            {/* CTA Buttons */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            >
+              <Link to="/live-demo">
+                <Button size="xl" className="w-full sm:w-auto bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white font-bold gap-2 text-base px-8 py-6 rounded-xl shadow-lg shadow-blue-900/40 border border-blue-400/30">
+                  <Play className="w-4 h-4 fill-white" />
+                  Explore Live Interactive Demo
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+              <Link to="/company-register">
+                <Button variant="outline" size="xl" className="w-full sm:w-auto text-base px-8 py-6 rounded-xl border-white/25 hover:bg-white/10 text-white font-semibold gap-2 shadow-sm">
+                  Register Your Organization
+                  <ArrowUpRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </motion.div>
+
           </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              { icon: Vote, title: "Electronic Voting for AGMs/EGMs", desc: "Seamless remote e-voting and postal ballots with instant tabulation. Our shareholder voting software supports all resolution types required by Indian corporate law, including ordinary resolutions, special resolutions, and related-party transaction approvals — with weighted vote calculations based on shareholding as of the record date." },
-              { icon: BarChart3, title: "Real-Time Results Dashboard", desc: "Monitor quorum and voting trends live as they happen during the meeting. Track participation rates across shareholder categories — promoters, institutional investors, and public shareholders — with interactive charts and instant compliance threshold alerts." },
-              { icon: Globe2, title: "Multi-Channel Access", desc: "Web, mobile, and seamless API integrations with leading RTAs. Our online shareholder voting interface is optimized for every device and connection speed, ensuring that retail investors across India can participate comfortably in their preferred language." },
-              { icon: FileCheck2, title: "Audit-Ready Compliance", desc: "Cryptographic, tamper-proof audit trails for scrutinizers and regulators. Generate SEBI-compliant scrutinizer reports in PDF format with a single click, including resolution-wise vote breakdowns, weighted vote tallies, and complete compliance attestations." }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
+        </div>
+      </section>
+
+      {/* ─── 2. TRUST PILLS & METRICS ─── */}
+      <TrustBadgesRow />
+      <StatsSection />
+
+      {/* ─── 3. AUDIENCE PERSONAS (Shareholders, Enterprises, Scrutinizers) ─── */}
+      <section className="py-20 relative overflow-hidden">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-slate-200 text-xs font-bold uppercase tracking-wider mb-4">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              Tailored For Global Stakeholders
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
+              A Unified Portal for <span className="text-blue-400">All Participants</span>
+            </h2>
+            <p className="text-slate-200 text-base md:text-lg font-normal">
+              Engineered to meet the international legal, analytical, and operational requirements of corporate voting.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {audienceCards.map((card, index) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 25 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="p-8 rounded-2xl bg-card border border-white/5 hover:border-[#1e3a8a]/30 transition-colors"
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className={`p-7 rounded-3xl bg-[#0d1b2a]/80 border ${card.border} backdrop-blur-xl flex flex-col justify-between hover:translate-y-[-4px] transition-all duration-300 shadow-xl group`}
               >
-                <feature.icon className="w-10 h-10 text-[#1e3a8a] mb-6" />
-                <h3 className="text-2xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+                <div>
+                  <div className="flex items-center justify-between gap-3 mb-5">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.color} border border-white/20 flex items-center justify-center shadow-sm`}>
+                      <card.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full border ${card.badgeColor}`}>
+                      {card.subtitle}
+                    </span>
+                  </div>
 
-      {/* HOW IT WORKS */}
-      <section className="py-24 bg-[#1e3a8a]/5">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">How Online <span className="text-[#1e3a8a]">Shareholder Voting</span> Works</h2>
-            <p className="text-xl text-muted-foreground">A streamlined, four-step process from company onboarding to final regulatory reporting — designed for maximum efficiency and compliance.</p>
-          </div>
-          <div className="grid md:grid-cols-4 gap-6">
-            {[
-              { icon: UserPlus, step: "Step 1", title: "Company Onboarding & KYC", desc: "Getting started is simple. Register your company on Vote India Secure by providing your CIN, SEBI registration details, and authorized signatory information. Our team verifies your credentials against MCA records and activates your account within 24 hours. The onboarding process includes uploading your company's articles of association and board resolution authorizing e-voting." },
-              { icon: UploadCloud, step: "Step 2", title: "Upload Resolutions & Shareholder Data", desc: "Securely import your shareholder register and meeting agenda. Upload your record-date shareholder list in CSV or Excel format, including folio numbers, PAN details, shareholding quantities, and email addresses. Configure your resolutions — ordinary, special, or related-party — and set custom voting windows with automatic start and end times." },
-              { icon: Smartphone, step: "Step 3", title: "Shareholders Vote Securely", desc: "Investors cast their votes via intuitive web or mobile interfaces. Each shareholder receives unique, encrypted login credentials via email. After two-factor OTP authentication, they review resolution documents, cast weighted votes, and receive a cryptographic vote receipt with a unique QR code that can be verified against the immutable audit ledger." },
-              { icon: FileCheck2, step: "Step 4", title: "Instant Results & Compliance Reports", desc: "Generate instant, SEBI-compliant scrutinizer reports at the click of a button. Results are calculated automatically using our weighted vote calculation engine, with resolution-wise breakdowns, category-wise participation summaries, and complete audit trails. Reports are generated in the format prescribed under the Companies Act, 2013 and SEBI LODR Regulations." }
-            ].map((step, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative p-6 rounded-2xl bg-background border border-white/10 text-center flex flex-col items-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-[#1e3a8a]/10 flex items-center justify-center mb-6">
-                  <step.icon className="w-8 h-8 text-[#1e3a8a]" />
+                  <h3 className="text-xl font-bold text-white mb-4">{card.title}</h3>
+
+                  <ul className="space-y-3 mb-8">
+                    {card.points.map((pt, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <span className="text-[#1e3a8a] font-bold text-sm mb-2">{step.step}</span>
-                <h3 className="text-lg font-bold mb-3">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
-                {i < 3 && <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-0.5 bg-[#1e3a8a]/20" />}
+
+                <Link to={card.link}>
+                  <Button variant="outline" className="w-full border-white/20 hover:bg-white/10 text-white font-semibold justify-between group-hover:border-white/40">
+                    <span>{card.linkText}</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* WHY US (Vs Free Alternatives) */}
-      <section className="py-24">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="bg-[#0f172a] rounded-3xl p-8 md:p-12 border border-[#1e3a8a]/20 shadow-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Beyond Basic Compliance. <br/><span className="text-[#1e3a8a]">Why Choose Vote India Secure?</span></h2>
-            <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-              While depositories like NSDL and CDSL offer baseline e-voting, forward-thinking enterprises choose our shareholder voting software for its premium experience, dedicated support, and advanced analytics capabilities.
+      {/* ─── 4. BENTO GRID FEATURES ─── */}
+      <section className="py-20 relative overflow-hidden bg-white/[0.02] border-y border-white/10">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
+              Enterprise Governance <span className="text-blue-400">Capabilities</span>
+            </h2>
+            <p className="text-slate-200 text-base md:text-lg font-normal">
+              Everything corporate governance and legal teams need to conduct transparent, tamper-proof electronic voting.
             </p>
-            <div className="grid sm:grid-cols-2 gap-6">
-              {[
-                "Superior UX for higher retail shareholder participation",
-                "White-label solutions branded for your company or RTA",
-                "Dedicated Account Managers (no automated helpdesks)",
-                "Advanced analytics and real-time quorum tracking",
-                "Faster resolution processing and report generation",
-                "Custom API integrations with your existing systems"
-              ].map((benefit, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-[#1e3a8a] shrink-0" />
-                  <span className="text-foreground">{benefit}</span>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            
+            {/* Bento 1: Cryptographic Integrity */}
+            <div className="md:col-span-2 p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl relative group hover:border-blue-500/50 transition-all duration-300">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-6">
+                <Lock className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Military-Grade Cryptographic Vote Sealing</h3>
+              <p className="text-slate-100 text-sm md:text-base leading-relaxed mb-6 font-normal">
+                All votes are encrypted end-to-end with AES-256 and recorded on an immutable ledger. No administrator or insider can modify or view cast ballots prior to official auditor unblocking.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-100 font-semibold">
+                <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-blue-400" /> SHA-256 Hashing
+                </div>
+                <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-cyan-400" /> Global Cloud Security
+                </div>
+                <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-emerald-400" /> Merkle Audit Proof
+                </div>
+              </div>
+            </div>
+
+            {/* Bento 2: Scrutinizer Hub */}
+            <div className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl group hover:border-cyan-500/50 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mb-6">
+                  <FileCheck2 className="w-6 h-6 text-cyan-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">1-Click Scrutinizer Hub</h3>
+                <p className="text-slate-200 text-sm leading-relaxed mb-4 font-normal">
+                  Automated official scrutinizer reports and exchange-ready disclosure files generated instantly with zero calculation discrepancies.
+                </p>
+              </div>
+              <Link to="/compliance" className="text-xs font-bold text-cyan-300 flex items-center gap-1 hover:underline">
+                View Compliance Standards <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Bento 3: Mobile Accessibility */}
+            <div className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl group hover:border-amber-500/50 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mb-6">
+                  <Smartphone className="w-6 h-6 text-amber-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Universal Mobile Voting</h3>
+                <p className="text-slate-200 text-sm leading-relaxed mb-4 font-normal">
+                  Shareholders vote from any phone or browser via 2-factor verification without installing third-party certificates or bulky applications.
+                </p>
+              </div>
+              <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
+                +40% Shareholder Turnout Lift
+              </span>
+            </div>
+
+            {/* Bento 4: AI Governance Suite */}
+            <div className="md:col-span-2 p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl relative group hover:border-purple-500/50 transition-all duration-300">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-6">
+                <Sparkles className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">AI Document & Investor Sentiment Suite</h3>
+              <p className="text-slate-100 text-sm md:text-base leading-relaxed mb-6 font-normal">
+                Empower your shareholders with instant AI executive summaries of lengthy annual reports, proxy notices, and resolution agendas. Monitor live sentiment during meeting Q&A sessions.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3.5 py-1 rounded-full bg-purple-500/20 text-purple-200 text-xs font-semibold border border-purple-400/30">Meeting Notice Summaries</span>
+                <span className="px-3.5 py-1 rounded-full bg-purple-500/20 text-purple-200 text-xs font-semibold border border-purple-400/30">Live Sentiment Monitor</span>
+                <span className="px-3.5 py-1 rounded-full bg-purple-500/20 text-purple-200 text-xs font-semibold border border-purple-400/30">Multi-Language Ready</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 5. STREAMLINED 3-STEP PROCESS ─── */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
+              How It <span className="text-blue-400">Works</span>
+            </h2>
+            <p className="text-slate-200 text-base font-normal">From organization setup to final regulatory filing in three steps.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 relative">
+            {[
+              {
+                step: "01",
+                title: "Upload & Schedule",
+                desc: "Import master shareholder register and configure ordinary or special resolutions with automated voting timers.",
+                icon: UploadCloud,
+              },
+              {
+                step: "02",
+                title: "Secure Voting",
+                desc: "Shareholders receive secure links, authenticate via 2-Factor verification, and cast weighted ballots on any device in under 30 seconds.",
+                icon: Smartphone,
+              },
+              {
+                step: "03",
+                title: "Instant Filing",
+                desc: "Scrutinizers unblock digital vault with authorized keys and export statutory audit reports ready for exchange disclosure.",
+                icon: FileCheck2,
+              }
+            ].map((item, i) => (
+              <div key={i} className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 relative group hover:border-blue-500/40 transition-all shadow-lg">
+                <div className="text-4xl font-black text-blue-400/40 mb-4 font-mono">{item.step}</div>
+                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-slate-200 text-xs sm:text-sm leading-relaxed font-normal">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 6. COMPARISON MATRIX (Us vs Legacy) ─── */}
+      <section className="py-20 bg-white/[0.02] border-y border-white/10">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
+              Why Global Enterprises Choose <span className="text-blue-400">Vote Secure</span>
+            </h2>
+            <p className="text-slate-200 text-sm md:text-base font-normal">Comparing modern governance technology with legacy corporate portals.</p>
+          </div>
+
+          <div className="rounded-3xl border border-white/20 overflow-hidden bg-[#0d1b2a]/80 backdrop-blur-xl shadow-2xl">
+            <div className="grid grid-cols-3 bg-black/60 p-4.5 border-b border-white/15 text-xs font-bold text-slate-100 tracking-wider">
+              <div>CAPABILITY</div>
+              <div className="text-blue-400">VOTE SECURE</div>
+              <div className="text-slate-300">LEGACY PORTALS</div>
+            </div>
+            <div className="divide-y divide-white/10">
+              {comparisonPoints.map((pt, i) => (
+                <div key={i} className="grid grid-cols-3 p-4 text-xs md:text-sm items-center gap-2 hover:bg-white/[0.02] transition-colors">
+                  <div className="font-bold text-white">{pt.feature}</div>
+                  <div className="text-emerald-300 font-semibold flex items-center gap-1.5">
+                    <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+                    {pt.us}
+                  </div>
+                  <div className="text-slate-300 font-normal">{pt.them}</div>
                 </div>
               ))}
             </div>
@@ -249,93 +467,75 @@ const Index = () => {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="py-24 bg-[#1e3a8a]/5">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Trusted by <span className="text-[#1e3a8a]">Industry Leaders</span></h2>
+      {/* ─── 7. ACCORDION FAQ ─── */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
+              Frequently Asked <span className="text-blue-400">Questions</span>
+            </h2>
+            <p className="text-slate-200 text-sm md:text-base font-normal">Regulatory and operational answers for corporate boards and governance teams.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                quote: "Vote India Secure transformed our AGM process. The real-time dashboard allowed us to track quorum instantly, and their dedicated support team was phenomenal.",
-                name: "Vikram S.",
-                role: "Company Secretary",
-                company: "TechNexus Global Ltd."
-              },
-              {
-                quote: "Unlike the standard depository portals, the interface is incredibly intuitive. We saw a 40% increase in retail shareholder participation this year.",
-                name: "Anjali Desai",
-                role: "Chief Financial Officer",
-                company: "GreenEnergy Solutions"
-              },
-              {
-                quote: "As an RTA, integrating with their API was seamless. It saves our team hundreds of hours during peak proxy season while ensuring 100% SEBI compliance.",
-                name: "Vikram Mehta",
-                role: "VP Operations",
-                company: "Apex Registrars"
-              }
-            ].map((testimonial, i) => (
-              <div key={i} className="bg-background p-8 rounded-2xl border border-white/5 shadow-sm relative">
-                <span className="absolute top-6 left-6 text-6xl text-[#1e3a8a]/20 font-serif">"</span>
-                <p className="text-muted-foreground mb-8 relative z-10 pt-6">
-                  {testimonial.quote}
-                </p>
-                <div>
-                  <h4 className="font-bold">{testimonial.name}</h4>
-                  <p className="text-sm text-[#1e3a8a]">{testimonial.role}</p>
-                  <p className="text-xs text-muted-foreground">{testimonial.company}</p>
-                </div>
+
+          <div className="space-y-3.5">
+            {faqItems.map((faq, index) => (
+              <div 
+                key={index}
+                className="rounded-2xl border border-white/15 bg-[#0d1b2a]/80 overflow-hidden transition-colors shadow-md"
+              >
+                <button
+                  onClick={() => setActiveFaq(activeFaq === index ? null : index)}
+                  className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-white text-sm md:text-base hover:text-blue-400 transition-colors"
+                >
+                  <span className="flex items-center gap-3">
+                    <HelpCircle className="w-4 h-4 text-blue-400 shrink-0" />
+                    {faq.question}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform ${activeFaq === index ? "rotate-180 text-blue-400" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {activeFaq === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="px-5 pb-5 text-sm text-slate-100 leading-relaxed border-t border-white/10 pt-3.5 font-normal"
+                    >
+                      {faq.answer}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ SECTION */}
-      <section className="py-24">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Frequently Asked <span className="text-[#1e3a8a]">Questions</span></h2>
-            <p className="text-xl text-muted-foreground">Common questions about our SEBI-compliant e-voting platform for Indian companies.</p>
+      {/* ─── 8. FINAL CONVERSION BANNER ─── */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="p-10 md:p-16 rounded-3xl bg-gradient-to-br from-[#1e3a8a]/90 via-blue-900/80 to-indigo-950/90 border border-blue-400/40 text-center relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none" />
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
+              Modernize Your Corporate Governance Today
+            </h2>
+            <p className="text-blue-100 text-base md:text-lg max-w-xl mx-auto mb-8 font-normal">
+              Join leading global enterprises upgrading their shareholder voting infrastructure with Vote Secure.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/contact">
+                <Button size="xl" className="bg-white text-[#1e3a8a] hover:bg-slate-100 font-bold px-8 py-6 rounded-xl shadow-xl border border-white">
+                  Schedule Platform Walkthrough
+                </Button>
+              </Link>
+              <Link to="/pricing">
+                <Button variant="outline" size="xl" className="border-white/40 text-white font-semibold hover:bg-white/15 px-8 py-6 rounded-xl">
+                  View Transparent Pricing
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="space-y-4">
-            {faqItems.map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="p-6 rounded-2xl bg-card/40 border border-white/10 hover:border-white/20 transition-all"
-              >
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-3">
-                  <HelpCircle className="w-5 h-5 text-[#1e3a8a] shrink-0" />
-                  {faq.question}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed pl-7">
-                  {faq.answer}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[#1e3a8a]" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to modernize your shareholder meetings?</h2>
-          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-            Join the growing number of Indian enterprises upgrading their corporate governance infrastructure with our SEBI-compliant e-voting platform.
-          </p>
-          <Link to="/contact">
-            <Button size="xl" className="bg-white text-[#1e3a8a] hover:bg-gray-100 text-lg px-10 py-7 rounded-xl shadow-2xl">
-              Contact Us
-            </Button>
-          </Link>
         </div>
       </section>
 
