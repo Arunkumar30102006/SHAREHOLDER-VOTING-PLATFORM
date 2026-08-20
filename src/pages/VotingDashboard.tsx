@@ -20,7 +20,11 @@ import {
   UserCheck,
   UserPlus,
   ShieldCheck,
-  Activity
+  Activity,
+  Layers,
+  Sparkles,
+  Lock,
+  Hourglass
 } from "lucide-react";
 import { toast } from "sonner";
 import { SEO } from "@/components/layout/SEO";
@@ -37,6 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MerkleTree } from "@/lib/merkle";
 import { ShareholderFeedbackForm } from "@/components/ai/ShareholderFeedbackForm";
 import { useTranslation } from "react-i18next";
+import { Nominee } from "@/types";
 
 const AppointProxyCard = ({
   shareholders,
@@ -55,16 +60,16 @@ const AppointProxyCard = ({
 
   if (delegation) {
     return (
-      <Card className="border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10 mb-8">
+      <Card className="border-indigo-500/30 bg-[#0d1b2a]/90 backdrop-blur-xl mb-8 shadow-xl">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-foreground mb-1">{t("voting_dash_proxy_appointed")}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t("voting_dash_delegated_to")} <span className="font-bold">{delegation.proxy?.shareholder_name}</span> ({delegation.proxy?.email})
+              <h3 className="font-bold text-lg text-white mb-1">{t("voting_dash_proxy_appointed") || "Proxy Appointed Successfully"}</h3>
+              <p className="text-sm text-slate-200">
+                {t("voting_dash_delegated_to") || "Voting rights delegated to"}: <span className="font-bold text-white">{delegation.proxy?.shareholder_name}</span> ({delegation.proxy?.email})
               </p>
             </div>
           </div>
@@ -74,25 +79,25 @@ const AppointProxyCard = ({
   }
 
   return (
-    <Card className="border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10 mb-8">
+    <Card className="border-indigo-500/30 bg-[#0d1b2a]/90 backdrop-blur-xl mb-8 shadow-xl">
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300 shrink-0">
               <UserPlus className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-foreground mb-1">{t("voting_dash_appoint_proxy")}</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {t("voting_dash_appoint_desc")}
+              <h3 className="font-bold text-lg text-white mb-1">{t("voting_dash_appoint_proxy") || "Appoint a Voting Proxy"}</h3>
+              <p className="text-sm text-slate-200 mb-4 font-normal">
+                {t("voting_dash_appoint_desc") || "Authorize another registered shareholder to cast ballots on your behalf."}
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <select
-                  className="bg-background border rounded px-3 py-2 text-sm max-w-[250px]"
+                  className="bg-black/60 border border-white/20 text-white rounded-xl px-3.5 py-2 text-xs font-bold max-w-[280px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   value={selectedProxyId}
                   onChange={(e) => setSelectedProxyId(e.target.value)}
                 >
-                  <option value="">{t("voting_dash_select_sh")}</option>
+                  <option value="">{t("voting_dash_select_sh") || "Select Proxy Shareholder..."}</option>
                   {shareholders?.map(s => (
                     <option key={s.id} value={s.id}>{s.shareholder_name} ({s.email})</option>
                   ))}
@@ -101,8 +106,9 @@ const AppointProxyCard = ({
                   size="sm"
                   disabled={!selectedProxyId || isDelegating}
                   onClick={() => onDelegate(selectedProxyId)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs px-4"
                 >
-                  {isDelegating ? t("voting_dash_delegating") : t("voting_dash_delegate_now")}
+                  {isDelegating ? (t("voting_dash_delegating") || "Appointing...") : (t("voting_dash_delegate_now") || "Confirm Proxy")}
                 </Button>
               </div>
             </div>
@@ -136,10 +142,25 @@ const VotingDashboard = () => {
     enabled: !!shareholder?.company_id,
   });
 
-  // 3. Parallel Fetch: Resolutions & Existing Votes
+  // 3. Parallel Fetch: Resolutions & Nominees & Existing Votes
   const { data: resolutions, isLoading: loadingResolutions } = useQuery({
     queryKey: ["resolutions", session?.id],
     queryFn: () => votingApi.getResolutions(session!.id),
+    enabled: !!session?.id,
+  });
+
+  const { data: nominees, isLoading: loadingNominees } = useQuery({
+    queryKey: ["nominees", session?.id],
+    queryFn: async () => {
+      if (!session?.id) return [];
+      const { data, error } = await supabase
+        .from("nominees")
+        .select("*")
+        .eq("voting_session_id", session.id)
+        .order("created_at", { ascending: true });
+      if (error) return [];
+      return data as Nominee[];
+    },
     enabled: !!session?.id,
   });
 
@@ -148,6 +169,43 @@ const VotingDashboard = () => {
     queryFn: () => votingApi.getShareholderVotes(shareholderId!),
     enabled: !!shareholderId,
   });
+
+  // Live Countdown & Status
+  const [countdownText, setCountdownText] = useState<string>("");
+  const [isLiveNow, setIsLiveNow] = useState(false);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const checkWindow = () => {
+      const now = new Date().getTime();
+      const start = new Date(session.start_date).getTime();
+      const end = new Date(session.end_date).getTime();
+
+      if (now < start) {
+        setIsLiveNow(false);
+        const diff = start - now;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        setCountdownText(`Voting window opens in ${hours}h ${mins}m ${secs}s`);
+      } else if (now >= start && now <= end) {
+        setIsLiveNow(true);
+        const diff = end - now;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        setCountdownText(`Voting closes in ${hours}h ${mins}m ${secs}s`);
+      } else {
+        setIsLiveNow(false);
+        setCountdownText("Voting window has concluded");
+      }
+    };
+
+    checkWindow();
+    const interval = setInterval(checkWindow, 1000);
+    return () => clearInterval(interval);
+  }, [session]);
 
   // Real-time Status Sync: Automatically refetch session when start/end time is reached
   useEffect(() => {
@@ -171,7 +229,7 @@ const VotingDashboard = () => {
   }, [session, shareholder?.company_id, queryClient]);
 
   // Proxy Delegation State
-  const { data: delegation, isLoading: loadingDelegation, refetch: refetchDelegation } = useQuery({
+  const { data: delegation, refetch: refetchDelegation } = useQuery({
     queryKey: ["proxy-delegation", shareholderId, session?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -189,7 +247,7 @@ const VotingDashboard = () => {
     enabled: !!shareholderId && !!session?.id,
   });
 
-  const { data: myDelegators, isLoading: loadingMyDelegators } = useQuery({
+  const { data: myDelegators } = useQuery({
     queryKey: ["my-delegators", shareholderId, session?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -222,17 +280,6 @@ const VotingDashboard = () => {
     enabled: !!session?.id,
   });
 
-  // Fetch Merkle Proof for the shareholder's votes
-  const { data: sessionProofData } = useQuery({
-    queryKey: ["session-proof-hashes", session?.id, shareholderId],
-    queryFn: async () => {
-      // We will now rely on the 'votes' table having the leaf_index 
-      // and checking the 'block_anchors' table for the tree
-      return { anchored: !!anchorData };
-    },
-    enabled: !!session?.id && !!anchorData,
-  });
-
   const { data: companyShareholders } = useQuery({
     queryKey: ["company-shareholders", shareholder?.company_id],
     queryFn: () => votingApi.getCompanyShareholders(shareholder!.company_id),
@@ -262,60 +309,65 @@ const VotingDashboard = () => {
     }
   };
 
-  const isLoading = loadingShareholder || loadingSession || loadingResolutions || loadingVotes;
+  const isLoading = loadingShareholder || loadingSession || loadingResolutions || loadingNominees || loadingVotes;
 
-  // Process Data for UI
+  // Process Data for UI: Both Resolutions and Nominees
   const votingItems: VotingItem[] = useMemo(() => {
-    return resolutions?.map((res) => {
+    const items: VotingItem[] = [];
+
+    // 1. Resolutions
+    resolutions?.forEach((res) => {
       const voteRecord = existingVotes?.find((v) => v.resolution_id === res.id);
       let voteValue: VoteType | null = null;
-      let proof = null;
-
       if (voteRecord) {
-        // Normalize existing vote value
-        const val = voteRecord.vote_value.toUpperCase();
+        const val = (voteRecord.vote_value || "").toUpperCase();
         if (val === "FOR") voteValue = "FOR";
         else if (val === "AGAINST") voteValue = "AGAINST";
         else if (val === "ABSTAIN") voteValue = "ABSTAIN";
-
-        // Build Merkle Proof if session is anchored
-        if (anchorData?.merkle_tree?.layers) {
-          const leafIndex = voteRecord.leaf_index;
-          if (leafIndex !== undefined && leafIndex !== null) {
-            // Reconstruct proof from stored layers to avoid recomputing tree
-            const layers = anchorData.merkle_tree.layers;
-            const leafProof = [];
-            let idx = leafIndex;
-            for (let i = 0; i < layers.length - 1; i++) {
-              const layer = layers[i];
-              const isRightNode = idx % 2 === 1;
-              const pairIndex = isRightNode ? idx - 1 : idx + 1;
-              if (pairIndex < layer.length) {
-                leafProof.push({
-                  position: isRightNode ? 'left' : 'right',
-                  data: layer[pairIndex]
-                });
-              }
-              idx = Math.floor(idx / 2);
-            }
-            proof = leafProof;
-          }
-        }
       }
 
-      return {
+      items.push({
         id: res.id,
         title: res.title,
         description: res.description || "",
-        category: res.resolution_type === "director_election" ? "Director Election" : "Resolution",
+        category: res.resolution_type === "special" ? "Special Resolution" : "Ordinary Resolution",
         voted: !!voteRecord,
         vote: voteValue,
         voteHash: voteRecord?.vote_hash,
-        merkleProof: proof,
         anchorRoot: anchorData?.merkle_root
-      };
-    }) || [];
-  }, [resolutions, existingVotes, anchorData]);
+      });
+    });
+
+    // 2. Nominees / Director Elections
+    nominees?.forEach((nom) => {
+      const voteRecord = existingVotes?.find((v) => v.resolution_id === nom.id);
+      let voteValue: VoteType | null = null;
+      if (voteRecord) {
+        const val = (voteRecord.vote_value || "").toUpperCase();
+        if (val === "FOR") voteValue = "FOR";
+        else if (val === "AGAINST") voteValue = "AGAINST";
+        else if (val === "ABSTAIN") voteValue = "ABSTAIN";
+      }
+
+      const desig = nom.designation ? `Proposed Designation: ${nom.designation}` : "Candidate for Board of Directors";
+      const exp = nom.experience_years ? ` | Experience: ${nom.experience_years} Years` : "";
+      const qual = nom.qualification ? ` | Qualification: ${nom.qualification}` : "";
+      const bio = nom.bio ? `\n${nom.bio}` : "";
+
+      items.push({
+        id: nom.id,
+        title: `Director Election: ${nom.nominee_name}`,
+        description: `${desig}${exp}${qual}${bio}`,
+        category: "Director Election",
+        voted: !!voteRecord,
+        vote: voteValue,
+        voteHash: voteRecord?.vote_hash,
+        anchorRoot: anchorData?.merkle_root
+      });
+    });
+
+    return items;
+  }, [resolutions, nominees, existingVotes, anchorData]);
 
   const totalVoted = votingItems.filter((item) => item.voted).length;
 
@@ -327,14 +379,14 @@ const VotingDashboard = () => {
   const handleVote = useCallback(async (itemId: string, voteType: "for" | "against" | "abstain") => {
     if (!isSessionStarted) {
       toast.error("Voting Not Started", {
-        description: "The voting period has not started yet. Please check back at the scheduled time.",
+        description: "The voting period has not started yet. Ballots will unlock automatically when the session starts.",
       });
       return;
     }
 
     if (isSessionExpired) {
       toast.error("Voting Session Closed", {
-        description: "The voting period has ended. You cannot cast new votes.",
+        description: "The voting window has ended. You cannot cast new votes.",
       });
       return;
     }
@@ -348,7 +400,7 @@ const VotingDashboard = () => {
 
     const upperVoteType = voteType.toUpperCase() as VoteType;
 
-    // Enforce "Vote for Only One" rule for Director Elections
+    // Single Vote rule for Director Elections
     const currentItem = votingItems.find(i => i.id === itemId);
     if (currentItem?.category === "Director Election" && upperVoteType === "FOR") {
       const alreadyVotedFor = votingItems.find(i =>
@@ -359,7 +411,7 @@ const VotingDashboard = () => {
 
       if (alreadyVotedFor) {
         toast.error("Single Vote Restriction", {
-          description: "You can only vote FOR one candidate in Director Elections.",
+          description: "You have already voted FOR another director candidate.",
         });
         return;
       }
@@ -373,7 +425,7 @@ const VotingDashboard = () => {
 
     // Optimistic Update Object
     const newVote: VoteRecord = {
-      id: "temp-optimistic-id", // Temporary ID
+      id: "temp-optimistic-id",
       resolution_id: itemId,
       vote_value: upperVoteType,
       vote_hash: voteHash,
@@ -400,20 +452,16 @@ const VotingDashboard = () => {
       }
 
       toast.success("Vote securely recorded!", {
-        description: `Your vote (and any delegated votes) has been cryptographically hashed.`,
+        description: `Your vote has been cryptographically hashed and anchored.`,
       });
     } catch (e: unknown) {
       console.error("Error recording vote:", e);
       toast.error(`Vote Failed: ${(e as Error).message}`);
-      // Revert Optimistic Update
       queryClient.setQueryData(["votes", shareholderId], (old: VoteRecord[] | undefined) =>
         old?.filter((v) => v.vote_hash !== voteHash) || []
       );
     }
   }, [isSessionStarted, isSessionExpired, isSessionActive, votingItems, myDelegators, shareholderId, queryClient]);
-
-
-
 
   if (!shareholderId) {
     navigate("/shareholder-login");
@@ -421,9 +469,9 @@ const VotingDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background relative selection:bg-primary/20">
+    <div className="min-h-screen bg-[#020817] text-white relative selection:bg-blue-500/30">
       <SEO
-        title="Weighted Voting Dashboard"
+        title="Shareholder E-Voting Portal"
         description="Official e-voting session. Cast your weighted votes securely as per your shareholding on the record date."
         canonical="/voting-dashboard"
       />
@@ -433,19 +481,19 @@ const VotingDashboard = () => {
       <Navbar />
 
       <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 max-w-6xl">
 
           {/* Sticky Header / Breadcrumbs */}
-          <div className="sticky top-20 z-30 -mx-4 px-4 py-4 bg-background/80 backdrop-blur-md border-b border-white/5 mb-8 transition-all">
+          <div className="sticky top-20 z-30 -mx-4 px-6 py-4 bg-[#0d1b2a]/90 backdrop-blur-xl border-b border-white/10 mb-8 rounded-2xl shadow-2xl">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Link to="/" className="hover:text-primary transition-colors">{t("voting_dash_home")}</Link>
-                <ChevronRight className="w-4 h-4" />
-                <span className="text-foreground font-medium truncate max-w-[200px]">{shareholder?.companies?.company_name}</span>
-                <ChevronRight className="w-4 h-4" />
-                <span className="text-foreground">{t("voting_dash_title")}</span>
+              <div className="flex items-center gap-2 text-sm text-slate-200">
+                <Link to="/" className="hover:text-cyan-300 font-semibold transition-colors">Home</Link>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <span className="text-white font-bold truncate max-w-[220px]">{shareholder?.companies?.company_name}</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <span className="text-cyan-300 font-bold">Ballot Portal</span>
                 {session?.record_date && (
-                  <div className="ml-4 flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+                  <div className="ml-3 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
                     <Clock className="w-3 h-3" />
                     Record Date: {new Date(session.record_date).toLocaleDateString()}
                   </div>
@@ -454,86 +502,148 @@ const VotingDashboard = () => {
 
               <div className="flex items-center gap-4">
                 <div className="hidden md:block text-right">
-                  <p className="text-sm font-bold text-foreground">{shareholder?.shareholder_name}</p>
-                  <p className="text-xs text-muted-foreground">{shareholder?.shares_held?.toLocaleString()} {t("voting_dash_shares")}</p>
+                  <p className="text-sm font-black text-white">{shareholder?.shareholder_name}</p>
+                  <p className="text-xs text-cyan-300 font-bold tabular-nums">
+                    {shareholder?.shares_held?.toLocaleString()} Voting Shares
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
+                    className="border-white/20 text-slate-100 hover:bg-white/10 rounded-xl text-xs font-bold"
                     onClick={() => navigate("/shareholder-analysis")}
                   >
-                    <Activity className="w-4 h-4 mr-2" />
-                    {t("voting_dash_view_analysis")}
+                    <Activity className="w-3.5 h-3.5 mr-1.5 text-cyan-400" />
+                    Analytics
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-xl text-xs font-bold"
                     onClick={() => {
                       localStorage.removeItem("shareholderId");
                       queryClient.clear();
                       navigate("/shareholder-login");
                     }}
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    {t("voting_dash_logout")}
+                    <LogOut className="w-3.5 h-3.5 mr-1.5" />
+                    Logout
                   </Button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Meeting Details Section */}
-          {!isLoading && session?.meeting_link && (
-            <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              <Card className="border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10">
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                        {session.meeting_platform === 'zoom' ? <Video className="w-6 h-6" /> : <Calendar className="w-6 h-6" />}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-foreground mb-1">
-                          {session.meeting_platform === 'physical' ? t("voting_dash_physical") : t("voting_dash_video")}
-                        </h3>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          {session.meeting_start_date && (
-                            <p className="flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
-                              {new Date(session.meeting_start_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                            </p>
-                          )}
-                          {session.meeting_password && (
-                            <p className="flex items-center gap-2">
-                              <Shield className="w-4 h-4" />
-                              {t("voting_dash_password")} <span className="font-mono bg-background px-1 rounded" title={session.meeting_password}>{"•".repeat(session.meeting_password.length)}</span>
-                            </p>
-                          )}
-                        </div>
-                      </div>
+          {/* Voting Window Live Countdown & Status Banner */}
+          {session && (
+            <div className="mb-8">
+              <Card className={`border backdrop-blur-xl shadow-2xl rounded-3xl p-6 transition-all ${
+                isLiveNow && session.is_active
+                  ? "border-emerald-500/40 bg-gradient-to-r from-emerald-950/40 via-[#0d1b2a]/90 to-blue-950/40"
+                  : !isSessionStarted
+                  ? "border-blue-500/40 bg-gradient-to-r from-blue-950/40 via-[#0d1b2a]/90 to-indigo-950/40"
+                  : "border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-[#0d1b2a]/90 to-slate-950/40"
+              }`}>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                      isLiveNow && session.is_active
+                        ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-300"
+                        : !isSessionStarted
+                        ? "bg-blue-500/20 border-blue-400/40 text-cyan-300"
+                        : "bg-amber-500/20 border-amber-400/40 text-amber-300"
+                    }`}>
+                      {isLiveNow && session.is_active ? (
+                        <Vote className="w-6 h-6 animate-pulse" />
+                      ) : !isSessionStarted ? (
+                        <Hourglass className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <Clock className="w-6 h-6" />
+                      )}
                     </div>
-
-                    <Button
-                      size="lg"
-                      className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
-                      onClick={() => window.open(session.meeting_link!, '_blank')}
-                    >
-                      <Video className="w-4 h-4 mr-2" />
-                      {t("voting_dash_join_btn")}
-                    </Button>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                          isLiveNow && session.is_active
+                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                            : !isSessionStarted
+                            ? "bg-blue-500/20 text-cyan-300 border-blue-500/30"
+                            : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                        }`}>
+                          {isLiveNow && session.is_active
+                            ? "LIVE VOTING WINDOW"
+                            : !isSessionStarted
+                            ? "SCHEDULED SESSION"
+                            : "SESSION CONCLUDED"}
+                        </span>
+                        <h3 className="text-lg font-black text-white">{session.title}</h3>
+                      </div>
+                      <p className="text-sm text-slate-200 mt-1 font-medium">
+                        {isLiveNow && session.is_active
+                          ? "Ballots are active and ready. Cast your vote on each item below."
+                          : !isSessionStarted
+                          ? "Voting window is scheduled. Ballots will unlock automatically when start time is reached."
+                          : "Voting is closed. Official tallies are being anchored to blockchain."}
+                      </p>
+                    </div>
                   </div>
-                </CardContent>
+
+                  <div className="px-5 py-3 rounded-2xl bg-black/60 border border-white/15 text-center shrink-0">
+                    <p className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Timer Status</p>
+                    <p className="text-base font-black text-cyan-300 mt-0.5 font-mono">{countdownText || "Calculating..."}</p>
+                  </div>
+                </div>
               </Card>
             </div>
           )}
 
+          {/* Virtual Meeting Join Banner */}
+          {!isLoading && session?.meeting_link && (
+            <div className="mb-8">
+              <Card className="border-cyan-500/30 bg-[#0d1b2a]/90 backdrop-blur-xl shadow-xl rounded-3xl p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-300 shrink-0">
+                      <Video className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-white mb-1">
+                        Live Virtual General Meeting Room
+                      </h3>
+                      <div className="space-y-1 text-sm text-slate-200 font-medium">
+                        {session.meeting_start_date && (
+                          <p className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-cyan-400" />
+                            {new Date(session.meeting_start_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                          </p>
+                        )}
+                        {session.meeting_password && (
+                          <p className="flex items-center gap-2">
+                            <Shield className="w-4 h-4 text-emerald-400" />
+                            Room Passcode: <span className="font-mono bg-black/60 px-2 py-0.5 rounded text-white border border-white/10">{session.meeting_password}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    size="lg"
+                    className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg gap-2"
+                    onClick={() => window.open(session.meeting_link!, '_blank')}
+                  >
+                    <Video className="w-4 h-4" />
+                    Join Video Stream
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          )}
 
           {/* Proxy Delegation Section */}
           {!isLoading && session && (
-            <div className="animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+            <div>
               <AppointProxyCard
                 shareholders={companyShareholders?.filter(s => s.id !== shareholderId) || []}
                 delegation={delegation}
@@ -543,9 +653,9 @@ const VotingDashboard = () => {
             </div>
           )}
 
-          {/* New Analytics Section */}
+          {/* Analytics Summary */}
           {!isLoading && (
-            <div className="animate-fade-in-up">
+            <div className="mb-8">
               <VotingAnalytics
                 totalResolutions={votingItems.length}
                 votedResolutions={totalVoted}
@@ -555,38 +665,37 @@ const VotingDashboard = () => {
             </div>
           )}
 
-          {isLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="h-[180px] rounded-xl bg-card/40 border border-white/5 animate-pulse" />
-              <div className="h-[180px] rounded-xl bg-card/40 border border-white/5 animate-pulse" />
-              <div className="h-[180px] rounded-xl bg-card/40 border border-white/5 animate-pulse" />
-            </div>
-          )}
-
-          {/* Voting Items Grid */}
+          {/* Voting Items & Ballot Grid */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Vote className="w-6 h-6 text-primary" />
-                {t("voting_dash_resolutions")}
+              <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                <Vote className="w-6 h-6 text-cyan-400" />
+                Active Ballot Items & Agendas ({votingItems.length})
               </h2>
-              <div className="text-sm text-muted-foreground flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                {t("voting_dash_secure_conn")}
+              <div className="text-xs text-slate-200 flex items-center gap-2 font-bold">
+                <Shield className="w-4 h-4 text-emerald-400" />
+                256-Bit SHA Encrypted & Verified
               </div>
             </div>
 
             <div className="space-y-4">
               {isLoading ? (
-                // Skeleton Loaders
                 <>
                   <VotingCardSkeleton />
                   <VotingCardSkeleton />
                   <VotingCardSkeleton />
                 </>
+              ) : votingItems.length === 0 ? (
+                <Card className="border-white/15 bg-[#0d1b2a]/90 backdrop-blur-xl p-12 text-center rounded-3xl">
+                  <Layers className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                  <h3 className="text-xl font-bold text-white mb-1">No Active Ballot Items</h3>
+                  <p className="text-xs text-slate-200 max-w-md mx-auto">
+                    The company administrator has not yet registered resolutions or director candidates for this session.
+                  </p>
+                </Card>
               ) : (
                 votingItems.map((item, index) => (
-                  <div key={item.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div key={item.id}>
                     <VotingCard
                       item={item}
                       index={index}
@@ -598,20 +707,18 @@ const VotingDashboard = () => {
             </div>
           </div>
 
-          {/* Submit All Votes - Success Message */}
+          {/* All Votes Completed Banner */}
           {!isLoading && totalVoted === votingItems.length && votingItems.length > 0 && (
-            <div className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-accent/10 border border-emerald-500/20 animate-scale-in">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center shadow-glow">
-                    <CheckCircle2 className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground text-lg">{t("voting_dash_complete_title")}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t("voting_dash_complete_desc")}
-                    </p>
-                  </div>
+            <div className="mt-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-[#0d1b2a]/90 to-cyan-950/60 border border-emerald-500/40 shadow-2xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg">All Ballots Cast & Verified</h3>
+                  <p className="text-sm text-slate-200 font-medium mt-0.5">
+                    Your votes are permanently recorded with cryptographic hashes and will be anchored in the final scrutinizer block.
+                  </p>
                 </div>
               </div>
             </div>
@@ -619,19 +726,13 @@ const VotingDashboard = () => {
 
           {/* Feedback Section */}
           {!isLoading && session && shareholderId && (
-            <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="mt-8">
               <ShareholderFeedbackForm
                 sessionId={session.id}
                 shareholderId={shareholderId}
               />
             </div>
           )}
-
-          {/* Session Footer Info */}
-          <div className="mt-12 text-center text-sm text-muted-foreground pb-8">
-            <p>{t("voting_dash_session_id")} {session?.id}</p>
-            <p>{t("voting_dash_footer_note")}</p>
-          </div>
 
         </div>
       </main>
