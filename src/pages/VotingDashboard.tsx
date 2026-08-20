@@ -36,7 +36,7 @@ import VotingCard from "@/components/voting/VotingCard";
 import VotingAnalytics from "@/components/dashboard/VotingAnalytics";
 import VotingCardSkeleton from "@/components/voting/VotingCardSkeleton";
 import { votingApi } from "@/services/api/voting";
-import { VotingItem, VoteType, VoteRecord } from "@/types/voting";
+import { VotingItem, VoteType, VoteRecord, Resolution } from "@/types/voting";
 import { supabase } from "@/integrations/supabase/client";
 import { MerkleTree } from "@/lib/merkle";
 import { ShareholderFeedbackForm } from "@/components/ai/ShareholderFeedbackForm";
@@ -142,24 +142,65 @@ const VotingDashboard = () => {
     enabled: !!shareholder?.company_id,
   });
 
-  // 3. Parallel Fetch: Resolutions & Nominees & Existing Votes
+  // 3. Parallel Fetch: Resolutions (with auto-sync for Nominees) & Existing Votes
   const { data: resolutions, isLoading: loadingResolutions } = useQuery({
     queryKey: ["resolutions", session?.id],
-    queryFn: () => votingApi.getResolutions(session!.id),
-    enabled: !!session?.id,
-  });
-
-  const { data: nominees, isLoading: loadingNominees } = useQuery({
-    queryKey: ["nominees", session?.id],
     queryFn: async () => {
       if (!session?.id) return [];
-      const { data, error } = await supabase
-        .from("nominees")
+
+      // 1. Fetch existing resolutions in database
+      const { data: existingResolutions, error } = await supabase
+        .from("resolutions")
         .select("*")
         .eq("voting_session_id", session.id)
         .order("created_at", { ascending: true });
-      if (error) return [];
-      return data as Nominee[];
+
+      if (error) {
+        console.error("Error fetching resolutions:", error);
+        return [];
+      }
+
+      // 2. Fetch nominees for this session
+      const { data: sessionNominees } = await supabase
+        .from("nominees")
+        .select("*")
+        .eq("voting_session_id", session.id);
+
+      const allResolutions: Resolution[] = [...(existingResolutions || [])];
+
+      // 3. Ensure any nominee has a corresponding valid resolution in public.resolutions
+      if (sessionNominees && sessionNominees.length > 0) {
+        for (const nom of sessionNominees) {
+          const exists = allResolutions.find(r => 
+            r.resolution_type === "director_election" && 
+            r.title.includes(nom.nominee_name)
+          );
+
+          if (!exists) {
+            const desig = nom.designation ? `Proposed Designation: ${nom.designation}` : "Candidate for Board of Directors";
+            const exp = nom.experience_years ? ` | Experience: ${nom.experience_years} Years` : "";
+            const qual = nom.qualification ? ` | Qualification: ${nom.qualification}` : "";
+            const bio = nom.bio ? `\n${nom.bio}` : "";
+
+            const { data: newRes, error: insertErr } = await supabase
+              .from("resolutions")
+              .insert({
+                voting_session_id: session.id,
+                title: `Director Election: ${nom.nominee_name}`,
+                description: `${desig}${exp}${qual}${bio}`,
+                resolution_type: "director_election"
+              })
+              .select()
+              .single();
+
+            if (!insertErr && newRes) {
+              allResolutions.push(newRes as Resolution);
+            }
+          }
+        }
+      }
+
+      return allResolutions;
     },
     enabled: !!session?.id,
   });
@@ -309,14 +350,11 @@ const VotingDashboard = () => {
     }
   };
 
-  const isLoading = loadingShareholder || loadingSession || loadingResolutions || loadingNominees || loadingVotes;
+  const isLoading = loadingShareholder || loadingSession || loadingResolutions || loadingVotes;
 
-  // Process Data for UI: Both Resolutions and Nominees
+  // Process Data for UI: All items have a real, guaranteed resolution_id in PostgreSQL
   const votingItems: VotingItem[] = useMemo(() => {
-    const items: VotingItem[] = [];
-
-    // 1. Resolutions
-    resolutions?.forEach((res) => {
+    return resolutions?.map((res) => {
       const voteRecord = existingVotes?.find((v) => v.resolution_id === res.id);
       let voteValue: VoteType | null = null;
       if (voteRecord) {
@@ -326,48 +364,22 @@ const VotingDashboard = () => {
         else if (val === "ABSTAIN") voteValue = "ABSTAIN";
       }
 
-      items.push({
+      return {
         id: res.id,
         title: res.title,
         description: res.description || "",
-        category: res.resolution_type === "special" ? "Special Resolution" : "Ordinary Resolution",
+        category: res.resolution_type === "director_election" 
+          ? "Director Election" 
+          : res.resolution_type === "special" 
+          ? "Special Resolution" 
+          : "Ordinary Resolution",
         voted: !!voteRecord,
         vote: voteValue,
         voteHash: voteRecord?.vote_hash,
         anchorRoot: anchorData?.merkle_root
-      });
-    });
-
-    // 2. Nominees / Director Elections
-    nominees?.forEach((nom) => {
-      const voteRecord = existingVotes?.find((v) => v.resolution_id === nom.id);
-      let voteValue: VoteType | null = null;
-      if (voteRecord) {
-        const val = (voteRecord.vote_value || "").toUpperCase();
-        if (val === "FOR") voteValue = "FOR";
-        else if (val === "AGAINST") voteValue = "AGAINST";
-        else if (val === "ABSTAIN") voteValue = "ABSTAIN";
-      }
-
-      const desig = nom.designation ? `Proposed Designation: ${nom.designation}` : "Candidate for Board of Directors";
-      const exp = nom.experience_years ? ` | Experience: ${nom.experience_years} Years` : "";
-      const qual = nom.qualification ? ` | Qualification: ${nom.qualification}` : "";
-      const bio = nom.bio ? `\n${nom.bio}` : "";
-
-      items.push({
-        id: nom.id,
-        title: `Director Election: ${nom.nominee_name}`,
-        description: `${desig}${exp}${qual}${bio}`,
-        category: "Director Election",
-        voted: !!voteRecord,
-        vote: voteValue,
-        voteHash: voteRecord?.vote_hash,
-        anchorRoot: anchorData?.merkle_root
-      });
-    });
-
-    return items;
-  }, [resolutions, nominees, existingVotes, anchorData]);
+      };
+    }) || [];
+  }, [resolutions, existingVotes, anchorData]);
 
   const totalVoted = votingItems.filter((item) => item.voted).length;
 
