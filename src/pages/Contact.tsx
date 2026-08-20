@@ -103,12 +103,21 @@ const Contact = () => {
                   <Mail className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-sm">Executive Email Contacts</h3>
-                  <p className="text-slate-200 text-xs mt-1 font-normal">
-                    General Inquiries: <span className="text-cyan-300 font-medium">contact@votesecure.global</span><br/>
-                    Corporate Sales: <span className="text-cyan-300 font-medium">sales@votesecure.global</span><br/>
-                    Scrutinizer Desk: <span className="text-cyan-300 font-medium">audit@votesecure.global</span>
-                  </p>
+                  <h3 className="font-bold text-white text-base">Contact Us</h3>
+                  <div className="space-y-2 mt-2">
+                    <p className="flex items-center gap-2 text-slate-200 text-sm font-medium">
+                      <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <a href="mailto:support@shareholdervoting.in" className="text-cyan-300 font-bold hover:underline">
+                        support@shareholdervoting.in
+                      </a>
+                    </p>
+                    <p className="flex items-center gap-2 text-slate-200 text-sm font-medium">
+                      <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <a href="mailto:admin@shareholdervoting.in" className="text-cyan-300 font-bold hover:underline">
+                        admin@shareholdervoting.in
+                      </a>
+                    </p>
+                  </div>
                 </div>
               </div>
 
