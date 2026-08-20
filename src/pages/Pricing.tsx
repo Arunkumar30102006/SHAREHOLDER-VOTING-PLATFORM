@@ -1,5 +1,3 @@
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import { CheckCircle2, ArrowRight, Sparkles, Building2, Users, Shield, HelpCircle } from "lucide-react";
 import { SEO } from "@/components/layout/SEO";
 import { Link } from "react-router-dom";
@@ -71,20 +69,24 @@ const tiers = [
 
 const faqs = [
   {
-    q: "Is there a free trial?",
-    a: "Yes — you can register your company and explore the platform features at no cost. Contact us to discuss pricing for production use.",
-  },
-  {
-    q: "What payment methods do you accept?",
-    a: "We accept bank transfers, UPI, and standard payment gateways. Enterprise clients can request invoicing.",
-  },
-  {
-    q: "Can I upgrade my plan later?",
-    a: "Absolutely. You can upgrade at any time and your existing data and configurations will be preserved.",
+    q: "What's included in each plan?",
+    a: "Every plan includes our core SEBI-compliant e-voting engine with end-to-end encryption, shareholder authentication, and basic PDF reporting. Higher-tier plans add features like unlimited voting sessions, AI-powered analytics, multi-language support, custom branding, API access, and dedicated account management.",
   },
   {
     q: "Is this platform SEBI compliant?",
-    a: "Our platform is designed to adhere to SEBI (LODR) Regulations 2015, Companies Act 2013, and relevant MCA rules. See our compliance page for details.",
+    a: "Yes. Our platform is designed to adhere to SEBI (LODR) Regulations 2015, Companies Act 2013 (Section 108), and Rule 20 of the Companies (Management and Administration) Rules, 2014. We maintain complete audit trails and support independent scrutinizer access. See our compliance page for full details.",
+  },
+  {
+    q: "Is there a free trial?",
+    a: "Yes — you can register your company and explore the platform features at no cost. Contact us to discuss pricing for production voting sessions.",
+  },
+  {
+    q: "Can I upgrade or cancel anytime?",
+    a: "Absolutely. You can upgrade your plan at any time and your existing data, configurations, and historical records will be fully preserved. For cancellations, we offer a hassle-free offboarding process with complete data export.",
+  },
+  {
+    q: "What payment methods do you accept?",
+    a: "We accept bank transfers (NEFT/RTGS), UPI, and standard payment gateways. Enterprise clients can request monthly or annual invoicing with NET-30 terms.",
   },
 ];
 
@@ -92,11 +94,10 @@ const Pricing = () => {
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Pricing — Plans for Every Organization"
-        description="Explore transparent pricing plans for ShareholderVoting.in. From startups to enterprises, find the right plan for your corporate e-voting needs."
+        title="Pricing | E-Voting Platform for Indian Companies — Vote India Secure"
+        description="Transparent pricing for India's leading shareholder e-voting platform. SEBI-compliant online AGM voting for companies of all sizes."
         canonical="/pricing"
       />
-      <Navbar />
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">
         <div className="max-w-6xl mx-auto">
           {/* Hero */}
@@ -243,7 +244,6 @@ const Pricing = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

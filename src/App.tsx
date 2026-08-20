@@ -41,6 +41,10 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Services = lazy(() => import("./pages/Services"));
 const Compliance = lazy(() => import("./pages/Compliance"));
 const Blog = lazy(() => import("./pages/Blog"));
+const SebiCompliantEvotingGuide = lazy(() => import("./pages/blog/SebiCompliantEvotingGuide"));
+const HowOnlineShareholderVotingWorks = lazy(() => import("./pages/blog/HowOnlineShareholderVotingWorks"));
+const AgmEvotingVsPhysicalMeeting = lazy(() => import("./pages/blog/AgmEvotingVsPhysicalMeeting"));
+const BenefitsElectronicVotingShareholders = lazy(() => import("./pages/blog/BenefitsElectronicVotingShareholders"));
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
 const SebiCompliance = lazy(() => import("./pages/legal/SebiCompliance"));
@@ -107,6 +111,10 @@ const App = () => {
                         <Route path="/services" element={<Services />} />
                         <Route path="/compliance" element={<Compliance />} />
                         <Route path="/blog" element={<Blog />} />
+                        <Route path="/blog/sebi-compliant-evoting-guide" element={<SebiCompliantEvotingGuide />} />
+                        <Route path="/blog/how-online-shareholder-voting-works" element={<HowOnlineShareholderVotingWorks />} />
+                        <Route path="/blog/agm-evoting-vs-physical-meeting" element={<AgmEvotingVsPhysicalMeeting />} />
+                        <Route path="/blog/benefits-electronic-voting-shareholders" element={<BenefitsElectronicVotingShareholders />} />
                         <Route path="/contact" element={<Contact />} />
 
                         {/* Legal Routes */}

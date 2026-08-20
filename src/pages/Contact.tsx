@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { SEO } from "@/components/layout/SEO";
 import { Mail, Phone, MapPin, MessageSquare, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -56,10 +56,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
-      <Helmet>
-        <title>Contact Us | Vote India Secure</title>
-        <meta name="description" content="Get in touch with Vote India Secure for e-voting solutions, pricing, and support." />
-      </Helmet>
+      <SEO
+        title="Contact Us | Shareholder E-Voting Support"
+        description="Get in touch with Vote India Secure for SEBI-compliant e-voting solutions, pricing, and dedicated support for your shareholder meetings."
+        canonical="/contact"
+      />
 
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-16">

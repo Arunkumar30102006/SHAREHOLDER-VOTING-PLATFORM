@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { SEO } from "@/components/layout/SEO";
 import { 
   Target, Eye, MapPin, 
   ShieldCheck, Lightbulb, Scale, Lock
@@ -8,10 +8,11 @@ import { motion } from "motion/react";
 const About = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
-      <Helmet>
-        <title>About Us | Vote India Secure</title>
-        <meta name="description" content="Learn about our mission, vision, and the team building India's most secure corporate e-voting platform." />
-      </Helmet>
+      <SEO
+        title="About Us | India's Trusted E-Voting Company"
+        description="Learn about Vote India Secure's mission, vision, and the team building India's most secure SEBI-compliant corporate e-voting platform for shareholder meetings."
+        canonical="/about"
+      />
 
       {/* Header */}
       <section className="container mx-auto px-4 max-w-5xl mb-24">

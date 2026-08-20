@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { SEO } from "@/components/layout/SEO";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Vote, FileText, Users, ShieldCheck, Link2, Smartphone, ArrowRight } from "lucide-react";
@@ -40,10 +40,11 @@ const services = [
 const Services = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
-      <Helmet>
-        <title>Services | Vote Secure</title>
-        <meta name="description" content="Explore our enterprise e-voting services, compliance reporting, and shareholder engagement tools." />
-      </Helmet>
+      <SEO
+        title="Services | Enterprise Shareholder Voting Solutions"
+        description="Comprehensive e-voting services for Indian companies: AGM/EGM voting, compliance reporting, shareholder engagement tools, and RTA integration."
+        canonical="/services"
+      />
 
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-16">

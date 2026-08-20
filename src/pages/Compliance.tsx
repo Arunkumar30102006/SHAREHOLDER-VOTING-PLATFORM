@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { SEO } from "@/components/layout/SEO";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, FileCheck, Lock, Server, CheckCircle2 } from "lucide-react";
@@ -6,10 +6,11 @@ import { ShieldCheck, FileCheck, Lock, Server, CheckCircle2 } from "lucide-react
 const Compliance = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
-      <Helmet>
-        <title>Compliance & Security | Vote India Secure</title>
-        <meta name="description" content="SEBI compliant electronic voting platform with enterprise-grade security and ISO 27001 readiness." />
-      </Helmet>
+      <SEO
+        title="Compliance & Security | SEBI-Compliant E-Voting"
+        description="Vote India Secure is a SEBI-compliant electronic voting platform with enterprise-grade AES-256 encryption, immutable audit trails, and ISO 27001 readiness."
+        canonical="/compliance"
+      />
 
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="text-center mb-16">

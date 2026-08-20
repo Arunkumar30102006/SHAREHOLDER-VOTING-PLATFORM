@@ -8,6 +8,7 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SEO } from "@/components/layout/SEO";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -555,6 +556,9 @@ export default function CompanyRegister() {
   return (
     <div className="min-h-screen relative pt-28 pb-20 bg-[#0d1b2a]">
       <SEO title="Company Registration | Vote India Secure" description="Register your company on Vote India Secure." canonical="/company-register" />
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <Navbar />
 
       <main className="container mx-auto px-4 max-w-4xl">

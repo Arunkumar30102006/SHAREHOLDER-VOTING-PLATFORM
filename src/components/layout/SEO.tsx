@@ -10,6 +10,8 @@ interface SEOProps {
     name?: string;
     image?: string;
     schema?: object;
+    schemas?: object[];
+    noindex?: boolean;
 }
 
 export const SEO = ({
@@ -19,16 +21,25 @@ export const SEO = ({
     type = 'website',
     name = 'Vote India Secure',
     image = '/og-image.jpg',
-    schema
+    schema,
+    schemas,
+    noindex = false,
 }: SEOProps) => {
     const canonicalUrl = canonical ? `${SITE_URL}${canonical}` : SITE_URL;
     const fullTitle = canonical === '/' ? title : `${title} | Vote India Secure`;
+
+    // Merge single schema and schemas array
+    const allSchemas: object[] = [];
+    if (schema) allSchemas.push(schema);
+    if (schemas) allSchemas.push(...schemas);
 
     return (
         <Helmet>
             <title>{fullTitle}</title>
             <meta name="description" content={description} />
             <link rel="canonical" href={canonicalUrl} />
+
+            {noindex && <meta name="robots" content="noindex, nofollow" />}
 
             <meta property="og:type" content={type} />
             <meta property="og:url" content={canonicalUrl} />
@@ -43,11 +54,11 @@ export const SEO = ({
             <meta name="twitter:description" content={description} />
             <meta name="twitter:image" content={`${SITE_URL}${image}`} />
 
-            {schema && (
-                <script type="application/ld+json">
-                    {JSON.stringify(schema)}
+            {allSchemas.map((s, i) => (
+                <script key={i} type="application/ld+json">
+                    {JSON.stringify(s)}
                 </script>
-            )}
+            ))}
         </Helmet>
     );
 };

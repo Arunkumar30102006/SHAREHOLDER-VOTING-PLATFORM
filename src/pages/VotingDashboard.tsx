@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { SEO } from "@/components/layout/SEO";
+import { Helmet } from "react-helmet-async";
 import { generateVoteHash } from "@/lib/blockchain";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -426,6 +427,9 @@ const VotingDashboard = () => {
         description="Official e-voting session. Cast your weighted votes securely as per your shareholding on the record date."
         canonical="/voting-dashboard"
       />
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <Navbar />
 
       <main className="pt-24 pb-16">

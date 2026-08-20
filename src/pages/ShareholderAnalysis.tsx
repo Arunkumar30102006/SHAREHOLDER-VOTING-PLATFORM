@@ -130,6 +130,7 @@ export const ShareholderAnalysis = () => {
             <Helmet>
                 <title>Analysis Dashboard | Shareholder Portal</title>
                 <meta name="description" content="Shareholder personal voting and shareholding analysis dashboard." />
+                <meta name="robots" content="noindex, nofollow" />
             </Helmet>
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-sm">

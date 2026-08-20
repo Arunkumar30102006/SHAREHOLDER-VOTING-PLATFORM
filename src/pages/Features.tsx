@@ -1,5 +1,3 @@
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import {
   Shield, Lock, Eye, Fingerprint, FileCheck, Globe, Mail, Calendar,
   ArrowRight, CheckCircle2, Vote, Smartphone, BarChart3, QrCode, FileText
@@ -160,11 +158,10 @@ const Features = () => {
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Features — Enterprise E-Voting Capabilities"
-        description="Explore the complete feature set of ShareholderVoting.in — from end-to-end encryption and SEBI compliance to AI analytics and automated reporting."
+        title="Features | Shareholder Voting Software — Vote India Secure"
+        description="Explore Vote India Secure's features: blockchain integrity, real-time results, SEBI compliance, end-to-end encryption, and more for online shareholder voting."
         canonical="/features"
       />
-      <Navbar />
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">
         <div className="max-w-6xl mx-auto">
           {/* Hero */}
@@ -286,7 +283,6 @@ const Features = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
