@@ -45,46 +45,56 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2 text-xs text-white bg-blue-900/40 px-3 py-1.5 rounded-full border border-blue-500/30">
                 <Lock className="w-4 h-4 text-blue-400" />
-                <span>ISO 27001 Certified</span>
+                <span>AES-256 Bit</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-white bg-purple-900/40 px-3 py-1.5 rounded-full border border-purple-500/30">
                 <Shield className="w-4 h-4 text-purple-400" />
-                <span>STQC Certified (GoI)</span>
+                <span>DPDP Act 2023 Aligned</span>
               </div>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Solutions Column */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
+            <h3 className="font-semibold text-lg mb-4 text-white">E-Voting Solutions</h3>
             <ul className="space-y-3">
-              {["Home", "About Us", "Services", "Compliance", "Blog", "Contact Us", "Company Portal"].map((item, index) => {
-                const paths = ["/", "/about", "/services", "/compliance", "/blog", "/contact", "/company-login"];
-                return (
-                  <li key={item}>
-                    <Link to={paths[index]} className="text-sm text-slate-200 hover:text-white font-medium transition-colors">
-                      {item}
-                    </Link>
-                  </li>
-                );
-              })}
+              {[
+                { name: "Shareholder Voting", path: "/shareholder-voting" },
+                { name: "AGM E-Voting", path: "/agm-voting" },
+                { name: "EGM E-Voting", path: "/egm-voting" },
+                { name: "Online E-Voting", path: "/online-e-voting" },
+                { name: "Corporate Voting", path: "/corporate-voting" },
+                { name: "Security Architecture", path: "/security" },
+                { name: "How It Works", path: "/how-it-works" },
+              ].map((item) => (
+                <li key={item.name}>
+                  <Link to={item.path} className="text-sm text-slate-300 hover:text-cyan-300 font-medium transition-colors">
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Quick Links & Legal */}
           <div>
-            <h3 className="font-semibold text-lg mb-4 text-white">Legal</h3>
+            <h3 className="font-semibold text-lg mb-4 text-white">Company & Legal</h3>
             <ul className="space-y-3">
-              {["Privacy Policy", "Terms of Service", "Compliance", "Data Protection"].map((item, index) => {
-                const paths = ["/privacy-policy", "/terms-of-service", "/compliance", "/data-protection"];
-                return (
-                  <li key={item}>
-                    <Link to={paths[index]} className="text-sm text-slate-200 hover:text-white font-medium transition-colors">
-                      {item}
-                    </Link>
-                  </li>
-                );
-              })}
+              {[
+                { name: "About Us", path: "/about" },
+                { name: "Services", path: "/services" },
+                { name: "SEBI Compliance", path: "/compliance" },
+                { name: "Blog & Insights", path: "/blog" },
+                { name: "Privacy Policy", path: "/privacy-policy" },
+                { name: "Terms of Service", path: "/terms-of-service" },
+                { name: "Contact Us", path: "/contact" },
+              ].map((item) => (
+                <li key={item.name}>
+                  <Link to={item.path} className="text-sm text-slate-300 hover:text-cyan-300 font-medium transition-colors">
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
