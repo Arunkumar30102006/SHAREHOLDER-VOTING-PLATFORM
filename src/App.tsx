@@ -44,8 +44,29 @@ const queryClient = new QueryClient({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const lazyPage = (importFn: () => Promise<any>) => {
   return async () => {
-    const mod = await importFn();
-    return { Component: mod.default };
+    try {
+      const mod = await importFn();
+      return { Component: mod.default };
+    } catch (err: unknown) {
+      const errStr = String(err);
+      if (
+        errStr.includes("Failed to fetch dynamically imported module") ||
+        errStr.includes("Importing a module script failed") ||
+        errStr.includes("error loading dynamically imported module")
+      ) {
+        if (typeof window !== "undefined") {
+          const reloadKey = "app_chunk_retry";
+          const lastReload = sessionStorage.getItem(reloadKey);
+          const now = Date.now();
+          if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+            sessionStorage.setItem(reloadKey, String(now));
+            window.location.reload();
+            return { Component: () => null };
+          }
+        }
+      }
+      throw err;
+    }
   };
 };
 

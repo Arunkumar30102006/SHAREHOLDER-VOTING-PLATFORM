@@ -24,6 +24,21 @@ class GlobalErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         logger.error("Uncaught error in application", { error, errorInfo });
+
+        const errStr = error?.message || "";
+        if (
+            errStr.includes("Failed to fetch dynamically imported module") ||
+            errStr.includes("Importing a module script failed") ||
+            errStr.includes("error loading dynamically imported module")
+        ) {
+            const reloadKey = "boundary_chunk_retry";
+            const lastReload = sessionStorage.getItem(reloadKey);
+            const now = Date.now();
+            if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+                sessionStorage.setItem(reloadKey, String(now));
+                window.location.reload();
+            }
+        }
     }
 
     private handleReload = () => {
