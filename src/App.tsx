@@ -124,7 +124,7 @@ export const routes: RouteRecord[] = [
         ],
       },
 
-      // ─── Public Pages ───
+      // ─── Public Pages & SEO Landing Pages ───
       { path: 'about', lazy: lazyPage(() => import('./pages/About')) },
       { path: 'features', lazy: lazyPage(() => import('./pages/Features')) },
       { path: 'pricing', lazy: lazyPage(() => import('./pages/Pricing')) },
@@ -132,6 +132,14 @@ export const routes: RouteRecord[] = [
       { path: 'live-demo', lazy: lazyPage(() => import('./pages/LiveDemo')) },
       { path: 'services', lazy: lazyPage(() => import('./pages/Services')) },
       { path: 'compliance', lazy: lazyPage(() => import('./pages/Compliance')) },
+      { path: 'security', lazy: lazyPage(() => import('./pages/Security')) },
+      { path: 'shareholder-voting', lazy: lazyPage(() => import('./pages/seo/ShareholderVoting')) },
+      { path: 'online-e-voting', lazy: lazyPage(() => import('./pages/seo/OnlineEVoting')) },
+      { path: 'agm-voting', lazy: lazyPage(() => import('./pages/seo/AgmVoting')) },
+      { path: 'egm-voting', lazy: lazyPage(() => import('./pages/seo/EgmVoting')) },
+      { path: 'corporate-voting', lazy: lazyPage(() => import('./pages/seo/CorporateVoting')) },
+      { path: 'secure-voting', lazy: lazyPage(() => import('./pages/seo/SecureVoting')) },
+      { path: 'how-it-works', lazy: lazyPage(() => import('./pages/seo/HowItWorks')) },
       { path: 'blog', lazy: lazyPage(() => import('./pages/Blog')) },
       { path: 'blog/sebi-compliant-evoting-guide', lazy: lazyPage(() => import('./pages/blog/SebiCompliantEvotingGuide')) },
       { path: 'blog/how-online-shareholder-voting-works', lazy: lazyPage(() => import('./pages/blog/HowOnlineShareholderVotingWorks')) },

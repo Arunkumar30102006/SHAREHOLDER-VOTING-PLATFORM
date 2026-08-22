@@ -17,30 +17,38 @@ const TODAY = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 // All public routes with their SEO priority and change frequency
 const routes = [
   // ─── Core Pages ───
-  { path: '/',          priority: '1.0', changefreq: 'monthly' },
-  { path: '/features',  priority: '0.9', changefreq: 'monthly' },
-  { path: '/pricing',   priority: '0.9', changefreq: 'monthly' },
-  { path: '/about',     priority: '0.8', changefreq: 'monthly' },
-  { path: '/services',  priority: '0.8', changefreq: 'monthly' },
-  { path: '/compliance', priority: '0.8', changefreq: 'monthly' },
+  { path: '/',                   priority: '1.0', changefreq: 'weekly' },
+  { path: '/shareholder-voting',  priority: '0.9', changefreq: 'monthly' },
+  { path: '/online-e-voting',     priority: '0.9', changefreq: 'monthly' },
+  { path: '/agm-voting',          priority: '0.9', changefreq: 'monthly' },
+  { path: '/egm-voting',          priority: '0.9', changefreq: 'monthly' },
+  { path: '/corporate-voting',    priority: '0.9', changefreq: 'monthly' },
+  { path: '/secure-voting',       priority: '0.9', changefreq: 'monthly' },
+  { path: '/how-it-works',        priority: '0.9', changefreq: 'monthly' },
+  { path: '/features',           priority: '0.9', changefreq: 'monthly' },
+  { path: '/pricing',            priority: '0.9', changefreq: 'monthly' },
+  { path: '/compliance',         priority: '0.8', changefreq: 'monthly' },
+  { path: '/security',           priority: '0.8', changefreq: 'monthly' },
+  { path: '/about',              priority: '0.8', changefreq: 'monthly' },
+  { path: '/services',           priority: '0.8', changefreq: 'monthly' },
 
-  // ─── Blog ───
-  { path: '/blog',      priority: '0.8', changefreq: 'weekly' },
+  // ─── Blog & Guides ───
+  { path: '/blog',               priority: '0.8', changefreq: 'weekly' },
   { path: '/blog/sebi-compliant-evoting-guide',              priority: '0.7', changefreq: 'monthly' },
   { path: '/blog/how-online-shareholder-voting-works',       priority: '0.7', changefreq: 'monthly' },
   { path: '/blog/agm-evoting-vs-physical-meeting',           priority: '0.7', changefreq: 'monthly' },
   { path: '/blog/benefits-electronic-voting-shareholders',   priority: '0.7', changefreq: 'monthly' },
 
   // ─── Contact & Demo ───
-  { path: '/contact',   priority: '0.7', changefreq: 'yearly' },
-  { path: '/demo',      priority: '0.7', changefreq: 'monthly' },
-  { path: '/live-demo', priority: '0.7', changefreq: 'monthly' },
+  { path: '/contact',            priority: '0.7', changefreq: 'yearly' },
+  { path: '/demo',               priority: '0.7', changefreq: 'monthly' },
+  { path: '/live-demo',          priority: '0.7', changefreq: 'monthly' },
 
   // ─── Legal ───
-  { path: '/sebi-compliance',  priority: '0.5', changefreq: 'yearly' },
-  { path: '/privacy-policy',   priority: '0.4', changefreq: 'yearly' },
-  { path: '/terms-of-service', priority: '0.4', changefreq: 'yearly' },
-  { path: '/data-protection',  priority: '0.4', changefreq: 'yearly' },
+  { path: '/sebi-compliance',   priority: '0.5', changefreq: 'yearly' },
+  { path: '/privacy-policy',    priority: '0.4', changefreq: 'yearly' },
+  { path: '/terms-of-service',  priority: '0.4', changefreq: 'yearly' },
+  { path: '/data-protection',   priority: '0.4', changefreq: 'yearly' },
 ];
 
 // Generate XML

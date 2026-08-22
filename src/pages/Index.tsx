@@ -171,8 +171,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Vote India Secure | SEBI-Compliant Shareholder E-Voting Platform for Indian Listed Companies"
-        description="India's leading enterprise e-voting platform for AGMs, EGMs, and postal ballots. Fully compliant with Companies Act 2013 & SEBI LODR Regulation 44 with AES-256 cryptographic audit trails."
+        title="Online Shareholder Voting Platform | Vote India Secure"
+        description="Vote India Secure is an enterprise online shareholder voting platform for listed companies, AGMs, EGMs, and postal ballots with cryptographic vote sealing."
         canonical="/"
       />
 
@@ -196,7 +196,7 @@ const Index = () => {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs md:text-sm font-semibold mb-8 shadow-md backdrop-blur-md"
             >
               <Globe className="w-4 h-4 text-cyan-400" />
-              <span className="text-slate-100">Global Governance Standards · ISO 27001 Ready · AES-256 Bit</span>
+              <span className="text-slate-100">Enterprise Governance Standards · AES-256 Bit Encryption</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -206,10 +206,10 @@ const Index = () => {
               transition={{ duration: 0.6 }}
               className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.1]"
             >
-              The World's Most Trusted <br className="hidden sm:inline" />
+              Online Shareholder <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent drop-shadow-sm">
-                Enterprise E-Voting
-              </span> Platform
+                Voting Platform
+              </span>
             </motion.h1>
 
             {/* Concise Subtitle with High Contrast */}
