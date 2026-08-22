@@ -12,10 +12,10 @@ interface StatItem {
 }
 
 const stats: StatItem[] = [
-  { value: "10M+", numericValue: 10, suffix: "M+", label: "Votes Processed", icon: Vote, color: "text-blue-400" },
-  { value: "500+", numericValue: 500, suffix: "+", label: "Enterprises Worldwide", icon: Building2, color: "text-amber-400" },
-  { value: "99.99%", numericValue: 99.99, suffix: "%", label: "Cloud Uptime SLA", icon: Activity, color: "text-emerald-400" },
-  { value: "100%", numericValue: 100, suffix: "%", label: "Audit Verifiable", icon: ShieldCheck, color: "text-purple-400" },
+  { value: "<10s", numericValue: 10, suffix: "s", label: "OTP Delivery & Auth Speed", icon: Vote, color: "text-blue-400" },
+  { value: "256-Bit", numericValue: 256, suffix: "-Bit", label: "AES Military Encryption", icon: Building2, color: "text-amber-400" },
+  { value: "99.99%", numericValue: 99.99, suffix: "%", label: "Cloud Architecture SLA", icon: Activity, color: "text-emerald-400" },
+  { value: "100%", numericValue: 100, suffix: "%", label: "Cryptographic Merkle Verifiable", icon: ShieldCheck, color: "text-purple-400" },
 ];
 
 const useCountUp = (end: number, duration: number, shouldStart: boolean) => {

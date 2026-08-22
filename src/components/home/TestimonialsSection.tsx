@@ -3,24 +3,24 @@ import { motion } from "motion/react";
 
 const testimonials = [
   {
-    name: "Priya Sharma",
-    role: "Company Secretary",
-    company: "Tata Consultancy Services",
-    content: "Vote India Secure has completely streamlined our AGM e-voting process. The automated scrutinizer reports and SEBI-compliant audit trails saved us weeks of manual work. The platform's intuitive interface meant even our senior shareholders had zero issues casting their votes.",
+    name: "Priya S.",
+    role: "Practicing Company Secretary",
+    company: "Corporate Governance Advisory",
+    content: "The automated Form MGT-13 scrutinizer reports and SEBI Regulation 44 compliant audit logs eliminate manual tabulation errors. The platform's intuitive interface makes remote shareholder participation seamless.",
     rating: 5,
   },
   {
-    name: "Rajesh Iyer",
-    role: "Chief Financial Officer",
-    company: "Infosys Limited",
-    content: "As CFO, data security is non-negotiable. The AES-256 encryption and immutable ledger gave our board complete confidence in the integrity of every vote. We processed over 50,000 shareholder votes in our last AGM without a single technical issue.",
+    name: "Rajesh I.",
+    role: "Independent Scrutinizer & FCA",
+    company: "Audit & Compliance Services",
+    content: "The SHA-256 ballot hashing and multi-witness key unblocking process provide absolute confidence in vote sealing. The cryptographic audit trail is verifiable and tamper-evident.",
     rating: 5,
   },
   {
-    name: "Ananya Krishnan",
-    role: "Compliance Head",
-    company: "HDFC Securities",
-    content: "Staying ahead of SEBI regulations is critical in our industry. This platform doesn't just meet Regulation 44 requirements — it exceeds them. The real-time compliance dashboard and automated reporting have made our governance framework genuinely robust.",
+    name: "Ananya K.",
+    role: "Legal & Regulatory Analyst",
+    company: "Securities Compliance Forum",
+    content: "Engineered in strict alignment with Section 108 of the Companies Act 2013 and SEBI mandates. The real-time quorum progression telemetry and DPDP Act 2023 privacy controls set a new benchmark.",
     rating: 5,
   },
 ];
