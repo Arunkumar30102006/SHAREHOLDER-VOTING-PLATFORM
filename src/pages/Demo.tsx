@@ -10,7 +10,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SEO } from "@/components/layout/SEO";
 
-const DEMO_COMPANY = "Infosys Limited — 43rd AGM";
+const DEMO_COMPANY = "Zenith Enterprises Limited — 42nd AGM";
 
 const RESOLUTIONS = [
   {
@@ -22,13 +22,13 @@ const RESOLUTIONS = [
   {
     id: 2,
     type: "Special",
-    title: "Re-appointment of Mr. Salil Parekh as Managing Director & CEO",
-    description: "To approve the re-appointment of Mr. Salil Parekh as Managing Director and Chief Executive Officer for a further term of 5 years. The remuneration package has been reviewed and recommended by the Committee.",
+    title: "Re-appointment of Managing Director & CEO",
+    description: "To approve the re-appointment of the Managing Director and Chief Executive Officer for a further term of 5 years. The remuneration package has been reviewed and recommended by the Nomination & Remuneration Committee.",
   },
   {
     id: 3,
     type: "Ordinary",
-    title: "Approval of Dividend of ₹22 per equity share",
+    title: "Approval of Final Dividend of ₹22 per equity share",
     description: "To declare a final dividend of ₹22 per equity share of face value ₹5 each for the financial year ended March 31, 2026. The dividend will be paid within 30 days of the AGM.",
   },
 ];
@@ -130,8 +130,8 @@ export default function Demo() {
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Interactive E-Voting Demo"
-        description="Experience a simulated AGM voting process for Infosys Limited."
+        title="Interactive E-Voting Demo | Simulated AGM Balloting"
+        description="Experience a live simulated shareholder AGM electronic voting workflow with instant OTP authentication and ballot receipts."
         canonical="/demo"
       />
       <Navbar />

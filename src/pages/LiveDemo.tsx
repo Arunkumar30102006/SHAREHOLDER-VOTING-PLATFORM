@@ -16,9 +16,9 @@ import { ClientOnly } from "vite-react-ssg";
 const OTPSuccess3D = React.lazy(() => import('@/components/3d/OTPSuccess3D'));
 
 // --- Demo Data ---
-const DEMO_COMPANY = "Infosys Technologies Ltd.";
-const DEMO_AGM = "47th Annual General Meeting (2026)";
-const DEMO_USER = { name: "Rajesh Kumar Sharma", userId: "SH-INF-2026-04821", shares: 1250, dpid: "IN302201", clientId: "10847523" };
+const DEMO_COMPANY = "Zenith Enterprises Ltd.";
+const DEMO_AGM = "42nd Annual General Meeting (2026)";
+const DEMO_USER = { name: "Rajesh Kumar Sharma", userId: "SH-ZEN-2026-04821", shares: 1250, dpid: "IN302201", clientId: "10847523" };
 
 const DEMO_RESOLUTIONS = [
   {
@@ -32,7 +32,7 @@ const DEMO_RESOLUTIONS = [
     id: 2,
     type: "Special",
     title: "Appointment of Statutory Auditor",
-    description: "To appoint M/s. Deloitte Haskins & Sells LLP, Chartered Accountants, as the Statutory Auditors of the Company for a term of 5 years from FY 2026-27 to FY 2030-31.",
+    description: "To appoint an independent peer-reviewed firm of Chartered Accountants as the Statutory Auditors of the Company for a term of 5 years.",
     recommendation: "FOR",
   },
   {

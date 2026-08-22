@@ -82,7 +82,7 @@ const Contact = () => {
           {/* Contact Information Cards */}
           <div className="md:col-span-2 space-y-6">
             <div className="bg-[#0d1b2a]/90 border border-white/15 rounded-3xl p-8 backdrop-blur-xl shadow-xl space-y-6">
-              <h2 className="text-2xl font-black text-white">Global Headquarters</h2>
+              <h2 className="text-2xl font-black text-white">Operations Center</h2>
               
               <div className="flex gap-4 items-start">
                 <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-cyan-300">
@@ -91,9 +91,9 @@ const Contact = () => {
                 <div>
                   <h3 className="font-bold text-white text-sm">Enterprise Governance Center</h3>
                   <p className="text-slate-200 text-xs mt-1 leading-relaxed font-normal">
-                    Vote Secure International Corp.<br/>
-                    1201 North Market Street, Suite 1400<br/>
-                    Wilmington, DE 19801, United States
+                    Vote India Secure Platform<br/>
+                    Bandra Kurla Complex (BKC)<br/>
+                    Mumbai, Maharashtra 400051, India
                   </p>
                 </div>
               </div>
