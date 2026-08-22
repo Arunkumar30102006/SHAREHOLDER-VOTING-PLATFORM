@@ -9,9 +9,9 @@ const corsHeaders = {
 };
 
 interface CredentialsEmailRequest {
-  type?: "credentials" | "otp"; // Default to "credentials" for backward compatibility
-  shareholderEmail?: string; // Optional for OTP
-  email?: string; // Standardized email field
+  type?: "credentials" | "otp" | "login_otp" | "deregistration_otp";
+  shareholderEmail?: string;
+  email?: string;
   shareholderName?: string;
   companyName: string;
   loginId?: string;
@@ -48,28 +48,90 @@ const handler = async (req: Request): Promise<Response> => {
     let subject = "";
     let html = "";
 
-    if (type === "otp") {
+    if (type === "deregistration_otp") {
       if (!otp) throw new Error("OTP is required");
       subject = `Deregistration Verification Code - ${companyName}`;
       html = `
         <!DOCTYPE html>
         <html>
-        <body style="font-family: sans-serif; background-color: #fca5a5; padding: 20px;">
-          <div style="background-color: white; padding: 20px; border-radius: 10px; border: 1px solid #ef4444;">
-            <h2 style="color: #b91c1c;">Deregistration Request</h2>
-            <p>You have requested to deregister <strong>${companyName}</strong>.</p>
-            <p>This action will <strong>permanently delete</strong> all company data, including shareholders and voting records.</p>
-            <p>Use the following OTP to confirm this action:</p>
-            <div style="background-color: #f3f4f6; padding: 10px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px;">
-              ${otp}
+        <head>
+          <meta charset="utf-8">
+          <title>Deregistration Request</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; margin: 0; padding: 20px; color: #ffffff;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #1e293b; border-radius: 16px; padding: 32px; border: 1px solid #ef4444;">
+            <h2 style="color: #ef4444; margin-top: 0;">⚠️ Deregistration Request</h2>
+            <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6;">You have requested to deregister <strong>${companyName}</strong> on the Vote India Secure platform.</p>
+            <p style="color: #fca5a5; font-size: 14px; line-height: 1.6;">This action will <strong>permanently delete</strong> all company data, including shareholders, resolutions, and audit records.</p>
+            <p style="color: #cbd5e1; font-size: 14px;">Use the following OTP to confirm this action:</p>
+            <div style="background-color: #0f172a; border-radius: 8px; padding: 18px; text-align: center; border: 1px solid #ef4444; margin: 24px 0;">
+              <span style="font-family: 'Courier New', monospace; font-size: 32px; font-weight: 700; color: #f87171; letter-spacing: 8px;">${otp}</span>
             </div>
-            <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">If you did not request this, please contact support immediately.</p>
+            <p style="color: #94a3b8; font-size: 12px;">This code expires in 10 minutes. If you did not request this, please contact support immediately.</p>
           </div>
         </body>
         </html>
-        `;
+      `;
+    } else if (type === "login_otp" || type === "otp") {
+      // Company Admin Login OTP
+      if (!otp) throw new Error("OTP is required");
+      subject = `Login Verification Code - ${companyName}`;
+      html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Login Verification Code</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020817; color: #ffffff;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 32px;">
+              <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border-radius: 14px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                <span style="color: white; font-size: 26px; font-weight: bold;">🔒</span>
+              </div>
+              <h1 style="color: #ffffff; font-size: 22px; margin: 0 0 6px; font-weight: 800;">Vote India Secure</h1>
+              <p style="color: #94a3b8; font-size: 13px; margin: 0;">Enterprise Shareholder E-Voting Platform</p>
+            </div>
+
+            <!-- Main Card -->
+            <div style="background: linear-gradient(135deg, #0d1b2a 0%, #0b1523 100%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 36px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
+              <h2 style="color: #ffffff; font-size: 20px; margin: 0 0 12px; font-weight: 700;">Admin Login Verification</h2>
+              
+              <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+                You are logging into the Administrator Portal for <strong style="color: #38bdf8;">${companyName}</strong>. Please use the one-time verification code below to authenticate your session:
+              </p>
+
+              <!-- OTP Code Box -->
+              <div style="background: #020817; border: 1px solid #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin: 28px 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);">
+                <span style="font-family: 'Courier New', monospace; font-size: 36px; font-weight: 800; color: #38bdf8; letter-spacing: 10px; display: inline-block;">
+                  ${otp}
+                </span>
+              </div>
+
+              <!-- Security Notice -->
+              <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 14px; margin-top: 24px;">
+                <p style="color: #7dd3fc; font-size: 12px; margin: 0; line-height: 1.5;">
+                  ⏱️ <strong>Valid for 10 minutes.</strong> Never share this OTP with anyone. If you did not attempt to sign in to ${companyName}, please secure your account credentials immediately.
+                </p>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 28px;">
+              <p style="color: #64748b; font-size: 12px; margin: 0;">
+                © 2026 Vote India Secure · Bandra Kurla Complex (BKC), Mumbai, India<br>
+                Automated security notification · Do not reply directly to this email
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
     } else {
-      // Default: Credentials
+      // Default: Shareholder Credentials
       if (!shareholderName || !loginId || !password) throw new Error("Missing credentials fields");
       subject = `Your E-Voting Credentials for ${companyName}`;
       html = `
@@ -144,10 +206,10 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
         </body>
         </html>
-        `;
+      `;
     }
 
-    // Direct fetch call to avoid "Bundle Generation Timeout" with large SDKs
+    // Send email via Resend API
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -155,7 +217,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "E-Voting Platform <notifications@shareholdervoting.in>",
+        from: "Vote India Secure <notifications@shareholdervoting.in>",
         to: [targetEmail],
         subject: subject,
         html: html,
@@ -179,7 +241,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: unknown) {
     console.error("Error in send-shareholder-credentials function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

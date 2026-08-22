@@ -105,7 +105,7 @@ const CompanyLogin = () => {
         // Send OTP
         const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
           body: {
-            type: 'otp',
+            type: 'login_otp',
             email: validatedData.email,
             companyName: cName,
             otp: newOtp
