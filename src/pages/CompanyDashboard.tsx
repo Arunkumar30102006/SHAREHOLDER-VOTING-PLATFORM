@@ -40,8 +40,18 @@ import {
   ExternalLink,
   ChevronRight,
   Pencil,
+  AlertTriangle,
+  Lock,
   X
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,6 +118,15 @@ const CompanyDashboard = () => {
     sharesHeld: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Deregistration State
+  const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
+  const [deregisterStep, setDeregisterStep] = useState<1 | 2>(1);
+  const [deregisterOtp, setDeregisterOtp] = useState("");
+  const [generatedDeregisterOtp, setGeneratedDeregisterOtp] = useState("");
+  const [confirmNameInput, setConfirmNameInput] = useState("");
+  const [isSendingDeregisterOtp, setIsSendingDeregisterOtp] = useState(false);
+  const [isDeregistering, setIsDeregistering] = useState(false);
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -554,6 +573,80 @@ const CompanyDashboard = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/company-login");
+  };
+
+  const handleStartDeregistration = async () => {
+    if (!company) return;
+    setIsSendingDeregisterOtp(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const adminEmail = session?.user?.email;
+      if (!adminEmail) throw new Error("Could not retrieve admin email address");
+
+      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedDeregisterOtp(newOtp);
+
+      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
+        body: {
+          type: 'deregistration_otp',
+          email: adminEmail,
+          companyName: company.company_name,
+          otp: newOtp
+        },
+        headers: {
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+        }
+      });
+
+      if (emailError) throw emailError;
+
+      toast.success("Deregistration verification code sent to your admin email");
+      setDeregisterStep(2);
+    } catch (err: unknown) {
+      console.error("Deregister OTP error:", err);
+      toast.error((err as Error).message || "Failed to send deregistration OTP");
+    } finally {
+      setIsSendingDeregisterOtp(false);
+    }
+  };
+
+  const handleConfirmDeregistration = async () => {
+    if (!company) return;
+
+    if (confirmNameInput.trim().toLowerCase() !== company.company_name.trim().toLowerCase()) {
+      toast.error("Company name does not match. Please enter the exact company name.");
+      return;
+    }
+
+    if (deregisterOtp.trim() !== generatedDeregisterOtp.trim()) {
+      toast.error("Invalid verification code. Please enter the 6-digit OTP sent to your email.");
+      return;
+    }
+
+    setIsDeregistering(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Authentication session expired");
+
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      await supabase.auth.signOut();
+      toast.success("Company and all associated records have been permanently purged.");
+      setShowDeregisterDialog(false);
+      navigate("/");
+    } catch (err: unknown) {
+      console.error("Deregistration error:", err);
+      toast.error((err as Error).message || "Failed to complete company deregistration.");
+    } finally {
+      setIsDeregistering(false);
+    }
   };
 
   if (isLoading) {
@@ -1155,6 +1248,36 @@ const CompanyDashboard = () => {
                   </CardContent>
                 </Card>
 
+                {/* Danger Zone: Company Deregistration */}
+                <Card className="border-rose-500/40 bg-[#1f0d14]/80 backdrop-blur-xl rounded-3xl shadow-2xl lg:col-span-2">
+                  <CardHeader className="pb-3 border-b border-rose-500/20">
+                    <CardTitle className="text-base font-bold flex items-center gap-2 text-rose-400">
+                      <AlertTriangle className="w-5 h-5" /> Danger Zone · Company Deregistration
+                    </CardTitle>
+                    <CardDescription className="text-slate-300 text-xs mt-1">
+                      Permanently delete this company account and purge all associated database records (shareholder rosters, voting sessions, resolutions, ballots, and administrator accounts).
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-white">Delete Company Account & Wipe All Data</p>
+                      <p className="text-xs text-rose-300/80 mt-0.5">This action is irreversible and requires email OTP verification.</p>
+                    </div>
+                    <Button 
+                      variant="destructive"
+                      onClick={() => {
+                        setDeregisterStep(1);
+                        setDeregisterOtp("");
+                        setConfirmNameInput("");
+                        setShowDeregisterDialog(true);
+                      }}
+                      className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl px-5 py-5 gap-2 shrink-0 shadow-lg shadow-rose-950/60 border border-rose-400/40"
+                    >
+                      <Trash2 className="w-4 h-4" /> Deregister Company
+                    </Button>
+                  </CardContent>
+                </Card>
+
               </div>
             </TabsContent>
 
@@ -1162,6 +1285,105 @@ const CompanyDashboard = () => {
 
         </div>
       </main>
+
+      {/* Deregistration Confirmation Dialog */}
+      <Dialog open={showDeregisterDialog} onOpenChange={setShowDeregisterDialog}>
+        <DialogContent className="bg-[#0d1b2a] border border-rose-500/40 text-white rounded-3xl max-w-lg shadow-2xl p-6 sm:p-8">
+          <DialogHeader>
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 mb-2">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <DialogTitle className="text-xl font-black text-white">
+              {deregisterStep === 1 ? "Deregister Company Account" : "Verify & Confirm Deregistration"}
+            </DialogTitle>
+            <DialogDescription className="text-slate-300 text-xs leading-relaxed">
+              {deregisterStep === 1 
+                ? "This will permanently wipe all company records, shareholder rosters, active voting sessions, and administrator access. This operation cannot be undone."
+                : `Enter the 6-digit verification OTP sent to your registered admin email, and type "${company?.company_name}" to confirm.`
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          {deregisterStep === 1 ? (
+            <div className="space-y-4 my-2">
+              <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-xs text-rose-200 leading-relaxed">
+                <p className="font-bold text-rose-300 mb-1">⚠️ You are about to permanently delete:</p>
+                <ul className="list-disc list-inside space-y-1 text-slate-300">
+                  <li>Company profile: <strong>{company?.company_name}</strong></li>
+                  <li>All {shareholders.length} registered shareholder accounts</li>
+                  <li>All voting sessions, resolutions, and ballots</li>
+                  <li>All audit logs and administrator credentials</li>
+                </ul>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0 mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowDeregisterDialog(false)}
+                  className="border-white/20 hover:bg-white/10 text-white rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleStartDeregistration}
+                  disabled={isSendingDeregisterOtp}
+                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl gap-2 shadow-lg shadow-rose-900/40"
+                >
+                  {isSendingDeregisterOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                  Send Deregistration OTP
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4 my-2">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-200">
+                  Enter 6-Digit Email OTP *
+                </Label>
+                <Input
+                  type="text"
+                  maxLength={6}
+                  placeholder="e.g. 528788"
+                  value={deregisterOtp}
+                  onChange={(e) => setDeregisterOtp(e.target.value)}
+                  className="bg-black/60 border-white/20 text-center font-mono text-xl tracking-widest text-rose-400 font-bold rounded-xl h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-200">
+                  Type <span className="text-rose-400 font-bold">"{company?.company_name}"</span> to confirm *
+                </Label>
+                <Input
+                  type="text"
+                  placeholder={company?.company_name}
+                  value={confirmNameInput}
+                  onChange={(e) => setConfirmNameInput(e.target.value)}
+                  className="bg-black/60 border-white/20 text-white font-medium rounded-xl h-11"
+                />
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0 mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setDeregisterStep(1)}
+                  className="border-white/20 hover:bg-white/10 text-white rounded-xl"
+                >
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleConfirmDeregistration}
+                  disabled={isDeregistering || deregisterOtp.length !== 6 || !confirmNameInput}
+                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl gap-2 shadow-lg shadow-rose-900/40"
+                >
+                  {isDeregistering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Permanently Delete Everything
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
