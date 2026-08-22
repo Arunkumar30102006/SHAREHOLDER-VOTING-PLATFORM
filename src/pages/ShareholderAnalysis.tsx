@@ -12,7 +12,7 @@ import {
     BarChart, Bar, ResponsiveContainer
 } from 'recharts';
 import { toast } from 'sonner';
-import { Head as Helmet } from 'vite-react-ssg';
+import { SEO } from '@/components/layout/SEO';
 import { useTranslation } from "react-i18next";
 import { DashboardMetrics } from "@/types";
 
@@ -127,11 +127,12 @@ export const ShareholderAnalysis = () => {
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500">
-            <Helmet>
-                <title>Analysis Dashboard | Shareholder Portal</title>
-                <meta name="description" content="Shareholder personal voting and shareholding analysis dashboard." />
-                <meta name="robots" content="noindex, nofollow" />
-            </Helmet>
+            <SEO
+                title="Analysis Dashboard | Shareholder Portal"
+                description="Shareholder personal voting and shareholding analysis dashboard."
+                canonical="/shareholder-analysis"
+                noindex={true}
+            />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-sm">
                 <div>

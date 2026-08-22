@@ -555,10 +555,7 @@ export default function CompanyRegister() {
 
   return (
     <div className="min-h-screen relative pt-28 pb-20 bg-[#0d1b2a]">
-      <SEO title="Company Registration | Vote India Secure" description="Register your company on Vote India Secure." canonical="/company-register" />
-      <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      <SEO title="Company Registration | Vote India Secure" description="Register your company on Vote India Secure." canonical="/company-register" noindex={true} />
       <Navbar />
 
       <main className="container mx-auto px-4 max-w-4xl">

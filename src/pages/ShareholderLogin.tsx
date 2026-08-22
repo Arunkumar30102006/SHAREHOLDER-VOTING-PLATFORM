@@ -1,4 +1,4 @@
-import { Head as Helmet } from "vite-react-ssg";
+import { SEO } from "@/components/layout/SEO";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -214,9 +214,12 @@ const ShareholderLogin = () => {
 
   return (
     <div className="min-h-screen relative">
-      <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      <SEO
+        title="Shareholder Portal Login | Vote India Secure"
+        description="Secure shareholder e-voting portal login."
+        canonical="/shareholder-login"
+        noindex={true}
+      />
       <Navbar />
 
       <main className="pt-24 pb-16">

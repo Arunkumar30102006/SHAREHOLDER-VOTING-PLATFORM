@@ -1,4 +1,4 @@
-import { Head as Helmet } from "vite-react-ssg";
+import { SEO } from "@/components/layout/SEO";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -171,10 +171,13 @@ const CompanyLogin = () => {
 
 
   return (
-    <div className="min-h-screen relative">
-      <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+    <div className="min-h-screen bg-[#020817] flex flex-col justify-between selection:bg-orange-500/30">
+      <SEO
+        title="Company Administrator Login | Vote India Secure"
+        description="Secure portal login for company administrators and general meeting managers."
+        canonical="/company-login"
+        noindex={true}
+      />
       <Navbar />
 
       <main className="pt-24 pb-16 min-h-[calc(100vh-200px)] flex items-center">

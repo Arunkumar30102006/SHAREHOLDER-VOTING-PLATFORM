@@ -1,4 +1,4 @@
-import { Head as Helmet } from "vite-react-ssg";
+import { SEO } from "@/components/layout/SEO";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -667,9 +667,12 @@ const toLocalDateString = (dateOrIso?: string | null) => {
 
   return (
     <div className="min-h-screen relative bg-[#020817] text-white selection:bg-blue-500/30">
-      <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      <SEO
+        title="Session Operations & Governance Hub | Vote India Secure"
+        description="Configure general meeting resolutions, virtual meeting streams, and live scrutinizer tallies."
+        canonical="/voting-management"
+        noindex={true}
+      />
       <Navbar />
 
       <main className="pt-28 pb-20">

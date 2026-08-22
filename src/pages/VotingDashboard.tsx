@@ -486,10 +486,8 @@ const VotingDashboard = () => {
         title="Shareholder E-Voting Portal"
         description="Official e-voting session. Cast your weighted votes securely as per your shareholding on the record date."
         canonical="/voting-dashboard"
+        noindex={true}
       />
-      <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
       <Navbar />
 
       <main className="pt-24 pb-16">

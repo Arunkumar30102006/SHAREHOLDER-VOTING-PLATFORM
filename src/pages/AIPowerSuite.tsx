@@ -1,4 +1,4 @@
-import { Head as Helmet } from "vite-react-ssg";
+import { SEO } from "@/components/layout/SEO";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,9 +37,12 @@ const AIPowerSuite = () => {
 
     return (
         <div className="min-h-screen relative">
-            <Helmet>
-                <meta name="robots" content="noindex, nofollow" />
-            </Helmet>
+            <SEO
+                title="AI Power Suite | Vote India Secure"
+                description="AI-powered resolution analysis and sentiment monitoring suite."
+                canonical="/ai-power-suite"
+                noindex={true}
+            />
             <Navbar />
 
             <main className="pt-24 pb-16">
