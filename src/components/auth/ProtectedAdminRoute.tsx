@@ -61,7 +61,7 @@ const ProtectedAdminRoute = () => {
     }
 
     // Enforce 2-Step OTP Verification
-    const is2FaVerified = sessionStorage.getItem("company_2fa_verified") === "true";
+    const is2FaVerified = typeof window !== 'undefined' && sessionStorage.getItem("company_2fa_verified") === "true";
     if (!is2FaVerified) {
         toast.error("Security check failed. Please complete the login verification.");
         // Sign out to clear the partial session

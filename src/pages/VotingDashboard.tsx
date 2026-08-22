@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { SEO } from "@/components/layout/SEO";
-import { Helmet } from "react-helmet-async";
+import { Head as Helmet } from "vite-react-ssg";
 import { generateVoteHash } from "@/lib/blockchain";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -123,7 +123,7 @@ const VotingDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const shareholderId = localStorage.getItem("shareholderId");
+  const shareholderId = typeof window !== 'undefined' ? localStorage.getItem("shareholderId") : null;
 
   // 1. Fetch Shareholder Details
   const { data: shareholder, isLoading: loadingShareholder } = useQuery({

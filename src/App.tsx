@@ -1,13 +1,15 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { ClientOnly } from "vite-react-ssg";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -17,38 +19,12 @@ const WebsiteFeedback = lazy(() => import("./components/feedback/WebsiteFeedback
 const VoteAssistant = lazy(() => import("./components/ai/VoteAssistant").then(m => ({ default: m.VoteAssistant })));
 
 import GlobalErrorBoundary from "./components/layout/GlobalErrorBoundary";
+import StructuredData from "./components/layout/StructuredData";
 import "./i18n/config"; // Initialize i18n
 
-// Lazy Load Pages
-const Index = lazy(() => import("./pages/Index"));
-const CompanyRegister = lazy(() => import("./pages/CompanyRegister"));
-const CompanyLogin = lazy(() => import("./pages/CompanyLogin"));
-const CompanyDashboard = lazy(() => import("./pages/CompanyDashboard"));
-const ShareholderLogin = lazy(() => import("./pages/ShareholderLogin"));
-const VotingDashboard = lazy(() => import("./pages/VotingDashboard"));
-const ShareholderAnalysis = lazy(() => import("./pages/ShareholderAnalysis"));
-const VotingManagement = lazy(() => import("./pages/VotingManagement"));
-const AIPowerSuite = lazy(() => import("./pages/AIPowerSuite"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const LiveDemo = lazy(() => import("./pages/LiveDemo"));
+import ProtectedAdminRoute from "@/components/auth/ProtectedAdminRoute";
 
-// Lazy Load Public/Legal Pages
-const About = lazy(() => import("./pages/About"));
-const Features = lazy(() => import("./pages/Features"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const Demo = lazy(() => import("./pages/Demo"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Services = lazy(() => import("./pages/Services"));
-const Compliance = lazy(() => import("./pages/Compliance"));
-const Blog = lazy(() => import("./pages/Blog"));
-const SebiCompliantEvotingGuide = lazy(() => import("./pages/blog/SebiCompliantEvotingGuide"));
-const HowOnlineShareholderVotingWorks = lazy(() => import("./pages/blog/HowOnlineShareholderVotingWorks"));
-const AgmEvotingVsPhysicalMeeting = lazy(() => import("./pages/blog/AgmEvotingVsPhysicalMeeting"));
-const BenefitsElectronicVotingShareholders = lazy(() => import("./pages/blog/BenefitsElectronicVotingShareholders"));
-const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
-const SebiCompliance = lazy(() => import("./pages/legal/SebiCompliance"));
-const DataProtection = lazy(() => import("./pages/legal/DataProtection"));
+import type { RouteRecord } from 'vite-react-ssg';
 
 // Configure Global Query Client with aggressive caching (User Requested)
 const queryClient = new QueryClient({
@@ -61,83 +37,117 @@ const queryClient = new QueryClient({
   },
 });
 
-import { HelmetProvider } from 'react-helmet-async';
-import ProtectedAdminRoute from "@/components/auth/ProtectedAdminRoute";
+/**
+ * Helper: react-router `lazy` expects `{ Component }` but our pages use `export default`.
+ * This maps `{ default: Comp }` → `{ Component: Comp }`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const lazyPage = (importFn: () => Promise<any>) => {
+  return async () => {
+    const mod = await importFn();
+    return { Component: mod.default };
+  };
+};
 
-const App = () => {
+/**
+ * RootLayout — wraps the entire route tree with all providers.
+ * vite-react-ssg manages the router, so no BrowserRouter here.
+ * Providers that were previously inside <BrowserRouter> now live here.
+ */
+const RootLayout = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <GlobalErrorBoundary>
-          <HelmetProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <ScrollToTop />
-                
+          <StructuredData />
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <ScrollToTop />
+
+            {/* Client-only floating widgets — crash in Node.js SSG */}
+            <ClientOnly fallback={null}>
+              {() => (
                 <Suspense fallback={null}>
                   <WebsiteFeedback />
                   <VoteAssistant />
                   <ScrollToTopButton />
                 </Suspense>
+              )}
+            </ClientOnly>
 
-                <div className="flex flex-col min-h-screen">
-                  <Navbar />
-                  
-                  <main className="flex-grow">
-                    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>}>
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/company-register" element={<CompanyRegister />} />
-                        <Route path="/company-login" element={<CompanyLogin />} />
-                        <Route path="/shareholder-login" element={<ShareholderLogin />} />
-                        <Route path="/voting-dashboard" element={<VotingDashboard />} />
-                        <Route path="/shareholder-analysis" element={<ShareholderAnalysis />} />
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
 
-                        {/* Protected Admin Routes */}
-                        <Route element={<ProtectedAdminRoute />}>
-                          <Route path="/company-dashboard" element={<CompanyDashboard />} />
-                          <Route path="/voting-management" element={<VotingManagement />} />
-                          <Route path="/ai-power-suite" element={<AIPowerSuite />} />
-                        </Route>
+              <main className="flex-grow">
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>}>
+                  <Outlet />
+                </Suspense>
+              </main>
 
-                        {/* Public Pages */}
-                        <Route path="/about" element={<About />} />
-                        <Route path="/features" element={<Features />} />
-                        <Route path="/pricing" element={<Pricing />} />
-                        <Route path="/demo" element={<Demo />} />
-                        <Route path="/live-demo" element={<LiveDemo />} />
-                        <Route path="/services" element={<Services />} />
-                        <Route path="/compliance" element={<Compliance />} />
-                        <Route path="/blog" element={<Blog />} />
-                        <Route path="/blog/sebi-compliant-evoting-guide" element={<SebiCompliantEvotingGuide />} />
-                        <Route path="/blog/how-online-shareholder-voting-works" element={<HowOnlineShareholderVotingWorks />} />
-                        <Route path="/blog/agm-evoting-vs-physical-meeting" element={<AgmEvotingVsPhysicalMeeting />} />
-                        <Route path="/blog/benefits-electronic-voting-shareholders" element={<BenefitsElectronicVotingShareholders />} />
-                        <Route path="/contact" element={<Contact />} />
-
-                        {/* Legal Routes */}
-                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                        <Route path="/terms-of-service" element={<TermsOfService />} />
-                        <Route path="/sebi-compliance" element={<SebiCompliance />} />
-                        <Route path="/data-protection" element={<DataProtection />} />
-
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
-                  </main>
-
-                  <Footer />
-                </div>
-              </BrowserRouter>
-            </TooltipProvider>
-          </HelmetProvider>
+              <Footer />
+            </div>
+          </TooltipProvider>
         </GlobalErrorBoundary>
-      </ThemeProvider >
-    </QueryClientProvider >
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 
-export default App;
+/**
+ * Route configuration as a data array for vite-react-ssg.
+ * All routes are children of the RootLayout route so they inherit providers.
+ * Using `lazy` on route objects for SSG-compatible code splitting.
+ */
+export const routes: RouteRecord[] = [
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      // ─── Home ───
+      { index: true, lazy: lazyPage(() => import('./pages/Index')) },
+
+      // ─── Auth / Dashboard Routes ───
+      { path: 'company-register', lazy: lazyPage(() => import('./pages/CompanyRegister')) },
+      { path: 'company-login', lazy: lazyPage(() => import('./pages/CompanyLogin')) },
+      { path: 'shareholder-login', lazy: lazyPage(() => import('./pages/ShareholderLogin')) },
+      { path: 'voting-dashboard', lazy: lazyPage(() => import('./pages/VotingDashboard')) },
+      { path: 'shareholder-analysis', lazy: lazyPage(() => import('./pages/ShareholderAnalysis')) },
+
+      // ─── Protected Admin Routes ───
+      {
+        element: <ProtectedAdminRoute />,
+        children: [
+          { path: 'company-dashboard', lazy: lazyPage(() => import('./pages/CompanyDashboard')) },
+          { path: 'voting-management', lazy: lazyPage(() => import('./pages/VotingManagement')) },
+          { path: 'ai-power-suite', lazy: lazyPage(() => import('./pages/AIPowerSuite')) },
+        ],
+      },
+
+      // ─── Public Pages ───
+      { path: 'about', lazy: lazyPage(() => import('./pages/About')) },
+      { path: 'features', lazy: lazyPage(() => import('./pages/Features')) },
+      { path: 'pricing', lazy: lazyPage(() => import('./pages/Pricing')) },
+      { path: 'demo', lazy: lazyPage(() => import('./pages/Demo')) },
+      { path: 'live-demo', lazy: lazyPage(() => import('./pages/LiveDemo')) },
+      { path: 'services', lazy: lazyPage(() => import('./pages/Services')) },
+      { path: 'compliance', lazy: lazyPage(() => import('./pages/Compliance')) },
+      { path: 'blog', lazy: lazyPage(() => import('./pages/Blog')) },
+      { path: 'blog/sebi-compliant-evoting-guide', lazy: lazyPage(() => import('./pages/blog/SebiCompliantEvotingGuide')) },
+      { path: 'blog/how-online-shareholder-voting-works', lazy: lazyPage(() => import('./pages/blog/HowOnlineShareholderVotingWorks')) },
+      { path: 'blog/agm-evoting-vs-physical-meeting', lazy: lazyPage(() => import('./pages/blog/AgmEvotingVsPhysicalMeeting')) },
+      { path: 'blog/benefits-electronic-voting-shareholders', lazy: lazyPage(() => import('./pages/blog/BenefitsElectronicVotingShareholders')) },
+      { path: 'contact', lazy: lazyPage(() => import('./pages/Contact')) },
+
+      // ─── Legal Routes ───
+      { path: 'privacy-policy', lazy: lazyPage(() => import('./pages/legal/PrivacyPolicy')) },
+      { path: 'terms-of-service', lazy: lazyPage(() => import('./pages/legal/TermsOfService')) },
+      { path: 'sebi-compliance', lazy: lazyPage(() => import('./pages/legal/SebiCompliance')) },
+      { path: 'data-protection', lazy: lazyPage(() => import('./pages/legal/DataProtection')) },
+
+      // ─── Catch-all 404 ───
+      { path: '*', lazy: lazyPage(() => import('./pages/NotFound')) },
+    ],
+  },
+];
+

@@ -11,6 +11,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SEO } from "@/components/layout/SEO";
 import React, { Suspense } from "react";
+import { ClientOnly } from "vite-react-ssg";
 
 const OTPSuccess3D = React.lazy(() => import('@/components/3d/OTPSuccess3D'));
 
@@ -205,7 +206,9 @@ const StepLogin = ({ onNext }: { onNext: () => void }) => {
               className="flex flex-col items-center justify-center py-8"
             >
               <Suspense fallback={<div className="w-full h-[300px] animate-pulse bg-emerald-500/10 rounded-xl" />}>
-                <OTPSuccess3D />
+                <ClientOnly fallback={<div className="w-full h-[300px] animate-pulse bg-emerald-500/10 rounded-xl" />}>
+                  {() => <OTPSuccess3D />}
+                </ClientOnly>
               </Suspense>
               <h3 className="text-xl font-bold text-emerald-400 mt-4">Verification Successful</h3>
               <p className="text-sm text-slate-400">Securing your session...</p>

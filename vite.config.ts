@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   server: {
     host: "0.0.0.0",
     port: 5173,
@@ -21,14 +21,22 @@ export default defineConfig({
   build: {
     minify: "esbuild",
     rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ["react", "react-dom"],
-          supabase: ["@supabase/supabase-js"],
-          ui: ["motion", "lucide-react", "clsx", "tailwind-merge"],
-          animation: ["gsap"],
-        },
-      },
+      output: isSsrBuild
+        ? {}
+        : {
+            manualChunks: {
+              react: ["react", "react-dom"],
+              supabase: ["@supabase/supabase-js"],
+              ui: ["motion", "lucide-react", "clsx", "tailwind-merge"],
+              animation: ["gsap"],
+            },
+          },
     },
   },
-});
+  // vite-react-ssg: static site generation options
+  ssgOptions: {
+    script: 'async',
+    formatting: 'minify',
+    entry: 'src/main.tsx',
+  },
+}));

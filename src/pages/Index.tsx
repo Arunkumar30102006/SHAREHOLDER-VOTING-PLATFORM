@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import StatsSection from "@/components/home/StatsSection";
 import TrustBadgesRow from "@/components/home/TrustBadgesRow";
+import SecurityComplianceSection from "@/components/home/SecurityComplianceSection";
 
 // JSON-LD Structured Data
 const organizationSchema = {
@@ -170,10 +171,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Vote Secure | Global Enterprise E-Voting Platform"
-        description="The world's most trusted enterprise e-voting platform for corporations. Conduct shareholder voting, AGMs, and board resolutions securely online with blockchain-backed integrity."
+        title="Vote India Secure | SEBI-Compliant Shareholder E-Voting Platform for Indian Listed Companies"
+        description="India's leading enterprise e-voting platform for AGMs, EGMs, and postal ballots. Fully compliant with Companies Act 2013 & SEBI LODR Regulation 44 with AES-256 cryptographic audit trails."
         canonical="/"
-        schemas={[organizationSchema, softwareAppSchema, faqSchema]}
       />
 
       {/* ─── 1. HERO SECTION ─── */}
@@ -460,56 +460,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 6. COMPARISON MATRIX (Us vs Legacy) ─── */}
-      <section className="py-24 bg-white/[0.02] border-y border-white/10 relative overflow-hidden">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-4">
-              <span>Next-Gen vs Legacy</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-              Why Global Enterprises Choose <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">Vote Secure</span>
-            </h2>
-            <p className="text-slate-200 text-base md:text-lg max-w-2xl mx-auto font-normal">
-              Comparing modern cryptographic governance technology with legacy corporate portals.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/20 overflow-hidden bg-[#0d1b2a]/90 backdrop-blur-xl shadow-2xl">
-            {/* Table Header */}
-            <div className="grid grid-cols-12 bg-black/70 px-6 py-5 border-b border-white/15 text-xs font-black tracking-wider uppercase">
-              <div className="col-span-4 text-slate-200 pl-1">Capability & Feature</div>
-              <div className="col-span-4 text-cyan-300 flex items-center gap-1.5 font-black">
-                <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
-                Vote Secure Platform
-              </div>
-              <div className="col-span-4 text-slate-400">Legacy Voting Systems</div>
-            </div>
-
-            {/* Table Rows */}
-            <div className="divide-y divide-white/10">
-              {comparisonPoints.map((pt, i) => (
-                <div key={i} className="grid grid-cols-12 px-6 py-5 text-xs md:text-sm items-center gap-4 hover:bg-white/[0.03] transition-colors">
-                  <div className="col-span-4 pr-2 pl-1">
-                    <span className="font-bold text-white block text-sm">{pt.feature}</span>
-                    <span className="text-[11px] text-cyan-400/90 font-medium">{pt.category}</span>
-                  </div>
-                  <div className="col-span-4 bg-blue-950/40 border border-cyan-500/30 rounded-2xl p-4 text-emerald-300 font-semibold flex items-start gap-3 shadow-sm">
-                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 mt-0.5 text-emerald-300">
-                      <Check className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="leading-snug">{pt.us}</span>
-                  </div>
-                  <div className="col-span-4 text-slate-300 font-normal pl-2 flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0 mt-2" />
-                    <span className="leading-snug">{pt.them}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ─── 6. SECURITY, COMPLIANCE & BENCHMARK MATRIX ─── */}
+      <SecurityComplianceSection />
 
       {/* ─── 7. ACCORDION FAQ ─── */}
       <section className="py-20">

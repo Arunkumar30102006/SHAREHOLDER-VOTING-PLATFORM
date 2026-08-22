@@ -12,7 +12,7 @@ import {
     BarChart, Bar, ResponsiveContainer
 } from 'recharts';
 import { toast } from 'sonner';
-import { Helmet } from 'react-helmet-async';
+import { Head as Helmet } from 'vite-react-ssg';
 import { useTranslation } from "react-i18next";
 import { DashboardMetrics } from "@/types";
 

@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Head as Helmet } from "vite-react-ssg";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,11 +53,11 @@ const ShareholderLogin = () => {
   const warmEdgeFunction = async () => {
     try {
       // Trigger a preflight request to wake up the edge function (mitigate cold starts)
-      await fetch(`${env.VITE_SUPABASE_URL}/functions/v1/send-shareholder-otp-email`, {
+      await fetch(`${env.SUPABASE_URL}/functions/v1/send-shareholder-otp-email`, {
         method: "OPTIONS",
         headers: {
           "Content-Type": "application/json",
-          "apikey": env.VITE_SUPABASE_ANON_KEY
+          "apikey": env.SUPABASE_ANON_KEY
         }
       });
       console.log("OTP function warmed up");

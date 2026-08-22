@@ -5,8 +5,19 @@ import type { Database } from './types';
 const SUPABASE_BASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// SSR-safe storage: localStorage is unavailable during SSG build (Node.js)
+const isBrowser = typeof window !== 'undefined';
+
+const ssrSafeStorage = isBrowser
+  ? localStorage
+  : {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    };
+
 // Use a proxy in production to bypass mobile network blocking/CORS issues
-const SUPABASE_URL = (import.meta.env.PROD && typeof window !== 'undefined')
+const SUPABASE_URL = (import.meta.env.PROD && isBrowser)
   ? `${window.location.origin}/supabase-proxy`
   : SUPABASE_BASE_URL;
 
@@ -21,8 +32,8 @@ const FINAL_KEY = SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE
 
 export const supabase = createClient<Database>(SUPABASE_URL, FINAL_KEY, {
   auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+    storage: ssrSafeStorage,
+    persistSession: isBrowser,
+    autoRefreshToken: isBrowser,
   }
 });

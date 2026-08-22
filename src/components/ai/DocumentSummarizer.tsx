@@ -9,17 +9,8 @@ import { Loader2, FileText, Sparkles, Upload, FileUp, X, CheckCircle2 } from 'lu
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
 
-// Text extraction libraries
-import * as pdfjs from 'pdfjs-dist';
-import mammoth from 'mammoth';
-import { createWorker } from 'tesseract.js';
-
-// Initialize PDF.js worker
-// Using a more robust worker initialization for Vite
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url
-).toString();
+// Text extraction libraries are loaded dynamically on demand during file upload
+// to avoid Node.js SSR/SSG crashes (e.g. pdfjs-dist DOMMatrix reference errors)
 
 export const DocumentSummarizer = () => {
     const [text, setText] = useState('');
@@ -81,6 +72,14 @@ export const DocumentSummarizer = () => {
 
     const extractTextFromPDF = async (file: File): Promise<string> => {
         try {
+            const pdfjs = await import('pdfjs-dist');
+            if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+                pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+                    'pdfjs-dist/build/pdf.worker.min.mjs',
+                    import.meta.url
+                ).toString();
+            }
+
             const arrayBuffer = await file.arrayBuffer();
             const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
             const pdf = await loadingTask.promise;
@@ -104,12 +103,14 @@ export const DocumentSummarizer = () => {
     };
 
     const extractTextFromWord = async (file: File): Promise<string> => {
+        const mammoth = (await import('mammoth')).default;
         const arrayBuffer = await file.arrayBuffer();
         const result = await mammoth.extractRawText({ arrayBuffer });
         return result.value;
     };
 
     const extractTextFromImage = async (file: File): Promise<string> => {
+        const { createWorker } = await import('tesseract.js');
         const worker = await createWorker('eng');
         const ret = await worker.recognize(file);
         await worker.terminate();
