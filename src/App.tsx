@@ -164,6 +164,8 @@ export const routes: RouteRecord[] = [
       { path: 'blog/how-online-shareholder-voting-works', lazy: lazyPage(() => import('./pages/blog/HowOnlineShareholderVotingWorks')) },
       { path: 'blog/agm-evoting-vs-physical-meeting', lazy: lazyPage(() => import('./pages/blog/AgmEvotingVsPhysicalMeeting')) },
       { path: 'blog/benefits-electronic-voting-shareholders', lazy: lazyPage(() => import('./pages/blog/BenefitsElectronicVotingShareholders')) },
+      { path: 'blog/role-of-scrutinizer-form-mgt-13', lazy: lazyPage(() => import('./pages/blog/RoleOfScrutinizerFormMgt13')) },
+      { path: 'blog/agm-remote-evoting-timeline-checklist', lazy: lazyPage(() => import('./pages/blog/AgmRemoteEvotingTimelineChecklist')) },
       { path: 'contact', lazy: lazyPage(() => import('./pages/Contact')) },
 
       // ─── Legal Routes ───

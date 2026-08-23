@@ -39,8 +39,14 @@ const routeEntries = [
   { path: '/company-register', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
   { path: '/live-demo', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
 
-  // Content
+  // Content / Blog Cornerstone Guides
   { path: '/blog', priority: '0.6', changefreq: 'weekly', lastmod: '2026-08-23' },
+  { path: '/blog/sebi-compliant-evoting-guide', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
+  { path: '/blog/role-of-scrutinizer-form-mgt-13', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/blog/agm-remote-evoting-timeline-checklist', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/blog/how-online-shareholder-voting-works', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
+  { path: '/blog/agm-evoting-vs-physical-meeting', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
+  { path: '/blog/benefits-electronic-voting-shareholders', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
 
   // Legal
   { path: '/privacy-policy', priority: '0.3', changefreq: 'yearly', lastmod: '2026-08-01' },

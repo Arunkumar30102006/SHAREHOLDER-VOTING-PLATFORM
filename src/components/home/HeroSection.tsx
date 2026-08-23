@@ -10,8 +10,8 @@ const HeroSection = () => {
   const { t } = useTranslation();
   const features = [
     "End-to-End Encryption",
-    "SEBI Compliant",
-    "Tamper-Proof Audit Trails",
+    "SEBI Aligned Architecture",
+    "Tamper-Evident Audit Trails",
     "Two-Factor Authentication",
   ];
 
@@ -57,7 +57,7 @@ const HeroSection = () => {
             </p>
 
             <p className="text-sm text-slate-400 mb-10 font-medium tracking-wide">
-              Trusted by Company Secretaries across India
+              Engineered for Company Secretaries & Corporate Governance Professionals
             </p>
 
             <div className="flex flex-wrap justify-center gap-3 mb-8 animate-fade-in-up delay-300">
@@ -74,10 +74,10 @@ const HeroSection = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
-              <Link to="/demo" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: "hero" })}>
+              <Link to="/live-demo" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: "hero" })}>
                 <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2 shadow-lg shadow-blue-500/20">
                   <Play className="w-5 h-5" />
-                  Request Demo
+                  Explore Live Demo
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>

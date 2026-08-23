@@ -28,7 +28,7 @@ export const Security = () => {
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Security Architecture | End-to-End Cryptographic Vote Sealing"
+        title="Security Architecture | Cryptographic Ballot Sealing & Audit Trails"
         description="Explore Vote India Secure's security architecture: AES-256 ballot encryption, SHA-256 Merkle audit trails, 2FA OTP verification, and independent scrutinizer access."
         canonical="/security"
         schemas={[breadcrumbSchema]}
@@ -48,7 +48,7 @@ export const Security = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
               <ShieldCheck className="w-4 h-4 text-cyan-400" />
-              <span>Institutional Grade Security</span>
+              <span>Technical Security Specification</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight mb-6 leading-tight">
@@ -59,7 +59,7 @@ export const Security = () => {
             </h1>
 
             <p className="text-base sm:text-xl text-slate-200 max-w-3xl mx-auto font-normal leading-relaxed mb-10">
-              Vote India Secure implements zero-trust architecture, military-grade ballot encryption, and mathematical Merkle proofs to ensure complete ballot secrecy and tamper-evident audit trails.
+              Vote India Secure implements zero-trust architecture, AES-256 ballot encryption, and mathematical SHA-256 hash chaining to ensure ballot secrecy and verifiable, tamper-evident audit trails.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -71,7 +71,7 @@ export const Security = () => {
               </Link>
               <Link to="/compliance" className="w-full sm:w-auto">
                 <Button variant="outline" size="xl" className="w-full border-white/20 hover:bg-white/10 text-white font-semibold gap-2 px-8 py-6 rounded-xl">
-                  View Legal Compliance
+                  View Statutory Compliance Guide
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </Link>
@@ -88,7 +88,7 @@ export const Security = () => {
               Technical Security Specifications
             </h2>
             <p className="text-slate-300 text-base">
-              A transparent breakdown of the actual security protocols protecting every ballot.
+              A transparent breakdown of the cryptographic protocols protecting every cast ballot.
             </p>
           </div>
 
@@ -98,8 +98,8 @@ export const Security = () => {
                 <Lock className="w-6 h-6 text-cyan-400" />
               </div>
               <h3 className="text-xl font-bold text-white">Ballot Secrecy & Encryption</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                All individual voting choices are encrypted with AES-256 bit algorithms prior to database insertion. The system separates voter identity from vote choices using blinded cryptographic tokens.
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                All individual voting choices are encrypted with standard AES-256 bit algorithms prior to database insertion. The platform separates voter identity tokens from ballot choices to ensure anonymity.
               </p>
             </div>
 
@@ -108,8 +108,8 @@ export const Security = () => {
                 <FileCode2 className="w-6 h-6 text-emerald-400" />
               </div>
               <h3 className="text-xl font-bold text-white">SHA-256 Merkle Audit Proof</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Every transaction creates a SHA-256 hash linked mathematically to prior ballots. If any record is modified, the entire cryptographic tree invalidates immediately, guaranteeing 100% tamper detection.
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                Every cast ballot generates a SHA-256 hash mathematically linked to prior ballots in the session, providing tamper-evident audit trails that invalidate if any prior record is altered.
               </p>
             </div>
 
@@ -118,7 +118,7 @@ export const Security = () => {
                 <Fingerprint className="w-6 h-6 text-purple-400" />
               </div>
               <h3 className="text-xl font-bold text-white">2FA OTP Identity Verification</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
                 Time-limited one-time passwords (OTP) sent directly to registered email and mobile numbers prevent unauthorized ballot casting and account takeovers.
               </p>
             </div>
@@ -128,8 +128,8 @@ export const Security = () => {
                 <Database className="w-6 h-6 text-amber-400" />
               </div>
               <h3 className="text-xl font-bold text-white">PostgreSQL Row-Level Security</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Database access is locked behind granular Row-Level Security (RLS) policies. Companies can only access their own meetings, and voters can only access resolutions tied to their verified folio records.
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                Database access is guarded by granular Row-Level Security (RLS) policies. Companies can only access their own meeting records, and voters can only access resolutions tied to their verified folio records.
               </p>
             </div>
           </div>
@@ -145,7 +145,7 @@ export const Security = () => {
               Secure Voting Engine →
             </Link>
             <Link to="/compliance" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
-              SEBI Compliance →
+              SEBI & MCA Compliance →
             </Link>
             <Link to="/how-it-works" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
               How It Works →

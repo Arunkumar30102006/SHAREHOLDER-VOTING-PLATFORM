@@ -14,41 +14,61 @@ const articles = [
   {
     id: 1,
     slug: "/blog/sebi-compliant-evoting-guide",
-    title: "Global Enterprise E-Voting Standards: Navigating Statutory Compliance & SEC/ISO Frameworks",
-    excerpt: "Discover how modern multinational corporations meet international securities mandates, maintain immutable audit trails, and prepare for upcoming annual general meetings.",
+    title: "What is SEBI-Compliant E-Voting? A Comprehensive Guide for Indian Companies",
+    excerpt: "Understand SEBI e-voting regulations, Companies Act 2013 Section 108 mandates, Rule 20 requirements, and best practices for conducting seamless remote shareholder voting in India.",
     date: "Aug 20, 2026",
-    author: "Global Governance Desk",
+    author: "Corporate Compliance Desk",
     category: "Regulatory Compliance",
     readTime: "6 min read",
   },
   {
     id: 2,
+    slug: "/blog/role-of-scrutinizer-form-mgt-13",
+    title: "Role of Scrutinizer in E-Voting & Form MGT-13: Statutory Guide for Indian Companies",
+    excerpt: "Learn the statutory responsibilities of an independent scrutinizer in shareholder e-voting under Rule 20, vault unblocking in presence of 2 witnesses, and how Form MGT-13 reports are compiled.",
+    date: "Aug 23, 2026",
+    author: "Governance & Compliance Desk",
+    category: "Corporate Law & Scrutiny",
+    readTime: "7 min read",
+  },
+  {
+    id: 3,
+    slug: "/blog/agm-remote-evoting-timeline-checklist",
+    title: "Remote E-Voting Timeline for AGM: 30-Day Corporate Secretary Compliance Checklist",
+    excerpt: "A definitive 30-day statutory checklist and calendar for Company Secretaries conducting remote e-voting, notice dispatches, cut-off date calculations, and AGM general meetings.",
+    date: "Aug 23, 2026",
+    author: "Corporate Secretarial Desk",
+    category: "AGM Operations",
+    readTime: "8 min read",
+  },
+  {
+    id: 4,
     slug: "/blog/how-online-shareholder-voting-works",
     title: "How Cryptographic Shareholder Voting Works: Step-by-Step Architecture",
-    excerpt: "A comprehensive technical breakdown of how enterprise e-voting software operates: from cap table roster ingestion and secure credential dispatch to live ballot tabulation and scrutinizer verification.",
+    excerpt: "A comprehensive technical breakdown of how modern e-voting software operates: from cap table roster ingestion and 2FA OTP verification to live ballot tabulation and SHA-256 hash chaining.",
     date: "Aug 18, 2026",
     author: "Systems Architecture Team",
     category: "Technical Guide",
     readTime: "5 min read",
   },
   {
-    id: 3,
+    id: 5,
     slug: "/blog/agm-evoting-vs-physical-meeting",
-    title: "Virtual AGMs vs Traditional In-Person General Meetings: Global Boardroom Trends",
-    excerpt: "Compare virtual e-voting vs traditional in-person shareholder assemblies. Discover how global enterprises achieve significant cost reduction and dramatically higher retail investor participation.",
+    title: "Virtual AGMs vs Traditional In-Person General Meetings: Governance Analysis",
+    excerpt: "Compare virtual e-voting vs traditional in-person shareholder assemblies. Discover how Indian enterprises achieve statutory quorum compliance and higher shareholder participation.",
     date: "Aug 16, 2026",
     author: "Governance Research Group",
     category: "Strategic Insights",
     readTime: "7 min read",
   },
   {
-    id: 4,
+    id: 6,
     slug: "/blog/benefits-electronic-voting-shareholders",
-    title: "Top 5 Governance Strategies to Maximize Institutional & Retail Turnout",
-    excerpt: "Explore the strategic advantages of implementing an enterprise voting platform for AGMs, EGMs, and proxy ballots — from cryptographic security to real-time statutory quorum tracking.",
+    title: "Top 5 Governance Advantages of Electronic Voting for Shareholders & Boards",
+    excerpt: "Explore the strategic advantages of implementing an electronic voting platform for AGMs, EGMs, and postal ballots — from cryptographic security to real-time statutory quorum tracking.",
     date: "Aug 14, 2026",
     author: "Executive Editorial Board",
-    category: "Corporate Leadership",
+    category: "Corporate Governance",
     readTime: "5 min read",
   },
 ];
@@ -58,7 +78,7 @@ const Blog = () => {
     <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
         title="Blog & Insights | Corporate Governance & E-Voting Intelligence"
-        description="Expert analysis on Indian corporate governance, SEBI LODR e-voting rules, AGM best practices, and cryptographic shareholder voting technology."
+        description="Expert analysis on Indian corporate governance, SEBI LODR Regulation 44, Companies Act Section 108, scrutinizer Form MGT-13 reports, and AGM remote e-voting."
         canonical="/blog"
         schemas={[breadcrumbSchema]}
       />
@@ -73,7 +93,7 @@ const Blog = () => {
             Corporate Governance <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">Intelligence</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto font-normal leading-relaxed">
-            Expert analysis on international corporate governance, proxy voting technology, general meeting best practices, and securities law.
+            Statutory explainers, regulatory guides, and technical insights on electronic general meetings, Section 108 compliance, and corporate voting technology in India.
           </p>
         </div>
 
@@ -99,44 +119,26 @@ const Blog = () => {
               </div>
               
               <Link to={article.slug}>
-                <h2 className="text-xl md:text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors leading-snug">
+                <h2 className="text-xl md:text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors">
                   {article.title}
                 </h2>
               </Link>
-
-              <p className="text-slate-200 text-sm md:text-base font-normal leading-relaxed">
+              
+              <p className="text-sm md:text-base text-slate-300 font-normal leading-relaxed">
                 {article.excerpt}
               </p>
 
               <div className="pt-2">
-                <Link to={article.slug}>
-                  <Button variant="ghost" className="p-0 text-cyan-300 hover:text-white hover:bg-transparent font-bold flex items-center gap-2 text-sm group-hover:translate-x-1 transition-transform">
-                    Read Full Article
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                <Link 
+                  to={article.slug}
+                  className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-semibold text-sm group/link"
+                >
+                  Read Full Regulatory Guide
+                  <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Newsletter / Advisory Subscription */}
-        <div className="mt-16 bg-gradient-to-r from-blue-950/80 via-[#0d1b2a] to-cyan-950/80 border border-blue-400/30 rounded-3xl p-8 md:p-10 text-center shadow-2xl">
-          <Sparkles className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
-          <h3 className="text-2xl font-black text-white mb-2">Subscribe to Governance Briefings</h3>
-          <p className="text-slate-200 text-xs md:text-sm max-w-xl mx-auto mb-6 font-normal">
-            Receive monthly executive briefings on statutory compliance updates, proxy advisory recommendations, and corporate e-voting trends.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
-            <input 
-              type="email" 
-              placeholder="corporate.secretary@enterprise.com" 
-              className="w-full bg-black/60 border border-white/20 text-white rounded-xl px-4 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            />
-            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs px-6 shrink-0 shadow-md">
-              Subscribe
-            </Button>
-          </div>
         </div>
       </div>
     </div>
