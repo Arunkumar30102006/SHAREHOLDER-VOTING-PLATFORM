@@ -1,8 +1,14 @@
 import { CheckCircle2, ArrowRight, Sparkles, Building2, Users, Shield, HelpCircle } from "lucide-react";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
+
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Pricing", url: "/pricing" }
+]);
 
 const tiers = [
   {
@@ -91,12 +97,17 @@ const faqs = [
 ];
 
 const Pricing = () => {
+  const pricingFaqSchema = createFaqSchema(
+    faqs.map(f => ({ question: f.q, answer: f.a }))
+  );
+
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Pricing | E-Voting Platform for Global Enterprises — Vote Secure"
-        description="Transparent pricing for the world's leading shareholder e-voting platform. Secure online AGM and proxy voting for organizations of all sizes."
+        title="Pricing Plans | Vote India Secure Shareholder E-Voting"
+        description="Explore transparent pricing options for conducting shareholder e-voting, AGMs, EGMs, and postal ballots on Vote India Secure."
         canonical="/pricing"
+        schemas={[breadcrumbSchema, pricingFaqSchema]}
       />
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">
         <div className="max-w-6xl mx-auto">

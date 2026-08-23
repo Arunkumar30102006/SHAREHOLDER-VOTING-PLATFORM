@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { motion } from "motion/react";
 import { ShieldAlert, Home, Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/layout/SEO";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,6 +14,11 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center relative overflow-hidden">
+      <SEO
+        title="404 - Page Not Found | Vote India Secure"
+        description="The requested page could not be found."
+        noindex={true}
+      />
       {/* Background Orbs */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />

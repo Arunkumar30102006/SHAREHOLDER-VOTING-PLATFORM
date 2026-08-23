@@ -16,48 +16,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "How It Works",
-      "item": "https://www.shareholdervoting.in/how-it-works"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "How does a company set up a shareholder meeting on Vote India Secure?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The company registers, uploads the NSDL/CDSL Benpos shareholder register, enters the ordinary and special resolutions, and configures the start and end times for the voting window."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How do shareholders receive login credentials?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Shareholders receive secure links and 2FA OTPs directly to their registered email address and mobile number as recorded on the depository register."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "How It Works", url: "/how-it-works" }
+]);
 
 export const HowItWorks = () => {
   return (
@@ -66,7 +30,7 @@ export const HowItWorks = () => {
         title="How It Works | E-Voting Setup, Shareholder Ballots & Scrutiny"
         description="Step-by-step guide to conducting shareholder e-voting: from depository benpos upload to live quorum tracking and statutory Form MGT-13 scrutinizer reports."
         canonical="/how-it-works"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

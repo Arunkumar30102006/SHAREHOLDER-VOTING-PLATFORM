@@ -20,56 +20,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Shareholder Voting",
-      "item": "https://www.shareholdervoting.in/shareholder-voting"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "What is digital shareholder voting?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Digital shareholder voting allows equity holders and institutional investors to cast legally binding, weighted votes on company resolutions electronically via web or mobile without attending physical meetings in person."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How are shareholder votes weighted in an online meeting?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Votes are calculated based on the official register of members (Benpos) on the cutoff date. Each shareholder's vote weight automatically corresponds to the exact number of equity shares held."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How does Vote India Secure maintain voter confidentiality?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Ballots are encrypted with AES-256 and sealed with SHA-256 cryptographic hashes. Cast votes remain unalterable and confidential until the official Scrutinizer unlocks the digital audit vault."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Shareholder Voting", url: "/shareholder-voting" }
+]);
 
 export const ShareholderVoting = () => {
   return (
@@ -78,7 +34,7 @@ export const ShareholderVoting = () => {
         title="Shareholder Voting Platform | Online Shareholder E-Voting System"
         description="Empower your shareholders with secure, online digital voting for AGMs, EGMs, and postal ballots. Easy 2FA authentication, weighted ballots, and instant tallying."
         canonical="/shareholder-voting"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

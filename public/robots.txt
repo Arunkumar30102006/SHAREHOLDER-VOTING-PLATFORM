@@ -1,20 +1,7 @@
 User-agent: *
 Allow: /
 
-# Block private/auth routes from crawling
-Disallow: /company-dashboard
-Disallow: /company-login
-Disallow: /company-register
-Disallow: /shareholder-login
-Disallow: /shareholder-analysis
-Disallow: /voting-dashboard
-Disallow: /voting-management
-Disallow: /ai-power-suite
-Disallow: /admin
-Disallow: /login
-Disallow: /register
-Disallow: /profile
-Disallow: /settings
+# Disallow non-public technical endpoints
 Disallow: /api/
 Disallow: /auth/
 Disallow: /supabase-proxy/

@@ -17,48 +17,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Online E-Voting",
-      "item": "https://www.shareholdervoting.in/online-e-voting"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "What is online e-voting for listed corporations?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Online e-voting is an electronic balloting mechanism mandated under Section 108 of the Companies Act 2013 and SEBI LODR Regulation 44, enabling shareholders to vote remotely on general meeting resolutions via secure web platforms."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How does remote e-voting differ from venue voting (InstaPoll)?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Remote e-voting opens 3 days prior to the meeting and closes at 5:00 PM on the preceding day. Venue e-voting (InstaPoll) allows attending members who did not cast remote ballots to vote live during the virtual AGM."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Online E-Voting", url: "/online-e-voting" }
+]);
 
 export const OnlineEVoting = () => {
   return (
@@ -67,7 +31,7 @@ export const OnlineEVoting = () => {
         title="Online E-Voting Platform for Companies | Remote Electronic Ballots"
         description="Conduct secure remote online e-voting for listed companies, AGMs, and board resolutions. Zero infrastructure overhead with real-time quorum analytics."
         canonical="/online-e-voting"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

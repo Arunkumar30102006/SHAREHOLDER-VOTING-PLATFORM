@@ -1,8 +1,14 @@
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Vote, FileText, Users, ShieldCheck, Link2, Smartphone, ArrowRight, Globe, Layers, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
+
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Services", url: "/services" }
+]);
 
 const services = [
   {
@@ -41,9 +47,10 @@ const Services = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
-        title="Services | Global Enterprise Shareholder Voting Solutions"
-        description="Comprehensive e-voting services for organizations worldwide: AGM/EGM voting, statutory audit reporting, investor engagement tools, and registrar integration."
+        title="Services | Corporate Shareholder E-Voting Solutions"
+        description="Comprehensive e-voting services for companies: AGM/EGM voting, scrutinizer audit reporting, notice dispatching, and share transfer agent integration."
         canonical="/services"
+        schemas={[breadcrumbSchema]}
       />
 
       <div className="container mx-auto px-4 max-w-6xl">

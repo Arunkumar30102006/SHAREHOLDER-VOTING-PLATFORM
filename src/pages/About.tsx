@@ -1,4 +1,5 @@
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 import { 
   Target, Eye, MapPin, 
   ShieldCheck, Lightbulb, Scale, Lock, Globe, Award, Sparkles, Building2, CheckCircle2
@@ -7,13 +8,19 @@ import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "About Us", url: "/about" }
+]);
+
 const About = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
-        title="About Us | Trusted Global E-Voting Platform"
-        description="Learn about Vote Secure's mission, vision, and enterprise architecture powering compliant electronic voting for global corporations."
+        title="About Us | Vote India Secure Shareholder Voting Platform"
+        description="Learn about Vote India Secure's architecture, cryptographic security model, and platform mission powering electronic shareholder voting for Indian companies."
         canonical="/about"
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Header */}
@@ -21,13 +28,13 @@ const About = () => {
         <div className="text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
             <Globe className="w-3.5 h-3.5" />
-            Global Enterprise Governance
+            Corporate Governance Platform
           </div>
           <h1 className="text-4xl md:text-6xl font-black mb-6 text-white tracking-tight">
             Pioneering the Next Era of <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">Corporate Democracy</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-200 max-w-3xl mx-auto font-normal leading-relaxed">
-            Vote Secure is engineered with a singular mission: to provide listed corporations, global transfer agents, and institutional investors with an immutable, cryptographically verifiable electronic voting infrastructure.
+            Vote India Secure is engineered to provide listed corporations, transfer agents, and institutional investors with an immutable, cryptographically verifiable electronic voting infrastructure.
           </p>
         </div>
       </section>

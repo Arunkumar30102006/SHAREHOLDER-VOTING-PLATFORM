@@ -10,8 +10,14 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 import React, { Suspense } from "react";
 import { ClientOnly } from "vite-react-ssg";
+
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Live Demo", url: "/live-demo" }
+]);
 
 const OTPSuccess3D = React.lazy(() => import('@/components/3d/OTPSuccess3D'));
 
@@ -493,9 +499,10 @@ const LiveDemo = () => {
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Live Demo — Experience E-Voting in Action"
-        description="Try a simulated AGM voting experience. Login as a demo shareholder, view resolutions, cast votes, and see the complete e-voting flow."
-        canonical="/demo"
+        title="Live E-Voting Demo | Interactive Simulated AGM Experience"
+        description="Try a simulated AGM voting experience. Login as a demo shareholder, view resolutions, cast votes, and explore the complete e-voting flow."
+        canonical="/live-demo"
+        schemas={[breadcrumbSchema]}
       />
       <Navbar />
       <main className="container mx-auto px-4 pt-28 pb-16 md:py-20">

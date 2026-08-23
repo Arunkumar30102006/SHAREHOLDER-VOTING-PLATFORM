@@ -9,6 +9,12 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
+
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Demo", url: "/demo" }
+]);
 
 const DEMO_COMPANY = "Zenith Enterprises Limited — 42nd AGM";
 
@@ -133,6 +139,7 @@ export default function Demo() {
         title="Interactive E-Voting Demo | Simulated AGM Balloting"
         description="Experience a live simulated shareholder AGM electronic voting workflow with instant OTP authentication and ballot receipts."
         canonical="/demo"
+        schemas={[breadcrumbSchema]}
       />
       <Navbar />
       <main className="container mx-auto px-4 pt-28 pb-16 md:py-20">

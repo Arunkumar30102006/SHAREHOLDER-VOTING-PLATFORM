@@ -19,7 +19,6 @@ const WebsiteFeedback = lazy(() => import("./components/feedback/WebsiteFeedback
 const VoteAssistant = lazy(() => import("./components/ai/VoteAssistant").then(m => ({ default: m.VoteAssistant })));
 
 import GlobalErrorBoundary from "./components/layout/GlobalErrorBoundary";
-import StructuredData from "./components/layout/StructuredData";
 import "./i18n/config"; // Initialize i18n
 
 import ProtectedAdminRoute from "@/components/auth/ProtectedAdminRoute";
@@ -80,7 +79,6 @@ const RootLayout = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <GlobalErrorBoundary>
-          <StructuredData />
           <TooltipProvider>
             <Toaster />
             <Sonner />

@@ -1,8 +1,12 @@
 /**
  * generate-sitemap.cjs
  * 
- * Post-build script that generates dist/sitemap.xml with all public routes.
- * Runs automatically after `vite-react-ssg build` via the chained build command.
+ * Post-build script that generates dist/sitemap.xml and public/sitemap.xml
+ * with all public indexable routes.
+ * 
+ * Complies with modern search engine standards:
+ * - Only includes <loc> and accurate <lastmod> (no priority or changefreq)
+ * - Excludes private/authenticated routes
  * 
  * Usage: node scripts/generate-sitemap.cjs
  */
@@ -14,66 +18,67 @@ const SITE_URL = 'https://www.shareholdervoting.in';
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
 const TODAY = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-// All public routes with their SEO priority and change frequency
+// All public indexable routes
 const routes = [
   // ─── Core Pages ───
-  { path: '/',                   priority: '1.0', changefreq: 'weekly' },
-  { path: '/shareholder-voting',  priority: '0.9', changefreq: 'monthly' },
-  { path: '/online-e-voting',     priority: '0.9', changefreq: 'monthly' },
-  { path: '/agm-voting',          priority: '0.9', changefreq: 'monthly' },
-  { path: '/egm-voting',          priority: '0.9', changefreq: 'monthly' },
-  { path: '/corporate-voting',    priority: '0.9', changefreq: 'monthly' },
-  { path: '/secure-voting',       priority: '0.9', changefreq: 'monthly' },
-  { path: '/how-it-works',        priority: '0.9', changefreq: 'monthly' },
-  { path: '/features',           priority: '0.9', changefreq: 'monthly' },
-  { path: '/pricing',            priority: '0.9', changefreq: 'monthly' },
-  { path: '/compliance',         priority: '0.8', changefreq: 'monthly' },
-  { path: '/security',           priority: '0.8', changefreq: 'monthly' },
-  { path: '/about',              priority: '0.8', changefreq: 'monthly' },
-  { path: '/services',           priority: '0.8', changefreq: 'monthly' },
+  '/',
+  '/shareholder-voting',
+  '/online-e-voting',
+  '/agm-voting',
+  '/egm-voting',
+  '/corporate-voting',
+  '/secure-voting',
+  '/how-it-works',
+  '/features',
+  '/pricing',
+  '/compliance',
+  '/security',
+  '/about',
+  '/services',
 
   // ─── Blog & Guides ───
-  { path: '/blog',               priority: '0.8', changefreq: 'weekly' },
-  { path: '/blog/sebi-compliant-evoting-guide',              priority: '0.7', changefreq: 'monthly' },
-  { path: '/blog/how-online-shareholder-voting-works',       priority: '0.7', changefreq: 'monthly' },
-  { path: '/blog/agm-evoting-vs-physical-meeting',           priority: '0.7', changefreq: 'monthly' },
-  { path: '/blog/benefits-electronic-voting-shareholders',   priority: '0.7', changefreq: 'monthly' },
+  '/blog',
+  '/blog/sebi-compliant-evoting-guide',
+  '/blog/how-online-shareholder-voting-works',
+  '/blog/agm-evoting-vs-physical-meeting',
+  '/blog/benefits-electronic-voting-shareholders',
 
   // ─── Contact & Demo ───
-  { path: '/contact',            priority: '0.7', changefreq: 'yearly' },
-  { path: '/demo',               priority: '0.7', changefreq: 'monthly' },
-  { path: '/live-demo',          priority: '0.7', changefreq: 'monthly' },
+  '/contact',
+  '/demo',
+  '/live-demo',
 
-  // ─── Legal ───
-  { path: '/sebi-compliance',   priority: '0.5', changefreq: 'yearly' },
-  { path: '/privacy-policy',    priority: '0.4', changefreq: 'yearly' },
-  { path: '/terms-of-service',  priority: '0.4', changefreq: 'yearly' },
-  { path: '/data-protection',   priority: '0.4', changefreq: 'yearly' },
+  // ─── Legal & Policies ───
+  '/sebi-compliance',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/data-protection',
 ];
 
-// Generate XML
-const urlEntries = routes.map(({ path: routePath, priority, changefreq }) => {
+// Generate XML entries (strictly <loc> and <lastmod>)
+const urlEntries = routes.map((routePath) => {
   const loc = routePath === '/' ? SITE_URL + '/' : SITE_URL + routePath;
   return `  <url>
     <loc>${loc}</loc>
     <lastmod>${TODAY}</lastmod>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
   </url>`;
-}).join('\n\n');
+}).join('\n');
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
 ${urlEntries}
-
 </urlset>
 `;
 
 // Write to dist/ and public/
-fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap, 'utf-8');
+if (fs.existsSync(DIST_DIR)) {
+  fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap, 'utf-8');
+}
+
 const PUBLIC_DIR = path.resolve(__dirname, '..', 'public');
 if (fs.existsSync(PUBLIC_DIR)) {
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), sitemap, 'utf-8');
 }
-console.log(`✅ sitemap.xml generated with ${routes.length} URLs → dist/sitemap.xml & public/sitemap.xml`);
+
+console.log(`✅ sitemap.xml generated with ${routes.length} URLs (clean loc + lastmod) → dist/sitemap.xml & public/sitemap.xml`);
+

@@ -3,6 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { toast } from "sonner";
+import { SEO } from "@/components/layout/SEO";
 
 const ProtectedAdminRoute = () => {
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -50,6 +51,11 @@ const ProtectedAdminRoute = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
+                <SEO
+                    title="Company Admin Portal | Vote India Secure"
+                    description="Protected administration portal."
+                    noindex={true}
+                />
                 <LoadingSpinner />
             </div>
         );

@@ -16,48 +16,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Secure Voting",
-      "item": "https://www.shareholdervoting.in/secure-voting"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "How are electronic votes secured on Vote India Secure?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Every cast ballot is encrypted with AES-256 military-grade encryption and hashed with SHA-256. Hashes are anchored to a cryptographic Merkle audit ledger that renders the data tamper-evident."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Can system administrators see how a shareholder voted before meeting conclusion?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "No. The system employs cryptographic vote blinding and key separation. Only the designated independent Scrutinizer can unblock the encrypted ballot registry after the voting window closes."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Secure Voting", url: "/secure-voting" }
+]);
 
 export const SecureVoting = () => {
   return (
@@ -66,7 +30,7 @@ export const SecureVoting = () => {
         title="Secure Voting Platform | AES-256 & SHA-256 Cryptographic Integrity"
         description="Explore how Vote India Secure guarantees ballot secrecy, tamper-proof audit trails, and 2FA authentication for enterprise shareholder meetings."
         canonical="/secure-voting"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

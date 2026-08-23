@@ -1,8 +1,14 @@
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar, User, BookOpen, Sparkles, Globe, Shield, Layers } from "lucide-react";
 import { motion } from "motion/react";
+
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Blog", url: "/blog" }
+]);
 
 const articles = [
   {
@@ -52,8 +58,9 @@ const Blog = () => {
     <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
         title="Blog & Insights | Corporate Governance & E-Voting Intelligence"
-        description="Stay informed with expert analysis on global corporate governance, AGM best practices, cryptographic shareholder voting technology, and securities compliance."
+        description="Expert analysis on Indian corporate governance, SEBI LODR e-voting rules, AGM best practices, and cryptographic shareholder voting technology."
         canonical="/blog"
+        schemas={[breadcrumbSchema]}
       />
 
       <div className="container mx-auto px-4 max-w-5xl">

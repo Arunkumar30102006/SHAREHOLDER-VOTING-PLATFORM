@@ -17,48 +17,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "AGM E-Voting",
-      "item": "https://www.shareholdervoting.in/agm-voting"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "What is AGM E-Voting in India?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "AGM E-Voting is the statutory electronic voting facility provided to all shareholders of a company during its Annual General Meeting under Section 108 of the Companies Act 2013."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How long must the remote AGM e-voting window remain open?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Under Rule 20(4)(vi) of the Companies Rules 2014, the remote e-voting window must remain open for not less than 3 days and close at 5:00 PM on the day immediately preceding the date of the AGM."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "AGM E-Voting", url: "/agm-voting" }
+]);
 
 export const AgmVoting = () => {
   return (
@@ -67,7 +31,7 @@ export const AgmVoting = () => {
         title="AGM E-Voting Platform | Virtual & Hybrid Annual General Meetings"
         description="Conduct seamless, SEBI-compliant AGM e-voting for Indian listed companies. Remote pre-voting, live meeting InstaPolls, and automated Form MGT-13 scrutinizer reports."
         canonical="/agm-voting"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

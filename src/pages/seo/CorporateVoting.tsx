@@ -15,40 +15,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Corporate Voting",
-      "item": "https://www.shareholdervoting.in/corporate-voting"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "What organizations can use corporate e-voting?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Vote India Secure is designed for public listed companies, private limited enterprises, non-banking financial companies (NBFCs), cooperative societies, Section 8 non-profits, and Registrar & Transfer Agents (RTAs)."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Corporate Voting", url: "/corporate-voting" }
+]);
 
 export const CorporateVoting = () => {
   return (
@@ -57,7 +29,7 @@ export const CorporateVoting = () => {
         title="Corporate Voting Platform | Enterprise Governance & Board Balloting"
         description="Comprehensive corporate voting solutions for enterprises, private companies, and RTAs. Secure board resolutions, committee elections, and member ballots."
         canonical="/corporate-voting"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

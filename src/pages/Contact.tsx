@@ -1,4 +1,5 @@
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
 import { 
   Mail, MapPin, Clock, Globe, Shield, Building2, Send, 
   Loader2, ArrowRight, FileCheck2, HelpCircle, Headphones, 
@@ -21,12 +22,12 @@ import { Link } from "react-router-dom";
 const contactPageSchema = {
   "@context": "https://schema.org",
   "@type": "ContactPage",
-  "name": "Contact Vote Secure",
-  "description": "Get in touch with Vote Secure for shareholder support, corporate e-voting deployments, technical help, complaints, or general inquiries.",
+  "name": "Contact Vote India Secure",
+  "description": "Get in touch with Vote India Secure for shareholder support, corporate e-voting deployments, technical help, complaints, or general inquiries.",
   "url": "https://www.shareholdervoting.in/contact",
   "mainEntity": {
     "@type": "Organization",
-    "name": "Vote Secure",
+    "name": "Vote India Secure",
     "url": "https://www.shareholdervoting.in",
     "logo": "https://www.shareholdervoting.in/logo.png",
     "email": ["support@shareholdervoting.in", "admin@shareholdervoting.in"],
@@ -55,63 +56,10 @@ const contactPageSchema = {
   }
 };
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Contact Us",
-      "item": "https://www.shareholdervoting.in/contact"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "How can companies request a demo or proposal for AGM/EGM e-voting?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Companies can select 'Corporate Sales' on this form or email admin@shareholdervoting.in. Our corporate governance team provides customized deployment proposals and compliance documentation within 2 business hours."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How do shareholders get assistance during a live meeting or voting window?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Shareholders can reach out via 'Shareholder Support' on this contact form or email support@shareholdervoting.in. During active general meetings, our dedicated monitoring team provides real-time resolution for login and OTP issues."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How are complaints and investor grievances handled?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Complaints submitted with the 'Complaint / Grievance' category receive immediate acknowledgment and an assigned tracking ID, with formal redressal initiated within 4 business hours per statutory compliance protocols."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "What are the official support email addresses for Vote Secure?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Our primary communication channels are support@shareholdervoting.in (general support, shareholder queries & grievances) and admin@shareholdervoting.in (corporate sales, executive inquiries & partnerships)."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Contact Us", url: "/contact" }
+]);
 
 const inquiryTypes = [
   { value: "general", label: "General Inquiry", icon: MessageCircle, description: "Any general questions about our platform" },
@@ -148,22 +96,26 @@ const quickActions = [
 
 const contactFaqs = [
   {
-    q: "How can companies request a demo or deployment proposal for an upcoming AGM/EGM?",
-    a: "Companies can select 'Corporate Sales' on this form or email admin@shareholdervoting.in directly. Our governance advisory team prepares customized deployment architecture and security certifications within 2 business hours."
+    q: "How can companies request a demo or proposal for AGM/EGM e-voting?",
+    a: "Companies can select 'Corporate Sales' on this form or email admin@shareholdervoting.in directly. Our corporate governance team provides customized deployment proposals and compliance documentation."
   },
   {
     q: "How do individual shareholders get help during an active voting window?",
-    a: "Shareholders experiencing OTP delivery, authentication, or folio verification issues can submit under 'Shareholder Support' or email support@shareholdervoting.in. Live meeting support is active 24/7 during scheduled voting periods."
+    a: "Shareholders experiencing OTP delivery, authentication, or folio verification issues can submit under 'Shareholder Support' or email support@shareholdervoting.in. Live meeting support is active during scheduled voting periods."
   },
   {
-    q: "What is the procedure and timeline for investor grievance redressal?",
-    a: "Select 'Complaint / Grievance' to lodge a formal statutory grievance. Every complaint generates an auditable ticket reviewed by our compliance officer, with initial acknowledgment and resolution targeted within 4 business hours."
+    q: "How are complaints and investor grievances handled?",
+    a: "Select 'Complaint / Grievance' to lodge a formal statutory grievance. Every complaint generates an auditable ticket reviewed by our compliance officer per statutory compliance protocols."
   },
   {
-    q: "What are the official communication emails for Vote Secure?",
-    a: "All official communications are conducted strictly via support@shareholdervoting.in (support, grievances & technical) and admin@shareholdervoting.in (corporate governance, sales & partnerships)."
+    q: "What are the official communication emails for Vote India Secure?",
+    a: "Our primary communication channels are support@shareholdervoting.in (general support, shareholder queries & grievances) and admin@shareholdervoting.in (corporate governance, sales & partnerships)."
   }
 ];
+
+const contactFaqSchema = createFaqSchema(
+  contactFaqs.map(f => ({ question: f.q, answer: f.a }))
+);
 
 const colorMap: Record<string, { bg: string; border: string; text: string }> = {
   blue: { bg: "bg-blue-500/20", border: "border-blue-400/30", text: "text-blue-300" },
@@ -268,11 +220,10 @@ const Contact = () => {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
-        title="Contact Us | Vote Secure — E-Voting Support, Sales & Inquiries"
-        description="Get in touch with Vote Secure for shareholder support, corporate e-voting deployments, technical help, complaints, or general inquiries. Official support at support@shareholdervoting.in."
+        title="Contact Us | Vote India Secure Shareholder Voting Support & Sales"
+        description="Get in touch with Vote India Secure for shareholder support, corporate e-voting deployments, technical help, or meeting consultations. Official support at support@shareholdervoting.in."
         canonical="/contact"
-        keywords="Vote Secure contact, shareholder voting support India, AGM e-voting sales, postal ballot support, electronic voting grievance redressal, contact corporate governance team"
-        schemas={[contactPageSchema, breadcrumbSchema, faqSchema]}
+        schemas={[contactPageSchema, breadcrumbSchema, contactFaqSchema]}
       />
 
       <div className="container mx-auto px-4 max-w-6xl">
@@ -764,25 +715,18 @@ const Contact = () => {
                     type="button"
                     onClick={() => setOpenFaq(isOpen ? null : index)}
                     className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm text-white"
+                    aria-expanded={isOpen}
                   >
                     <span>{faq.q}</span>
                     <ChevronDown className={`w-4 h-4 text-cyan-400 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
                   </button>
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <p className="px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-white/5 pt-3">
-                          {faq.a}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <div
+                    className={`px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-white/5 pt-3 ${
+                      isOpen ? "block" : "hidden"
+                    }`}
+                  >
+                    {faq.a}
+                  </div>
                 </div>
               );
             })}

@@ -1,4 +1,5 @@
 import { SEO } from "@/components/layout/SEO";
+import { createArticleSchema, createBreadcrumbSchema } from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Calendar, User, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,39 +25,27 @@ const BlogArticleLayout = ({
   category,
   children,
 }: BlogArticleLayoutProps) => {
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": title,
-    "description": description,
-    "author": {
-      "@type": "Organization",
-      "name": "Vote India Secure",
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Vote India Secure",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://www.shareholdervoting.in/logo.png",
-      },
-    },
-    "datePublished": date,
-    "dateModified": date,
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `https://www.shareholdervoting.in${canonical}`,
-    },
-  };
+  const articleSchema = createArticleSchema({
+    title,
+    description,
+    url: canonical,
+    datePublished: date,
+  });
+
+  const breadcrumbSchema = createBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Blog", url: "/blog" },
+    { name: title, url: canonical }
+  ]);
 
   return (
-    <div className="min-h-screen pt-24 pb-20 bg-background">
+    <div className="min-h-screen pt-24 pb-20 bg-[#020817] text-white">
       <SEO
-        title={title}
+        title={`${title} | Vote India Secure`}
         description={description}
         canonical={canonical}
         type="article"
-        schema={articleSchema}
+        schemas={[articleSchema, breadcrumbSchema]}
       />
 
       <article className="container mx-auto px-4 max-w-4xl">

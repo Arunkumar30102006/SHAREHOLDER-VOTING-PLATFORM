@@ -17,57 +17,21 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Security Architecture",
-      "item": "https://www.shareholdervoting.in/security"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "How does Vote India Secure protect voter confidentiality?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Votes are encrypted using AES-256 bit encryption and anchored to a cryptographic SHA-256 Merkle tree. Ballots remain sealed until the designated independent Scrutinizer unlocks them with authorized digital signatures."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Where is company and shareholder data hosted?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Data is hosted in secure, enterprise-grade cloud databases with strict Row-Level Security (RLS), continuous automated backups, and encryption both in transit (TLS 1.3) and at rest (AES-256)."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Security Architecture", url: "/security" }
+]);
 
 export const Security = () => {
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Security Architecture & Cryptographic Integrity | Vote India Secure"
-        description="Learn about our AES-256 ballot encryption, SHA-256 Merkle audit proof ledger, 2FA authentication, and zero-trust corporate governance architecture."
+        title="Security Architecture | End-to-End Cryptographic Vote Sealing"
+        description="Explore Vote India Secure's security architecture: AES-256 ballot encryption, SHA-256 Merkle audit trails, 2FA OTP verification, and independent scrutinizer access."
         canonical="/security"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { SEO } from "@/components/layout/SEO";
-import { webSiteSchema } from "@/components/layout/StructuredData";
+import { 
+  organizationSchema, 
+  webSiteSchema, 
+  softwareAppSchema, 
+  createFaqSchema 
+} from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -10,77 +15,33 @@ import {
   Users, BarChart3, Globe, Award, CheckCircle2,
   Zap, FileText, ArrowUpRight
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import StatsSection from "@/components/home/StatsSection";
 import TrustBadgesRow from "@/components/home/TrustBadgesRow";
 import SecurityComplianceSection from "@/components/home/SecurityComplianceSection";
 
-// JSON-LD Structured Data
-const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Vote Secure",
-  "url": "https://www.shareholdervoting.in",
-  "logo": "https://www.shareholdervoting.in/logo.png",
-  "description": "Enterprise-grade global e-voting platform for public and private corporations worldwide",
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "customer support",
-    "email": "support@shareholdervoting.in"
-  },
-  "sameAs": []
-};
-
-const softwareAppSchema = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Vote Secure",
-  "applicationCategory": "BusinessApplication",
-  "operatingSystem": "Web",
-  "description": "Secure, transparent, and enterprise-compliant electronic shareholder voting platform with blockchain-backed integrity.",
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": "USD",
-    "price": "Contact for pricing"
-  },
-  "url": "https://www.shareholdervoting.in"
-};
-
 const faqItems = [
   {
-    question: "Is Vote Secure compliant with international corporate governance standards?",
-    answer: "Yes, Vote Secure is built to adhere to global electronic voting and corporate governance standards. Our platform supports statutory general meeting requirements, proxy voting regulations, cryptographic audit trail preservation, and independent scrutinizer/auditor access."
+    question: "Is Vote India Secure compliant with corporate governance and statutory e-voting requirements?",
+    answer: "Yes. The platform is designed in alignment with Section 108 of the Companies Act 2013, Rule 20 of the Companies (Management and Administration) Rules 2014, and SEBI LODR Regulation 44, featuring weighted voting calculations, cryptographic ballot integrity, and independent scrutinizer access."
   },
   {
-    question: "How does online shareholder voting work globally?",
-    answer: "Companies onboard and configure their general meeting (AGM, EGM, or Special Ballot), upload their shareholder registry, and set resolution schedules. Shareholders worldwide receive secure access links via email/SMS, authenticate using two-factor verification, and cast weighted ballots on any device. Results and cryptographic receipts are generated instantly."
+    question: "How does online shareholder voting work during an AGM or EGM?",
+    answer: "Companies configure their general meeting resolutions and upload shareholder roster records. Shareholders receive secure access credentials via email or SMS, authenticate via 2-Factor OTP verification, and cast weighted ballots corresponding to their shareholding. Results and cryptographic receipts are generated in real-time."
   },
   {
     question: "What types of organizations can use this platform?",
-    answer: "Any publicly listed enterprise, private corporation, cooperative, investment fund, or Registrar and Transfer Agent (RTA) conducting shareholder ballots, board elections, or proxy meetings can use Vote Secure across multiple jurisdictions."
+    answer: "Any publicly listed corporation, unlisted enterprise, cooperative, investment fund, or Registrar and Transfer Agent (RTA) conducting shareholder ballots, proxy votes, or board elections can use the platform."
   },
   {
-    question: "How secure is the e-voting process?",
-    answer: "Vote Secure utilizes military-grade AES-256 encryption for all data at rest and in transit. Every vote is cryptographically sealed with SHA-256 hashing and recorded to an immutable audit ledger. We enforce multi-factor authentication (MFA) and host our infrastructure on SOC 2 and ISO 27001 compliant cloud servers."
+    question: "How does the platform guarantee vote integrity and prevent tampering?",
+    answer: "Vote India Secure enforces military-grade AES-256 encryption at rest and in transit. Every vote is cryptographically sealed with SHA-256 hashing and recorded to an immutable audit ledger, ensuring cast ballots cannot be modified prior to official scrutinizer unblocking."
   },
   {
-    question: "Can international investors vote from their mobile devices?",
-    answer: "Yes. Vote Secure is a fully responsive web application and Progressive Web App (PWA) that functions smoothly on smartphones, tablets, and desktops globally, requiring no special software installation."
+    question: "Can shareholders vote from their mobile devices?",
+    answer: "Yes. Vote India Secure is a responsive Progressive Web App (PWA) that functions smoothly on smartphones, tablets, and desktop browsers without requiring third-party plugins or certificate installations."
   }
 ];
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": faqItems.map(item => ({
-    "@type": "Question",
-    "name": item.question,
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": item.answer
-    }
-  }))
-};
 
 const audienceCards = [
   {
@@ -172,10 +133,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Online Shareholder Voting Platform | Vote India Secure"
-        description="Vote India Secure is an enterprise online shareholder voting platform for listed companies, AGMs, EGMs, and postal ballots with cryptographic vote sealing."
+        title="Vote India Secure | Secure Shareholder E-Voting Platform"
+        description="Secure online shareholder voting platform for AGMs, EGMs and corporate resolutions with audit trails, real-time results and enterprise-grade security."
         canonical="/"
-        schemas={[webSiteSchema, organizationSchema, softwareAppSchema, faqSchema]}
+        schemas={[organizationSchema, webSiteSchema, softwareAppSchema, createFaqSchema(faqItems)]}
       />
 
       {/* ─── 1. HERO SECTION ─── */}
@@ -484,6 +445,7 @@ const Index = () => {
                 <button
                   onClick={() => setActiveFaq(activeFaq === index ? null : index)}
                   className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-white text-sm md:text-base hover:text-blue-400 transition-colors"
+                  aria-expanded={activeFaq === index}
                 >
                   <span className="flex items-center gap-3">
                     <HelpCircle className="w-4 h-4 text-blue-400 shrink-0" />
@@ -491,19 +453,13 @@ const Index = () => {
                   </span>
                   <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform ${activeFaq === index ? "rotate-180 text-blue-400" : ""}`} />
                 </button>
-                <AnimatePresence>
-                  {activeFaq === index && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="px-5 pb-5 text-sm text-slate-100 leading-relaxed border-t border-white/10 pt-3.5 font-normal"
-                    >
-                      {faq.answer}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <div
+                  className={`px-5 pb-5 text-sm text-slate-100 leading-relaxed border-t border-white/10 pt-3.5 font-normal ${
+                    activeFaq === index ? "block" : "hidden"
+                  }`}
+                >
+                  {faq.answer}
+                </div>
               </div>
             ))}
           </div>

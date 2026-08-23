@@ -24,26 +24,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
 
 // ─── JSON-LD Structured Data ───
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Compliance & Legal Mandate",
-      "item": "https://www.shareholdervoting.in/compliance"
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Compliance", url: "/compliance" }
+]);
 
 const faqList = [
   {
@@ -68,18 +55,9 @@ const faqList = [
   }
 ];
 
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": faqList.map((item) => ({
-    "@type": "Question",
-    "name": item.q,
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": item.a
-    }
-  }))
-};
+const complianceFaqSchema = createFaqSchema(
+  faqList.map(item => ({ question: item.q, answer: item.a }))
+);
 
 // ─── Statutory Mandate Data ───
 const legalMandates = [
@@ -259,9 +237,9 @@ export const Compliance = () => {
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
         title="SEBI E-Voting Compliance for Listed Companies | Vote India Secure"
-        description="Understand SEBI and MCA e-voting mandates under Companies Act 2013 Section 108. See how Vote India Secure keeps your AGM/EGM legally compliant."
+        description="Understand statutory e-voting provisions under Companies Act 2013 Section 108, Rule 20, and SEBI LODR Regulation 44 for general meetings in India."
         canonical="/compliance"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema, complianceFaqSchema]}
       />
 
       {/* ─── 1. HERO SECTION ─── */}
@@ -538,6 +516,7 @@ export const Compliance = () => {
                   <button
                     onClick={() => toggleFaq(index)}
                     className="w-full p-6 text-left flex items-center justify-between gap-4 text-white hover:text-cyan-300 transition-colors"
+                    aria-expanded={isOpen}
                   >
                     <span className="font-bold text-base md:text-lg">{faq.q}</span>
                     <ChevronDown
@@ -546,21 +525,13 @@ export const Compliance = () => {
                       }`}
                     />
                   </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-6 pt-0 text-sm text-slate-300 leading-relaxed border-t border-white/10">
-                          {faq.a}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <div
+                    className={`p-6 pt-0 text-sm text-slate-300 leading-relaxed border-t border-white/10 ${
+                      isOpen ? "block" : "hidden"
+                    }`}
+                  >
+                    {faq.a}
+                  </div>
                 </div>
               );
             })}

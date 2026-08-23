@@ -16,48 +16,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.shareholdervoting.in"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "EGM E-Voting",
-      "item": "https://www.shareholdervoting.in/egm-voting"
-    }
-  ]
-};
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "What is an Extraordinary General Meeting (EGM)?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "An EGM is a shareholder meeting convened outside the Annual General Meeting to transact urgent special business, such as mergers, capital restructuring, major asset acquisitions, or critical director appointments."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Is e-voting mandatory for EGMs under Indian law?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes. Under Section 108 of the Companies Act 2013 and SEBI LODR Regulation 44, all general meetings of listed entities (including EGMs and meetings convened by requisitionists under Section 100) must provide electronic voting facilities."
-      }
-    }
-  ]
-};
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "EGM E-Voting", url: "/egm-voting" }
+]);
 
 export const EgmVoting = () => {
   return (
@@ -66,7 +30,7 @@ export const EgmVoting = () => {
         title="EGM E-Voting Platform | Extraordinary General Meeting Balloting"
         description="Conduct urgent, legally compliant EGM e-voting for listed and unlisted companies. Rapid setup for special resolutions, M&A approvals, and capital restructuring."
         canonical="/egm-voting"
-        schemas={[breadcrumbSchema, faqSchema]}
+        schemas={[breadcrumbSchema]}
       />
 
       {/* Hero Section */}

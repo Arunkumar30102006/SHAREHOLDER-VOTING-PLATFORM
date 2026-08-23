@@ -3,9 +3,15 @@ import {
   ArrowRight, CheckCircle2, Vote, Smartphone, BarChart3, QrCode, FileText
 } from "lucide-react";
 import { SEO } from "@/components/layout/SEO";
+import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
+
+const breadcrumbSchema = createBreadcrumbSchema([
+  { name: "Home", url: "/" },
+  { name: "Features", url: "/features" }
+]);
 
 const mainFeatures = [
   {
@@ -158,9 +164,10 @@ const Features = () => {
   return (
     <div className="min-h-screen relative">
       <SEO
-        title="Features | Enterprise Shareholder Voting Software — Vote Secure"
-        description="Explore Vote Secure's global enterprise features: cryptographic vote integrity, real-time quorum analytics, regulatory compliance, and multi-channel shareholder engagement."
+        title="Features | Shareholder Voting Platform Capabilities"
+        description="Explore Vote India Secure's platform capabilities: cryptographic vote integrity, real-time quorum analytics, statutory compliance, and multi-channel voter engagement."
         canonical="/features"
+        schemas={[breadcrumbSchema]}
       />
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">
         <div className="max-w-6xl mx-auto">
