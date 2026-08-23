@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SEO } from "@/components/layout/SEO";
+import { webSiteSchema } from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -174,6 +175,7 @@ const Index = () => {
         title="Online Shareholder Voting Platform | Vote India Secure"
         description="Vote India Secure is an enterprise online shareholder voting platform for listed companies, AGMs, EGMs, and postal ballots with cryptographic vote sealing."
         canonical="/"
+        schemas={[webSiteSchema, organizationSchema, softwareAppSchema, faqSchema]}
       />
 
       {/* ─── 1. HERO SECTION ─── */}

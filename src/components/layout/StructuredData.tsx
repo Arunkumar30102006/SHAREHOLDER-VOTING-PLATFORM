@@ -48,7 +48,8 @@ export const webSiteSchema = {
   '@type': 'WebSite',
   '@id': `${SITE_URL}/#website`,
   url: SITE_URL,
-  name: 'Vote India Secure',
+  name: 'eVote Secure',
+  alternateName: 'eVote Secure',
   description: 'Secure, transparent, and SEBI-compliant shareholder electronic voting platform for AGMs, EGMs, and postal ballots.',
   publisher: {
     '@id': `${SITE_URL}/#organization`,
