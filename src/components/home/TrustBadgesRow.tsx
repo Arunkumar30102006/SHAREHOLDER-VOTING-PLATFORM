@@ -6,7 +6,7 @@ const badges = [
   { label: "Enterprise Security Aligned", icon: Building2, color: "text-cyan-400" },
   { label: "AES-256 Bit Encryption", icon: Lock, color: "text-emerald-400" },
   { label: "SOC 2 Type II Ready", icon: ShieldCheck, color: "text-amber-400" },
-  { label: "ISO 27001 Certified", icon: Award, color: "text-purple-400" },
+  { label: "ISO 27001 Ready", icon: Award, color: "text-purple-400" },
 ];
 
 const TrustBadgesRow = () => {

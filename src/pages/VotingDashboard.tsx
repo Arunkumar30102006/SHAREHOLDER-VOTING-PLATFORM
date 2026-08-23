@@ -476,8 +476,19 @@ const VotingDashboard = () => {
   }, [isSessionStarted, isSessionExpired, isSessionActive, votingItems, myDelegators, shareholderId, queryClient]);
 
   if (!shareholderId) {
-    navigate("/shareholder-login");
-    return null;
+    if (typeof window !== 'undefined') {
+      navigate("/shareholder-login");
+    }
+    return (
+      <div className="min-h-screen bg-[#020817] text-white">
+        <SEO
+          title="Shareholder E-Voting Portal"
+          description="Official e-voting session. Cast your weighted votes securely as per your shareholding on the record date."
+          canonical="/voting-dashboard"
+          noindex={true}
+        />
+      </div>
+    );
   }
 
   return (

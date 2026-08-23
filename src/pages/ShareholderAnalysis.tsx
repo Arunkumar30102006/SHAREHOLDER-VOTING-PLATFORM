@@ -110,6 +110,12 @@ export const ShareholderAnalysis = () => {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <SEO
+                    title="Analysis Dashboard | Shareholder Portal"
+                    description="Shareholder personal voting and shareholding analysis dashboard."
+                    canonical="/shareholder-analysis"
+                    noindex={true}
+                />
                 <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
                 <p className="text-xl text-muted-foreground animate-pulse">{t("sh_analysis_loading")}</p>
             </div>
@@ -119,6 +125,12 @@ export const ShareholderAnalysis = () => {
     if (!metrics) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <SEO
+                    title="Analysis Dashboard | Shareholder Portal"
+                    description="Shareholder personal voting and shareholding analysis dashboard."
+                    canonical="/shareholder-analysis"
+                    noindex={true}
+                />
                 <p className="text-xl text-destructive font-semibold">{t("sh_analysis_error")}</p>
                 <Button onClick={() => navigate('/shareholder-login')} className="mt-4" variant="outline">{t("sh_analysis_back")}</Button>
             </div>

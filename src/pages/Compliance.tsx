@@ -134,42 +134,42 @@ const complianceMatrix = [
     law: "Rule 20(4)(iv) — Companies (M&A) Rules",
     implementation: "2FA OTP + PAN / DP ID / Client ID verification with rate-limiting and anti-brute force defenses.",
     icon: KeyRound,
-    status: "100% Compliant"
+    status: "Fully Aligned"
   },
   {
     requirement: "Vote Secrecy & Anonymity",
     law: "Rule 20(4)(xii) — Unalterable Ballots",
     implementation: "AES-256 bit end-to-end encryption. Votes are blinded and cryptographically sealed until scrutinizer unlocks them.",
     icon: Lock,
-    status: "100% Compliant"
+    status: "Fully Aligned"
   },
   {
     requirement: "Immutable Audit Trail",
     law: "Rule 20(4)(xv) — Custody of Registers",
     implementation: "SHA-256 cryptographic Merkle ledger. Every vote produces an immutable audit receipt with timestamp verification.",
     icon: Shield,
-    status: "100% Compliant"
+    status: "Fully Aligned"
   },
   {
     requirement: "Statutory Scrutinizer Portal",
     law: "Rule 20(4)(ix) — Scrutinizer Appointment",
     implementation: "Independent digital portal with 2-witness cryptographic key unblocking and 1-click Form MGT-13 export.",
     icon: FileSpreadsheet,
-    status: "100% Compliant"
+    status: "Fully Aligned"
   },
   {
     requirement: "Real-Time Result Declaration",
     law: "Regulation 44(3) — SEBI LODR 2015",
     implementation: "Automated resolution tally generation with visual charts, ready for BSE/NSE and website dissemination in <48 hours.",
     icon: Layers,
-    status: "100% Compliant"
+    status: "Fully Aligned"
   },
   {
     requirement: "Multi-Device Accessibility",
     law: "MCA Guidelines on Equitable Access",
     implementation: "Responsive Web & PWA architecture optimized for smartphones, tablets, and desktops with sub-2s load time.",
     icon: Smartphone,
-    status: "100% Compliant"
+    status: "Fully Aligned"
   }
 ];
 
@@ -545,7 +545,7 @@ export const Compliance = () => {
           <div className="p-10 md:p-14 rounded-3xl bg-gradient-to-r from-blue-900/60 via-[#0d1b2a] to-indigo-950/60 border border-blue-500/30 backdrop-blur-2xl shadow-2xl text-center relative">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
               <Sparkles className="w-3.5 h-3.5" />
-              100% Compliant Governance
+              Statutory Aligned Governance
             </div>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">
               Ready to Make Your AGM Compliant?
