@@ -1,9 +1,14 @@
 User-agent: *
 Allow: /
-
-# Disallow non-public technical endpoints
+Disallow: /company-dashboard
+Disallow: /admin
 Disallow: /api/
-Disallow: /auth/
-Disallow: /supabase-proxy/
+Disallow: /shareholder-login
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
 
 Sitemap: https://www.shareholdervoting.in/sitemap.xml
