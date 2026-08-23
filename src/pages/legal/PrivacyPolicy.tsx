@@ -149,9 +149,8 @@ export default function PrivacyPolicy() {
               <div className="bg-[#020817] border border-white/10 p-6 rounded-xl">
                 <p className="text-white font-bold mb-1">Mr. Vikram Rao</p>
                 <p className="text-slate-400 text-sm mb-3">Data Protection Officer</p>
-                <p className="text-slate-300 mb-1">Email: <a href="mailto:dpo@shareholdervoting.in" className="text-blue-400 hover:underline">dpo@shareholdervoting.in</a></p>
-                <p className="text-slate-300 mb-1">Phone: +91 22 4567 8900</p>
-                <p className="text-slate-300 text-sm mt-3">Address: Vote India Secure, Cyber City, BKC, Mumbai, Maharashtra 400051, India.</p>
+                <p className="text-slate-300 mb-1">Email: <a href="mailto:support@shareholdervoting.in" className="text-blue-400 hover:underline">support@shareholdervoting.in</a></p>
+                <p className="text-slate-300 text-sm mt-3">Address: Vote Secure, BKC, Mumbai, Maharashtra 400051, India.</p>
               </div>
             </section>
           </div>

@@ -35,7 +35,7 @@ const Footer = () => {
             </div>
             <div className="space-y-2 mb-6">
               <p className="text-xs text-muted-foreground"><strong>Operations:</strong> BKC, Mumbai, Maharashtra, India</p>
-              <p className="text-xs text-muted-foreground"><strong>Grievance & Support:</strong> grievance@shareholdervoting.in</p>
+              <p className="text-xs text-muted-foreground"><strong>Grievance & Support:</strong> support@shareholdervoting.in</p>
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 text-xs text-white bg-green-900/40 px-3 py-1.5 rounded-full border border-green-500/30">
@@ -107,7 +107,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-3 text-sm text-slate-200 font-medium">
                 <Mail className="w-4 h-4 text-cyan-400" />
-                <span>contact@shareholdervoting.in</span>
+                <span>admin@shareholdervoting.in</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-slate-200 font-medium">
                 <MapPin className="w-4 h-4 text-cyan-400 mt-0.5" />

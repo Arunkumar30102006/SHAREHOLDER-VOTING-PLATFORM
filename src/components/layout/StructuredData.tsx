@@ -33,7 +33,7 @@ export const organizationSchema = {
       '@type': 'ContactPoint',
       telephone: '+91-1800-VOTE-SECURE',
       contactType: 'customer support',
-      email: 'contact@shareholdervoting.in',
+      email: 'support@shareholdervoting.in',
       areaServed: 'IN',
       availableLanguage: ['English', 'Hindi'],
     },

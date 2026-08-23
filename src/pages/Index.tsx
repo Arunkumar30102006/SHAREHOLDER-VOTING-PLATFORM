@@ -25,7 +25,7 @@ const organizationSchema = {
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "customer support",
-    "email": "contact@shareholdervoting.in"
+    "email": "support@shareholdervoting.in"
   },
   "sameAs": []
 };
