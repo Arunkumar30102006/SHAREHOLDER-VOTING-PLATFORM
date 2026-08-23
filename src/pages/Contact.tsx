@@ -3,7 +3,7 @@ import {
   Mail, MapPin, Clock, Globe, Shield, Building2, Send, 
   Loader2, ArrowRight, FileCheck2, HelpCircle, Headphones, 
   Users, Briefcase, AlertTriangle, Wrench, Handshake, MessageCircle,
-  ChevronDown
+  ChevronDown, CheckCircle2, Copy, Check, RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -171,9 +171,20 @@ const colorMap: Record<string, { bg: string; border: string; text: string }> = {
   indigo: { bg: "bg-indigo-500/20", border: "border-indigo-400/30", text: "text-indigo-300" }
 };
 
+interface SubmittedTicket {
+  id: string;
+  type: string;
+  email: string;
+  department: string;
+  sla: string;
+  subject: string;
+}
+
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [copiedTicket, setCopiedTicket] = useState(false);
+  const [submittedTicket, setSubmittedTicket] = useState<SubmittedTicket | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     organization: "",
@@ -185,6 +196,13 @@ const Contact = () => {
   });
 
   const selectedInquiry = inquiryTypes.find(t => t.value === formData.inquiryType);
+
+  const handleCopyTicket = (ticketId: string) => {
+    navigator.clipboard.writeText(ticketId);
+    setCopiedTicket(true);
+    toast.success("Query Reference ID copied to clipboard!");
+    setTimeout(() => setCopiedTicket(false), 3000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,11 +221,12 @@ const Contact = () => {
         firstname: formData.name.split(' ')[0] || formData.name,
         lastname: formData.organization || "N/A",
         email: formData.email,
-        subject: `[${inquiryLabel}] ${formData.subject || formData.name}`,
-        message: `Inquiry Type: ${inquiryLabel}\nOrganization: ${formData.organization || "N/A"}\nPhone: ${formData.phone || "N/A"}\n\n${formData.message}`,
+        subject: formData.subject || `${inquiryLabel} from ${formData.name}`,
+        message: formData.message,
         name: formData.name,
         company: formData.organization,
-        phone: formData.phone
+        phone: formData.phone,
+        inquiryType: formData.inquiryType
       };
 
       const { data, error } = await supabase.functions.invoke('send-contact-message', {
@@ -221,13 +240,29 @@ const Contact = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Failed to send message");
 
-      toast.success("Message sent successfully! We'll get back to you shortly.");
+      const generatedTicketId = data?.ticketId || `VS-${Date.now().toString().slice(-6)}`;
+      
+      setSubmittedTicket({
+        id: generatedTicketId,
+        type: inquiryLabel,
+        email: formData.email,
+        department: data?.department || "Support Operations Desk",
+        sla: data?.sla || "Within 2-24 hours",
+        subject: formData.subject || inquiryLabel
+      });
+
+      toast.success(`Inquiry registered! Reference ID: #${generatedTicketId}. Confirmation email sent to ${formData.email}.`);
       setFormData({ name: "", organization: "", email: "", phone: "", inquiryType: "", subject: "", message: "" });
     } catch (error: unknown) {
       toast.error((error as Error).message || "Failed to send message. Please email support@shareholdervoting.in directly.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleResetForm = () => {
+    setSubmittedTicket(null);
+    setFormData({ name: "", organization: "", email: "", phone: "", inquiryType: "", subject: "", message: "" });
   };
 
   return (
@@ -261,59 +296,61 @@ const Contact = () => {
         </motion.div>
 
         {/* Inquiry Type Selector Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="mb-12"
-        >
-          <h2 className="text-center text-lg font-bold text-slate-200 mb-6">What can we help you with?</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {inquiryTypes.map((type) => {
-              const isSelected = formData.inquiryType === type.value;
-              return (
-                <button
-                  key={type.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, inquiryType: type.value })}
-                  className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border backdrop-blur-xl text-center transition-all duration-300 cursor-pointer group
-                    ${isSelected
-                      ? "bg-blue-500/20 border-cyan-400/60 shadow-lg shadow-blue-500/15 scale-[1.03]"
-                      : "bg-[#0d1b2a]/70 border-white/10 hover:border-white/25 hover:bg-[#0d1b2a]/90"
-                    }`}
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300
-                    ${isSelected
-                      ? "bg-cyan-400/20 text-cyan-300 scale-110"
-                      : "bg-white/5 text-slate-400 group-hover:text-slate-200 group-hover:bg-white/10"
-                    }`}>
-                    <type.icon className="w-5 h-5" />
-                  </div>
-                  <span className={`text-xs font-bold transition-colors ${isSelected ? "text-cyan-300" : "text-slate-300"}`}>
-                    {type.label}
-                  </span>
-                  {isSelected && (
-                    <motion.div
-                      layoutId="inquiry-indicator"
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-cyan-400 rounded-full"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {selectedInquiry && (
-            <motion.p
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={selectedInquiry.value}
-              className="text-center text-xs text-slate-400 mt-3"
-            >
-              {selectedInquiry.description}
-            </motion.p>
-          )}
-        </motion.div>
+        {!submittedTicket && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mb-12"
+          >
+            <h2 className="text-center text-lg font-bold text-slate-200 mb-6">What can we help you with?</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {inquiryTypes.map((type) => {
+                const isSelected = formData.inquiryType === type.value;
+                return (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, inquiryType: type.value })}
+                    className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border backdrop-blur-xl text-center transition-all duration-300 cursor-pointer group
+                      ${isSelected
+                        ? "bg-blue-500/20 border-cyan-400/60 shadow-lg shadow-blue-500/15 scale-[1.03]"
+                        : "bg-[#0d1b2a]/70 border-white/10 hover:border-white/25 hover:bg-[#0d1b2a]/90"
+                      }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300
+                      ${isSelected
+                        ? "bg-cyan-400/20 text-cyan-300 scale-110"
+                        : "bg-white/5 text-slate-400 group-hover:text-slate-200 group-hover:bg-white/10"
+                      }`}>
+                      <type.icon className="w-5 h-5" />
+                    </div>
+                    <span className={`text-xs font-bold transition-colors ${isSelected ? "text-cyan-300" : "text-slate-300"}`}>
+                      {type.label}
+                    </span>
+                    {isSelected && (
+                      <motion.div
+                        layoutId="inquiry-indicator"
+                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-cyan-400 rounded-full"
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedInquiry && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={selectedInquiry.value}
+                className="text-center text-xs text-slate-400 mt-3"
+              >
+                {selectedInquiry.description}
+              </motion.p>
+            )}
+          </motion.div>
+        )}
 
         <div className="grid md:grid-cols-5 gap-10 items-start">
           
@@ -356,21 +393,21 @@ const Contact = () => {
                   <Mail className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-base">Email Us</h3>
+                  <h3 className="font-bold text-white text-base">Email Inboxes (Zoho Mail)</h3>
                   <div className="space-y-2.5 mt-2">
                     <div>
                       <a href="mailto:support@shareholdervoting.in" className="flex items-center gap-2 text-cyan-300 text-sm font-bold hover:underline hover:text-cyan-200 transition-colors">
                         <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                         support@shareholdervoting.in
                       </a>
-                      <p className="text-[10px] text-slate-400 ml-5.5 mt-0.5">General support, technical help & grievances</p>
+                      <p className="text-[10px] text-slate-400 ml-5.5 mt-0.5">Shareholder support, tech help & statutory grievances</p>
                     </div>
                     <div>
                       <a href="mailto:admin@shareholdervoting.in" className="flex items-center gap-2 text-cyan-300 text-sm font-bold hover:underline hover:text-cyan-200 transition-colors">
                         <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                         admin@shareholdervoting.in
                       </a>
-                      <p className="text-[10px] text-slate-400 ml-5.5 mt-0.5">Corporate sales, partnerships & admin</p>
+                      <p className="text-[10px] text-slate-400 ml-5.5 mt-0.5">Corporate sales, proposals, partnerships & admin</p>
                     </div>
                   </div>
                 </div>
@@ -410,7 +447,7 @@ const Contact = () => {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
                     </span>
-                    <span className="text-emerald-400 text-[11px] font-bold">Online Now</span>
+                    <span className="text-emerald-400 text-[11px] font-bold">Desk Online</span>
                   </div>
                 </div>
               </div>
@@ -438,7 +475,7 @@ const Contact = () => {
                 </p>
                 <p className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                  Complaints — within 4 business hours
+                  Grievances — within 4 business hours
                 </p>
                 <p className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
@@ -448,178 +485,256 @@ const Contact = () => {
             </motion.div>
           </motion.div>
 
-          {/* Contact Form */}
+          {/* Form or Ticket Confirmation */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
             className="md:col-span-3"
           >
-            <div className="bg-[#0d1b2a]/90 border border-white/15 rounded-3xl p-8 md:p-10 backdrop-blur-xl shadow-2xl">
-              <h2 className="text-2xl font-black text-white mb-1">Send Us a Message</h2>
-              <p className="text-xs text-slate-300 mb-8 font-normal">
-                {selectedInquiry
-                  ? <>You selected <span className="text-cyan-300 font-bold">{selectedInquiry.label}</span>. Fill in the details below and we'll get back to you promptly.</>
-                  : "Select an inquiry type above, then fill in your details below."
-                }
-              </p>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Inquiry Type (dropdown fallback) */}
-                <div className="space-y-2">
-                  <Label htmlFor="inquiryType" className="text-xs font-bold text-slate-100">Inquiry Type *</Label>
-                  <Select value={formData.inquiryType} onValueChange={(value) => setFormData({ ...formData, inquiryType: value })}>
-                    <SelectTrigger id="inquiryType" className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20">
-                      <SelectValue placeholder="Select inquiry type..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0d1b2a] border-white/20 text-white">
-                      {inquiryTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value} className="focus:bg-blue-500/20 focus:text-white">
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-xs font-bold text-slate-100">Full Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Your full name"
-                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
-                      required
-                    />
+            {submittedTicket ? (
+              /* Success Ticket Confirmation Card */
+              <div className="bg-[#0d1b2a]/95 border border-cyan-400/40 rounded-3xl p-8 md:p-10 backdrop-blur-xl shadow-2xl space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shrink-0">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="organization" className="text-xs font-bold text-slate-100">
-                      Organization {formData.inquiryType === "corporate-sales" || formData.inquiryType === "partnership" ? "*" : "(Optional)"}
-                    </Label>
-                    <Input
-                      id="organization"
-                      value={formData.organization}
-                      onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                      placeholder="Company or organization name"
-                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
-                      required={formData.inquiryType === "corporate-sales" || formData.inquiryType === "partnership"}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-bold text-slate-100">Email Address *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="you@example.com"
-                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-xs font-bold text-slate-100">Phone Number (Optional)</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+91 98765 43210"
-                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="subject" className="text-xs font-bold text-slate-100">Subject *</Label>
-                  <Input
-                    id="subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    placeholder={
-                      formData.inquiryType === "corporate-sales" ? "AGM/EGM e-voting deployment inquiry" :
-                      formData.inquiryType === "shareholder-support" ? "Issue with voting or login" :
-                      formData.inquiryType === "technical-issue" ? "Describe the technical issue briefly" :
-                      formData.inquiryType === "complaint" ? "Nature of your complaint" :
-                      formData.inquiryType === "partnership" ? "Partnership or integration proposal" :
-                      "What is your message about?"
-                    }
-                    className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="message" className="text-xs font-bold text-slate-100">Message *</Label>
-                  <Textarea
-                    id="message"
-                    rows={5}
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder={
-                      formData.inquiryType === "corporate-sales" ? "Tell us about your upcoming AGM/EGM dates, estimated shareholder count, and specific requirements..." :
-                      formData.inquiryType === "shareholder-support" ? "Please describe your issue in detail — include your registered email or folio number if applicable..." :
-                      formData.inquiryType === "technical-issue" ? "Describe the issue, steps to reproduce, and any error messages you see..." :
-                      formData.inquiryType === "complaint" ? "Please describe your complaint in detail. Include dates, reference numbers, and any supporting information..." :
-                      formData.inquiryType === "partnership" ? "Tell us about your organization and how you'd like to collaborate..." :
-                      "Write your message here..."
-                    }
-                    className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
-                    required
-                  />
-                </div>
-
-                {/* Complaint notice */}
-                {formData.inquiryType === "complaint" && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="flex gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-200 text-xs"
-                  >
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <p>
-                      Your complaint will be registered and assigned a tracking ID. We take all grievances seriously and aim to resolve them within 4 business hours. You will receive an acknowledgment email immediately.
+                  <div>
+                    <h2 className="text-2xl font-black text-white">Inquiry Registered!</h2>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      Your query has been logged and forwarded to our official Zoho Mail desk.
                     </p>
-                  </motion.div>
-                )}
+                  </div>
+                </div>
+
+                {/* Ticket ID Box */}
+                <div className="bg-[#020817] border border-cyan-500/30 rounded-2xl p-5 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                    <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">
+                      Query Reference Number
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-mono font-black text-cyan-300">
+                        #{submittedTicket.id}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCopyTicket(submittedTicket.id)}
+                        className="h-8 text-xs border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 gap-1.5"
+                      >
+                        {copiedTicket ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedTicket ? "Copied" : "Copy ID"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs pt-1">
+                    <div>
+                      <span className="text-slate-400 block mb-0.5">Category:</span>
+                      <span className="text-white font-semibold">{submittedTicket.type}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block mb-0.5">Assigned Department:</span>
+                      <span className="text-cyan-300 font-semibold">{submittedTicket.department}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block mb-0.5">Target Response SLA:</span>
+                      <span className="text-emerald-400 font-semibold">{submittedTicket.sla}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block mb-0.5">Confirmation Sent To:</span>
+                      <span className="text-white font-semibold truncate block">{submittedTicket.email}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-400/20 text-xs text-slate-200 leading-relaxed space-y-1.5">
+                  <p className="flex items-center gap-2 font-bold text-cyan-300">
+                    <Mail className="w-4 h-4" /> An acknowledgment email was sent to your inbox.
+                  </p>
+                  <p className="text-slate-300">
+                    Our team will reply directly from <strong>support@shareholdervoting.in</strong> or <strong>admin@shareholdervoting.in</strong>. You can reply directly to that email at any time to provide more details.
+                  </p>
+                </div>
 
                 <Button
-                  type="submit"
-                  disabled={isSubmitting || !formData.inquiryType}
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl text-sm gap-2 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  onClick={handleResetForm}
+                  variant="outline"
+                  className="w-full border-white/20 hover:bg-white/10 text-white font-bold rounded-xl text-sm gap-2 h-12"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Sending Message...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      {formData.inquiryType === "complaint" ? "Submit Complaint" :
-                       formData.inquiryType === "corporate-sales" ? "Submit Inquiry" :
-                       formData.inquiryType === "partnership" ? "Submit Proposal" :
-                       "Send Message"}
-                    </>
-                  )}
+                  <RotateCcw className="w-4 h-4" />
+                  Submit Another Inquiry
                 </Button>
-
-                <p className="text-[10px] text-slate-400 text-center mt-3">
-                  By submitting, you agree to our{" "}
-                  <Link to="/privacy-policy" className="text-cyan-400 hover:underline">Privacy Policy</Link>
-                  {" "}and{" "}
-                  <Link to="/terms-of-service" className="text-cyan-400 hover:underline">Terms of Service</Link>.
+              </div>
+            ) : (
+              /* Contact Form */
+              <div className="bg-[#0d1b2a]/90 border border-white/15 rounded-3xl p-8 md:p-10 backdrop-blur-xl shadow-2xl">
+                <h2 className="text-2xl font-black text-white mb-1">Send Us a Message</h2>
+                <p className="text-xs text-slate-300 mb-8 font-normal">
+                  {selectedInquiry
+                    ? <>You selected <span className="text-cyan-300 font-bold">{selectedInquiry.label}</span>. Fill in the details below and we'll get back to you promptly.</>
+                    : "Select an inquiry type above, then fill in your details below."
+                  }
                 </p>
-              </form>
-            </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Inquiry Type (dropdown fallback) */}
+                  <div className="space-y-2">
+                    <Label htmlFor="inquiryType" className="text-xs font-bold text-slate-100">Inquiry Type *</Label>
+                    <Select value={formData.inquiryType} onValueChange={(value) => setFormData({ ...formData, inquiryType: value })}>
+                      <SelectTrigger id="inquiryType" className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20">
+                        <SelectValue placeholder="Select inquiry type..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0d1b2a] border-white/20 text-white">
+                        {inquiryTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value} className="focus:bg-blue-500/20 focus:text-white">
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-xs font-bold text-slate-100">Full Name *</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Your full name"
+                        className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="organization" className="text-xs font-bold text-slate-100">
+                        Organization {formData.inquiryType === "corporate-sales" || formData.inquiryType === "partnership" ? "*" : "(Optional)"}
+                      </Label>
+                      <Input
+                        id="organization"
+                        value={formData.organization}
+                        onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+                        placeholder="Company or organization name"
+                        className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
+                        required={formData.inquiryType === "corporate-sales" || formData.inquiryType === "partnership"}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-xs font-bold text-slate-100">Email Address *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="you@example.com"
+                        className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-xs font-bold text-slate-100">Phone Number (Optional)</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="+91 98765 43210"
+                        className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="subject" className="text-xs font-bold text-slate-100">Subject *</Label>
+                    <Input
+                      id="subject"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      placeholder={
+                        formData.inquiryType === "corporate-sales" ? "AGM/EGM e-voting deployment inquiry" :
+                        formData.inquiryType === "shareholder-support" ? "Issue with voting or login" :
+                        formData.inquiryType === "technical-issue" ? "Describe the technical issue briefly" :
+                        formData.inquiryType === "complaint" ? "Nature of your complaint" :
+                        formData.inquiryType === "partnership" ? "Partnership or integration proposal" :
+                        "What is your message about?"
+                      }
+                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-xs font-bold text-slate-100">Message *</Label>
+                    <Textarea
+                      id="message"
+                      rows={5}
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      placeholder={
+                        formData.inquiryType === "corporate-sales" ? "Tell us about your upcoming AGM/EGM dates, estimated shareholder count, and specific requirements..." :
+                        formData.inquiryType === "shareholder-support" ? "Please describe your issue in detail — include your registered email or folio number if applicable..." :
+                        formData.inquiryType === "technical-issue" ? "Describe the issue, steps to reproduce, and any error messages you see..." :
+                        formData.inquiryType === "complaint" ? "Please describe your complaint in detail. Include dates, reference numbers, and any supporting information..." :
+                        formData.inquiryType === "partnership" ? "Tell us about your organization and how you'd like to collaborate..." :
+                        "Write your message here..."
+                      }
+                      className="bg-black/60 border-white/20 text-white rounded-xl font-medium focus:border-cyan-400/60 focus:ring-cyan-400/20 transition-colors"
+                      required
+                    />
+                  </div>
+
+                  {/* Complaint notice */}
+                  {formData.inquiryType === "complaint" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="flex gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-200 text-xs"
+                    >
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <p>
+                        Your complaint will be registered and assigned an official tracking ID. We take all grievances seriously and aim to resolve them within 4 business hours. You will receive an acknowledgment email immediately.
+                      </p>
+                    </motion.div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !formData.inquiryType}
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl text-sm gap-2 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Sending Message...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        {formData.inquiryType === "complaint" ? "Submit Complaint" :
+                         formData.inquiryType === "corporate-sales" ? "Submit Inquiry" :
+                         formData.inquiryType === "partnership" ? "Submit Proposal" :
+                         "Send Message"}
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-[10px] text-slate-400 text-center mt-3">
+                    By submitting, you agree to our{" "}
+                    <Link to="/privacy-policy" className="text-cyan-400 hover:underline">Privacy Policy</Link>
+                    {" "}and{" "}
+                    <Link to="/terms-of-service" className="text-cyan-400 hover:underline">Terms of Service</Link>.
+                  </p>
+                </form>
+              </div>
+            )}
           </motion.div>
 
         </div>
