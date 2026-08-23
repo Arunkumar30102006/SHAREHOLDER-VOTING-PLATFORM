@@ -2,87 +2,58 @@
  * generate-sitemap.cjs
  * 
  * Post-build script that generates dist/sitemap.xml and public/sitemap.xml
- * with all public indexable routes.
- * 
- * Complies with modern search engine standards:
- * - Only includes <loc> and accurate <lastmod> derived from source git/file revision
- * - Excludes private/authenticated routes
+ * with all public routes adhering to specific priorities, change frequencies, and dates.
  * 
  * Usage: node scripts/generate-sitemap.cjs
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const SITE_URL = 'https://www.shareholdervoting.in';
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DIST_DIR = path.resolve(ROOT_DIR, 'dist');
-const DEFAULT_DATE = '2026-08-23';
+const PUBLIC_DIR = path.resolve(ROOT_DIR, 'public');
 
-// Map each public route to its underlying source component
-const routeFileMap = {
-  '/': 'src/pages/Index.tsx',
-  '/shareholder-voting': 'src/pages/seo/ShareholderVoting.tsx',
-  '/online-e-voting': 'src/pages/seo/OnlineEVoting.tsx',
-  '/agm-voting': 'src/pages/seo/AgmVoting.tsx',
-  '/egm-voting': 'src/pages/seo/EgmVoting.tsx',
-  '/corporate-voting': 'src/pages/seo/CorporateVoting.tsx',
-  '/secure-voting': 'src/pages/seo/SecureVoting.tsx',
-  '/how-it-works': 'src/pages/seo/HowItWorks.tsx',
-  '/features': 'src/pages/Features.tsx',
-  '/pricing': 'src/pages/Pricing.tsx',
-  '/compliance': 'src/pages/Compliance.tsx',
-  '/security': 'src/pages/Security.tsx',
-  '/about': 'src/pages/About.tsx',
-  '/services': 'src/pages/Services.tsx',
-  '/blog': 'src/pages/Blog.tsx',
-  '/blog/sebi-compliant-evoting-guide': 'src/pages/blog/SebiCompliantEvotingGuide.tsx',
-  '/blog/how-online-shareholder-voting-works': 'src/pages/blog/HowOnlineShareholderVotingWorks.tsx',
-  '/blog/agm-evoting-vs-physical-meeting': 'src/pages/blog/AgmEvotingVsPhysicalMeeting.tsx',
-  '/blog/benefits-electronic-voting-shareholders': 'src/pages/blog/BenefitsElectronicVotingShareholders.tsx',
-  '/contact': 'src/pages/Contact.tsx',
-  '/demo': 'src/pages/Demo.tsx',
-  '/live-demo': 'src/pages/LiveDemo.tsx',
-  '/sebi-compliance': 'src/pages/legal/SebiCompliance.tsx',
-  '/privacy-policy': 'src/pages/legal/PrivacyPolicy.tsx',
-  '/terms-of-service': 'src/pages/legal/TermsOfService.tsx',
-  '/data-protection': 'src/pages/legal/DataProtection.tsx',
-};
+const routeEntries = [
+  // Homepage
+  { path: '/', priority: '1.0', changefreq: 'weekly', lastmod: '2026-08-23' },
 
-function getLastModDate(relFilePath) {
-  const fullPath = path.resolve(ROOT_DIR, relFilePath);
-  if (!fs.existsSync(fullPath)) return DEFAULT_DATE;
+  // Service Pages
+  { path: '/shareholder-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/agm-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/egm-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/online-e-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/corporate-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
 
-  try {
-    const gitDate = execSync(`git log -1 --format=%cs -- "${fullPath}"`, {
-      cwd: ROOT_DIR,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'ignore']
-    }).trim();
-    if (gitDate && /^\d{4}-\d{2}-\d{2}$/.test(gitDate)) {
-      return gitDate;
-    }
-  } catch {
-    // Fallback to file system stat if git command fails
-  }
+  // Info Pages
+  { path: '/compliance', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/security', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/how-it-works', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/about', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/services', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/pricing', priority: '0.8', changefreq: 'weekly', lastmod: '2026-08-23' },
 
-  try {
-    const stat = fs.statSync(fullPath);
-    return stat.mtime.toISOString().split('T')[0];
-  } catch {
-    return DEFAULT_DATE;
-  }
-}
+  // Conversion Pages
+  { path: '/contact', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/company-register', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
+  { path: '/live-demo', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
 
-// Generate XML entries (strictly <loc> and <lastmod>)
-const routes = Object.keys(routeFileMap);
-const urlEntries = routes.map((routePath) => {
+  // Content
+  { path: '/blog', priority: '0.6', changefreq: 'weekly', lastmod: '2026-08-23' },
+
+  // Legal
+  { path: '/privacy-policy', priority: '0.3', changefreq: 'yearly', lastmod: '2026-08-01' },
+  { path: '/terms-of-service', priority: '0.3', changefreq: 'yearly', lastmod: '2026-08-01' },
+];
+
+const urlEntries = routeEntries.map(({ path: routePath, priority, changefreq, lastmod }) => {
   const loc = routePath === '/' ? SITE_URL + '/' : SITE_URL + routePath;
-  const lastmod = getLastModDate(routeFileMap[routePath]);
   return `  <url>
     <loc>${loc}</loc>
     <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
   </url>`;
 }).join('\n');
 
@@ -92,16 +63,12 @@ ${urlEntries}
 </urlset>
 `;
 
-// Write to dist/ and public/
 if (fs.existsSync(DIST_DIR)) {
   fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap, 'utf-8');
 }
 
-const PUBLIC_DIR = path.resolve(ROOT_DIR, 'public');
 if (fs.existsSync(PUBLIC_DIR)) {
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), sitemap, 'utf-8');
 }
 
-console.log(`✅ sitemap.xml generated with ${routes.length} URLs (accurate lastmod) → dist/sitemap.xml & public/sitemap.xml`);
-
-
+console.log(`✅ sitemap.xml generated with ${routeEntries.length} URLs → dist/sitemap.xml & public/sitemap.xml`);
