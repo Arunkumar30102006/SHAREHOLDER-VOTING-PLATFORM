@@ -76,11 +76,11 @@ const tiers = [
 const faqs = [
   {
     q: "What's included in each plan?",
-    a: "Every plan includes our core SEBI-compliant e-voting engine with end-to-end encryption, shareholder authentication, and basic PDF reporting. Higher-tier plans add features like unlimited voting sessions, AI-powered analytics, multi-language support, custom branding, API access, and dedicated account management.",
+    a: "Every plan includes our core statutory e-voting engine aligned with Section 108 and SEBI LODR Regulation 44, featuring SHA-256 ballot hashing, shareholder 2FA authentication, and official Form MGT-13 style PDF reporting. Higher-tier plans add features like unlimited voting sessions, AI-powered analytics, multi-language support, custom branding, and dedicated account management.",
   },
   {
-    q: "Is this platform compliant with SEBI & statutory guidelines?",
-    a: "Yes. Our platform is designed in alignment with SEBI (LODR) Regulations 2015, Companies Act 2013 (Section 108), and Rule 20 of the Companies (Management and Administration) Rules, 2014. We maintain complete audit trails and support independent scrutinizer access. See our compliance page for full details.",
+    q: "How does the platform align with SEBI & MCA statutory guidelines?",
+    a: "Our platform is architecturally engineered in accordance with Companies Act 2013 (Section 108), Rule 20 of the Companies (Management and Administration) Rules, 2014, and SEBI (LODR) Regulations 2015 (Regulation 44). We maintain complete cryptographic audit trails and support two-witness independent Scrutinizer access. See our compliance page for our full transparency matrix.",
   },
   {
     q: "Is there a free trial?",

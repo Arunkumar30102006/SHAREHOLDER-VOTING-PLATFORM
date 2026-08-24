@@ -195,7 +195,7 @@ YOUR KNOWLEDGE BASE:
    - **Step 7:** Click 'Submit Vote'. You will get a blockchain transaction hash as a receipt.
 
 3. **Key Features**:
-   - **Security**: Votes are encrypted and stored on a tamper-proof ledger.
+   - **Security**: Votes are encrypted with AES-256 and chained into a tamper-evident Merkle ledger.
    - **Anonymity**: The company knows *that* you voted, but not *what* you voted (unless required by law).
    - **Timeframe**: Voting is only open during the 'Scheduled' start and end times.
 

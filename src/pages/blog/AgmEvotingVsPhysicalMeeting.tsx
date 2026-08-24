@@ -17,14 +17,14 @@ const AgmEvotingVsPhysicalMeeting = () => {
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">
           For decades, the standard Annual General Meeting (AGM) meant renting hotel auditoriums, printing physical ballot papers, and managing proxy cards. 
-          Today, working with a certified <strong>evoting company</strong> and deploying an advanced <strong>evoting platform</strong> has fundamentally revolutionized how Indian enterprises interact with institutional and retail shareholders.
+          Today, deploying an advanced <strong>electronic voting platform</strong> has fundamentally modernized how Indian enterprises interact with institutional and retail shareholders.
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">
           The Transformation of General Meetings in India
         </h2>
         <p>
-          Following MCA general circulars and SEBI LODR amendments, companies in India can conduct hybrid and fully virtual general meetings (AGMs/EGMs). 
+          Following MCA general circulars and SEBI LODR amendments, companies in India can conduct hybrid and virtual general meetings (AGMs/EGMs). 
           This transition has exposed the stark contrast between traditional physical gatherings and modern electronic voting solutions.
         </p>
 
@@ -42,10 +42,10 @@ const AgmEvotingVsPhysicalMeeting = () => {
               <tr>
                 <td className="p-4 font-semibold text-white">Geographic Reach</td>
                 <td className="p-4 text-slate-400">Limited to attendees in the city of Registered Office</td>
-                <td className="p-4 text-emerald-400 font-medium">Pan-India & Global NRI/FII participation from any device</td>
+                <td className="p-4 text-emerald-400 font-medium">Pan-India &amp; Global NRI/FII participation from any device</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-white">Logistics & Venue Cost</td>
+                <td className="p-4 font-semibold text-white">Logistics &amp; Venue Cost</td>
                 <td className="p-4 text-red-400">₹15 Lakhs – ₹50+ Lakhs (Hall rental, catering, printing, security)</td>
                 <td className="p-4 text-emerald-400 font-medium">Up to 80% cost reduction with transparent SaaS pricing</td>
               </tr>
@@ -55,14 +55,14 @@ const AgmEvotingVsPhysicalMeeting = () => {
                 <td className="p-4 text-emerald-400 font-medium">Instant, automated calculation with zero computational discrepancies</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-white">Quorum & Audit Trail</td>
+                <td className="p-4 font-semibold text-white">Quorum &amp; Audit Trail</td>
                 <td className="p-4 text-slate-400">Manual register signatures susceptible to dispute</td>
-                <td className="p-4 text-emerald-400 font-medium">Cryptographic tamper-proof logs with timestamped Merkle verification</td>
+                <td className="p-4 text-emerald-400 font-medium">Cryptographic tamper-evident logs with timestamped Merkle verification</td>
               </tr>
               <tr>
                 <td className="p-4 font-semibold text-white">Regulatory Turnaround</td>
                 <td className="p-4 text-slate-400">48+ hours of manual reconciliation</td>
-                <td className="p-4 text-emerald-400 font-medium">Instant Form MGT-13 and stock exchange disclosure generation</td>
+                <td className="p-4 text-emerald-400 font-medium">Instant Form MGT-13 Scrutinizer draft export to assist with disclosures</td>
               </tr>
             </tbody>
           </table>

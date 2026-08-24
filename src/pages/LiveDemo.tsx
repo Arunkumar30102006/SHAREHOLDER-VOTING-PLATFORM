@@ -13,6 +13,7 @@ import { SEO } from "@/components/layout/SEO";
 import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
 import React, { Suspense } from "react";
 import { ClientOnly } from "vite-react-ssg";
+import AnimatedOtpVerification from "@/components/auth/AnimatedOtpVerification";
 
 const breadcrumbSchema = createBreadcrumbSchema([
   { name: "Home", url: "/" },
@@ -57,7 +58,6 @@ const StepLogin = ({ onNext }: { onNext: () => void }) => {
   const [password, setPassword] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
-  const [otp, setOtp] = useState("");
 
   const handleCredentialSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,20 +65,7 @@ const StepLogin = ({ onNext }: { onNext: () => void }) => {
     setTimeout(() => {
       setIsVerifying(false);
       setShowOtp(true);
-    }, 1500);
-  };
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  const handleOtpSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsVerifying(true);
-    setTimeout(() => {
-      setIsVerifying(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        onNext();
-      }, 2500); // Show 3D success for 2.5s
-    }, 1200);
+    }, 800);
   };
 
   return (
@@ -112,7 +99,7 @@ const StepLogin = ({ onNext }: { onNext: () => void }) => {
 
       <div className="bg-[#0d1b2a]/60 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-2xl">
         <AnimatePresence mode="wait">
-          {!showOtp && !isSuccess && (
+          {!showOtp && (
             <motion.form
               key="creds"
               initial={{ opacity: 0 }}
@@ -164,61 +151,24 @@ const StepLogin = ({ onNext }: { onNext: () => void }) => {
             </motion.form>
           )}
 
-          {showOtp && !isSuccess && (
-            <motion.form
-              key="otp"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              onSubmit={handleOtpSubmit}
-              className="space-y-5"
-            >
-              <div className="text-center p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 mb-4">
-                <ShieldCheck className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                <p className="text-xs text-blue-300">OTP sent to r****@gmail.com</p>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-300">One-Time Password (OTP)</label>
-                <input
-                  type="text"
-                  value={otp || "482916"}
-                  onChange={(e) => setOtp(e.target.value)}
-                  maxLength={6}
-                  className="w-full h-14 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-2xl text-white text-center tracking-[0.5em] font-mono focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
-                  placeholder="______"
-                />
-              </div>
-              <Button type="submit" className="w-full h-12 rounded-xl text-base font-bold gap-2" size="lg" disabled={isVerifying}>
-                {isVerifying ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4" /> Secure Login
-                  </>
-                )}
-              </Button>
-            </motion.form>
-          )}
-
-          {isSuccess && (
-            <motion.div
-              key="success3d"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-8"
-            >
-              <Suspense fallback={<div className="w-full h-[300px] animate-pulse bg-emerald-500/10 rounded-xl" />}>
-                <ClientOnly fallback={<div className="w-full h-[300px] animate-pulse bg-emerald-500/10 rounded-xl" />}>
-                  {() => <OTPSuccess3D />}
-                </ClientOnly>
-              </Suspense>
-              <h3 className="text-xl font-bold text-emerald-400 mt-4">Verification Successful</h3>
-              <p className="text-sm text-slate-400">Securing your session...</p>
-            </motion.div>
+          {showOtp && (
+            <AnimatedOtpVerification
+              length={6}
+              recipientInfo="r****@gmail.com"
+              themeColor="cyan"
+              title="Shareholder Verification"
+              subtitle="Enter the 6-digit OTP sent to your registered email (e.g. 482916)"
+              onVerify={async (code) => {
+                await new Promise((r) => setTimeout(r, 1200));
+                return { success: true };
+              }}
+              onResend={async () => {
+                await new Promise((r) => setTimeout(r, 800));
+                return true;
+              }}
+              onSuccess={onNext}
+              onBack={() => setShowOtp(false)}
+            />
           )}
         </AnimatePresence>
       </div>

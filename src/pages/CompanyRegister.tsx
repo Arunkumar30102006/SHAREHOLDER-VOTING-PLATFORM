@@ -555,7 +555,11 @@ export default function CompanyRegister() {
 
   return (
     <div className="min-h-screen relative pt-28 pb-20 bg-[#0d1b2a]">
-      <SEO title="Company Registration | Vote India Secure" description="Register your company on Vote India Secure." canonical="/company-register" noindex={true} />
+      <SEO
+        title="Company Registration & Onboarding | Vote India Secure"
+        description="Register your corporate enterprise, private limited company, or RTA to conduct secure electronic shareholder voting in compliance with MCA and SEBI guidelines."
+        canonical="/company-register"
+      />
       <Navbar />
 
       <main className="container mx-auto px-4 max-w-4xl">
@@ -563,7 +567,7 @@ export default function CompanyRegister() {
           <>
             <div className="text-center mb-10">
               <h1 className="text-3xl font-bold text-white mb-2">Company Registration</h1>
-              <p className="text-slate-400 text-sm">Register your company to conduct SEBI-compliant electronic voting.</p>
+              <p className="text-slate-300 text-sm">Register your organization to conduct electronic voting in alignment with MCA Rule 20 and SEBI LODR Regulation 44.</p>
             </div>
 
             {/* Stepper */}

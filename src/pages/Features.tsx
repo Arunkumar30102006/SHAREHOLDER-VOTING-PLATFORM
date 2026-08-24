@@ -40,37 +40,37 @@ const mainFeatures = [
   },
   {
     icon: Eye,
-    title: "Immutable Audit Trails",
-    description: "Every vote is recorded with tamper-proof logs, timestamps, and cryptographic hashes. Scrutinizers get independent access to verify the entire voting process.",
+    title: "Cryptographic Audit Trails",
+    description: "Every vote is recorded with tamper-evident logs, timestamps, and SHA-256 cryptographic hashes. Scrutinizers get independent access to mathematically verify the entire voting process.",
     details: [
       "Complete audit history for every action",
       "Merkle tree anchored verification",
-      "Tamper-proof timestamp recording",
+      "Tamper-evident timestamp recording",
       "Independent scrutinizer portal"
     ],
     color: "from-emerald-500 to-green-500",
   },
   {
     icon: Shield,
-    title: "SEBI LODR Compliant",
-    description: "Built in adherence to SEBI (LODR) Regulations 2015 and Companies Act 2013, including Regulation 44 for mandatory e-voting at general meetings.",
+    title: "SEBI LODR & MCA Alignment",
+    description: "Built in architectural adherence to SEBI (LODR) Regulations 2015 and Companies Act 2013, including Regulation 44 for remote e-voting at general meetings.",
     details: [
       "Regulation 44 — e-voting requirements",
       "Section 108 — Companies Act compliance",
       "Rule 20 — Management & Administration Rules",
-      "Scrutinizer report generation"
+      "Form MGT-13 Scrutinizer report export"
     ],
     color: "from-blue-600 to-indigo-500",
   },
   {
     icon: FileCheck,
-    title: "Automated Reports",
-    description: "Generate SEBI-compliant scrutinizer reports in PDF format with a single click, including vote breakdowns, audit trails, and compliance attestations.",
+    title: "Scrutinizer Audit Reports",
+    description: "Generate Form MGT-13 style scrutinizer reports in PDF format with a single click, including vote breakdowns, cryptographic audit trails, and witness attestation blocks.",
     details: [
       "One-click PDF report generation",
       "Weighted vote calculation engine",
       "Resolution-wise breakdown",
-      "Companies Act 2013 format compliance"
+      "Form MGT-13 format compatibility"
     ],
     color: "from-purple-500 to-violet-500",
   },

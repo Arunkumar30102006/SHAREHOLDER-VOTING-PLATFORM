@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   ShieldCheck, 
   Lock, 
@@ -8,29 +8,61 @@ import {
   CheckCircle2, 
   ArrowRight, 
   ChevronRight, 
+  ChevronDown,
   FileCheck2, 
   Shield, 
   Fingerprint,
   FileCode2,
-  Database
+  Database,
+  Sparkles,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
-import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
+import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
 
 const breadcrumbSchema = createBreadcrumbSchema([
   { name: "Home", url: "/" },
   { name: "Secure Voting", url: "/secure-voting" }
 ]);
 
+const secureVotingFaqs = [
+  {
+    q: "How does SHA-256 Merkle Tree hashing ensure ballot integrity?",
+    a: "Every cast ballot generates an immutable SHA-256 cryptographic hash that is linked into a Merkle Tree. Any unauthorized modification, deletion, or insertion alters the root hash, making tampering immediately detectable by independent auditors."
+  },
+  {
+    q: "How is voter confidentiality maintained during remote sessions?",
+    a: "Individual ballot selections are cryptographically decoupled from voter identity tokens. Under Companies Act Rule 20, vote tallies remain locked and cannot be viewed by administrators until unblocked post-meeting by the Scrutinizer in the presence of two witnesses."
+  },
+  {
+    q: "What database security measures isolate corporate tenant data?",
+    a: "Our PostgreSQL database enforces strict Row-Level Security (RLS) policies. Multi-tenant corporate records and voter rosters are isolated so that companies and voters can only access their authorized data records."
+  },
+  {
+    q: "How does 2FA OTP verification prevent unauthorized access?",
+    a: "Each login attempt requires multi-factor authentication with a 6-digit one-time password delivered via email or SMS, coupled with DP ID/Client ID verification matching the depository record date benpos."
+  }
+];
+
+const secureVotingFaqSchema = createFaqSchema(
+  secureVotingFaqs.map((f) => ({ question: f.q, answer: f.a }))
+);
+
 export const SecureVoting = () => {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Secure Voting Platform | AES-256 & SHA-256 Cryptographic Integrity"
-        description="Explore how Vote India Secure guarantees ballot secrecy, tamper-proof audit trails, and 2FA authentication for enterprise shareholder meetings."
+        title="Cryptographic Security & Ballot Sealing | Vote India Secure"
+        description="Explore how Vote India Secure delivers ballot secrecy, tamper-evident SHA-256 Merkle audit trails, PostgreSQL RLS, and 2FA authentication for corporate meetings."
         canonical="/secure-voting"
-        schemas={[breadcrumbSchema]}
+        schemas={[breadcrumbSchema, secureVotingFaqSchema]}
       />
 
       {/* Hero Section */}
@@ -47,7 +79,7 @@ export const SecureVoting = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-6">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Zero-Trust Cryptographic Engine</span>
+              <span>Cryptographic Security Architecture</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight mb-6 leading-tight">
@@ -58,7 +90,7 @@ export const SecureVoting = () => {
             </h1>
 
             <p className="text-base sm:text-xl text-slate-200 max-w-3xl mx-auto font-normal leading-relaxed mb-10">
-              Discover the engineering behind tamper-evident corporate balloting. AES-256 ballot sealing, SHA-256 Merkle audit chains, and multi-witness scrutinizer unblocking protocols.
+              Discover the engineering behind tamper-evident corporate balloting. AES-256 ballot sealing, SHA-256 Merkle audit chains, PostgreSQL Row-Level Security, and multi-witness Scrutinizer unblocking protocols.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -83,11 +115,11 @@ export const SecureVoting = () => {
       <section className="py-20 bg-[#0d1b2a]/50 border-y border-white/10 relative">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
-              The 4 Pillars of Vote Sealing & Integrity
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-4">
+              The 4 Pillars of Ballot Sealing &amp; Integrity
             </h2>
-            <p className="text-slate-300 text-base">
-              Engineered with zero trust principles so no single party can alter voting outcomes.
+            <p className="text-slate-300 text-sm md:text-base">
+              Engineered with rigorous technical controls so unauthorized modifications are mathematically detectable.
             </p>
           </div>
 
@@ -97,8 +129,8 @@ export const SecureVoting = () => {
                 <Lock className="w-5 h-5 text-cyan-400" />
               </div>
               <h3 className="text-lg font-bold text-white">1. AES-256 Ballot Encryption</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Ballots are encrypted with AES-256 at rest and in transit via TLS 1.3. Each vote payload is stored in an encrypted vault inaccessible to application administrators.
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                Ballots are encrypted with AES-256 at rest and in transit via TLS 1.3. Each vote payload is stored in an encrypted vault inaccessible to application operators prior to official unblocking.
               </p>
             </div>
 
@@ -107,8 +139,8 @@ export const SecureVoting = () => {
                 <FileCode2 className="w-5 h-5 text-emerald-400" />
               </div>
               <h3 className="text-lg font-bold text-white">2. SHA-256 Merkle Proof Audit Ledger</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Every cast vote produces a unique cryptographic hash linked to the previous vote block, creating an immutable mathematical proof that verifies no votes were inserted, deleted, or altered.
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                Every cast vote produces a unique cryptographic hash linked into an auditable Merkle Tree, creating mathematical verification that no votes were inserted, deleted, or altered.
               </p>
             </div>
 
@@ -117,7 +149,7 @@ export const SecureVoting = () => {
                 <Fingerprint className="w-5 h-5 text-purple-400" />
               </div>
               <h3 className="text-lg font-bold text-white">3. Multi-Factor Voter Authentication</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
                 2FA OTP delivery combined with PAN, DP ID, and Client ID verification ensures only verified equity owners matching the official record date depository benpos can cast ballots.
               </p>
             </div>
@@ -127,16 +159,65 @@ export const SecureVoting = () => {
                 <KeyRound className="w-5 h-5 text-amber-400" />
               </div>
               <h3 className="text-lg font-bold text-white">4. Scrutinizer Multi-Witness Unblocking</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Only the designated independent Scrutinizer can decrypt the vote tallies post-meeting in the presence of 2 independent witnesses, ensuring full legal compliance with Rule 20(4)(xii).
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                Only the designated independent Scrutinizer can unblock the vote tallies post-meeting in the presence of at least 2 independent witnesses, satisfying Rule 20(4)(xii).
               </p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Secure Voting FAQ Section */}
+      <section className="py-20 bg-[#020817]">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-3">
+              Cryptographic Security FAQs
+            </h2>
+            <p className="text-slate-300 text-sm">
+              Technical specifications regarding encryption, Merkle trees, and access controls.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {secureVotingFaqs.map((faq, index) => (
+              <div
+                key={index}
+                className="rounded-2xl border border-white/15 bg-[#0d1b2a]/90 overflow-hidden backdrop-blur-xl transition-all shadow-lg"
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className="w-full flex items-center justify-between p-5 text-left text-sm md:text-base font-bold text-white hover:text-emerald-300 transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown
+                    className={`w-5 h-5 text-emerald-400 shrink-0 ml-4 transition-transform duration-300 ${
+                      openFaq === index ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {openFaq === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="px-5 pb-5 pt-1 text-xs md:text-sm text-slate-200 leading-relaxed border-t border-white/10 font-normal">
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Internal Navigation */}
-      <section className="py-16 bg-[#020817]">
+      <section className="py-16 bg-[#0d1b2a]/50 border-t border-white/10">
         <div className="container mx-auto px-4 max-w-5xl">
           <h2 className="text-xl font-bold text-white mb-6 text-center">Explore Related Security Pages</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -144,13 +225,13 @@ export const SecureVoting = () => {
               Security Overview →
             </Link>
             <Link to="/compliance" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
-              SEBI Compliance →
+              Statutory Compliance →
             </Link>
-            <Link to="/how-it-works" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
-              How It Works →
+            <Link to="/remote-e-voting" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
+              Remote E-Voting →
             </Link>
-            <Link to="/shareholder-voting" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
-              Shareholder Portal →
+            <Link to="/faqs" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
+              E-Voting FAQs →
             </Link>
           </div>
         </div>

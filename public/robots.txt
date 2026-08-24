@@ -1,14 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /company-dashboard
-Disallow: /admin
-Disallow: /api/
-Disallow: /shareholder-login
-
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
+Disallow: /voting-dashboard
+Disallow: /voting-management
+Disallow: /shareholder-analysis
+Disallow: /ai-power-suite
 
 Sitemap: https://www.shareholdervoting.in/sitemap.xml

@@ -1,6 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Shield, Users, Building2, LogOut, ShieldCheck, Home, Menu, X, BookOpen, Layers, ChevronDown } from "lucide-react";
+import {
+  Shield,
+  Users,
+  Building2,
+  LogOut,
+  ShieldCheck,
+  Home,
+  Menu,
+  X,
+  BookOpen,
+  Layers,
+  ChevronDown,
+  Lock
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -31,14 +44,15 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   // Check if current page is a protected portal
-  const isPortalPage = location.pathname.includes("/company-dashboard") ||
+  const isPortalPage =
+    location.pathname.includes("/company-dashboard") ||
     location.pathname.includes("/voting-management") ||
     location.pathname.includes("/voting-dashboard") ||
     location.pathname.includes("/ai-power-suite");
 
   useEffect(() => {
     checkAuth();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
     });
     return () => subscription.unsubscribe();
@@ -78,20 +92,25 @@ const Navbar = () => {
     setIsLoggedIn(!!session);
   };
 
-  const handleNavigation = useCallback((e: React.MouseEvent, path: string) => {
-    if (isPortalPage && isLoggedIn && (
-      path === "/" ||
-      path === "/company-register" ||
-      path === "/shareholder-login" ||
-      path === "/company-login"
-    )) {
-      e.preventDefault();
-      setPendingPath(path);
-      setShowLogoutAlert(true);
-    } else {
-      setIsMobileMenuOpen(false); // Close mobile menu on navigation
-    }
-  }, [isPortalPage, isLoggedIn]);
+  const handleNavigation = useCallback(
+    (e: React.MouseEvent, path: string) => {
+      if (
+        isPortalPage &&
+        isLoggedIn &&
+        (path === "/" ||
+          path === "/company-register" ||
+          path === "/shareholder-login" ||
+          path === "/company-login")
+      ) {
+        e.preventDefault();
+        setPendingPath(path);
+        setShowLogoutAlert(true);
+      } else {
+        setIsMobileMenuOpen(false); // Close mobile menu on navigation
+      }
+    },
+    [isPortalPage, isLoggedIn]
+  );
 
   const confirmNavigation = async () => {
     if (pendingPath) {
@@ -104,26 +123,18 @@ const Navbar = () => {
     }
   };
 
-  const navLinks = [
-    { label: "Home", href: "/", icon: Home },
-    { label: "About", href: "/about", icon: Users },
-    { label: "Services", href: "/services", icon: Layers },
-    { label: "Compliance", href: "/compliance", icon: ShieldCheck },
-    { label: "Blog", href: "/blog", icon: BookOpen },
-    { label: "Contact", href: "/contact", icon: Shield },
-  ];
-
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-50 w-full px-4 md:px-6 pointer-events-none transition-all duration-500 ease-in-out ${
-        !isVisible
-          ? "-translate-y-28 opacity-0 pointer-events-none"
-          : isScrolled
-          ? "translate-y-4 opacity-100"
-          : "translate-y-6 opacity-100"
-      }`}>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 w-full px-4 md:px-6 pointer-events-none transition-all duration-500 ease-in-out ${
+          !isVisible
+            ? "-translate-y-28 opacity-0 pointer-events-none"
+            : isScrolled
+            ? "translate-y-4 opacity-100"
+            : "translate-y-6 opacity-100"
+        }`}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          
           {/* Left: Logo Island */}
           <div className="pointer-events-auto flex items-center h-[56px] px-5 rounded-full bg-[#020817]/70 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40 hover:border-white/20 transition-all flex-shrink-0">
             <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
@@ -132,29 +143,134 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Center: Links Island */}
-          <div className="pointer-events-auto hidden xl:flex items-center justify-center gap-1 h-[56px] px-2 rounded-full bg-[#020817]/70 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.href}
-                to={link.href}
-                onClick={(e) => handleNavigation(e, link.href)}
-                className={({ isActive }) =>
-                  `relative flex items-center gap-2 text-sm font-semibold whitespace-nowrap px-4 py-2 rounded-full transition-all duration-300 ${
-                    isActive
-                      ? "text-white bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-white/10"
-                      : "text-slate-300 hover:text-white hover:bg-white/5"
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <link.icon className={`w-4 h-4 ${isActive ? "text-orange-400" : ""}`} strokeWidth={2.5} />
-                    {link.label}
-                  </>
-                )}
-              </NavLink>
-            ))}
+          {/* Center: Links Island with Clean Dropdowns */}
+          <div className="pointer-events-auto hidden xl:flex items-center justify-center gap-1 h-[56px] px-3 rounded-full bg-[#020817]/70 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40">
+            {/* Home */}
+            <NavLink
+              to="/"
+              onClick={(e) => handleNavigation(e, "/")}
+              className={({ isActive }) =>
+                `flex items-center gap-2 text-sm font-semibold whitespace-nowrap px-3.5 py-2 rounded-full transition-all duration-300 ${
+                  isActive
+                    ? "text-white bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-white/10"
+                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                }`
+              }
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </NavLink>
+
+            {/* Solutions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-white transition-all outline-none px-3.5 py-2 rounded-full hover:bg-white/5 data-[state=open]:bg-white/10 data-[state=open]:text-white">
+                <Layers className="w-4 h-4 text-cyan-400" />
+                <span>Solutions</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 bg-[#020817]/95 backdrop-blur-2xl border-white/10 text-white mt-4 rounded-2xl p-2 shadow-2xl" align="start">
+                <DropdownMenuItem asChild>
+                  <Link to="/shareholder-voting" onClick={(e) => handleNavigation(e, '/shareholder-voting')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Users className="w-4 h-4 mr-2.5 text-blue-400" />
+                    Shareholder E-Voting
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/remote-e-voting" onClick={(e) => handleNavigation(e, '/remote-e-voting')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <ShieldCheck className="w-4 h-4 mr-2.5 text-cyan-400" />
+                    Remote E-Voting (Rule 20)
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/agm-voting" onClick={(e) => handleNavigation(e, '/agm-voting')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Building2 className="w-4 h-4 mr-2.5 text-indigo-400" />
+                    AGM E-Voting
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/egm-voting" onClick={(e) => handleNavigation(e, '/egm-voting')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Layers className="w-4 h-4 mr-2.5 text-amber-400" />
+                    EGM &amp; Postal Ballot
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/corporate-voting" onClick={(e) => handleNavigation(e, '/corporate-voting')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Shield className="w-4 h-4 mr-2.5 text-purple-400" />
+                    Corporate Governance
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Trust & Compliance Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-white transition-all outline-none px-3.5 py-2 rounded-full hover:bg-white/5 data-[state=open]:bg-white/10 data-[state=open]:text-white">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Security &amp; Compliance</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 bg-[#020817]/95 backdrop-blur-2xl border-white/10 text-white mt-4 rounded-2xl p-2 shadow-2xl" align="start">
+                <DropdownMenuItem asChild>
+                  <Link to="/compliance" onClick={(e) => handleNavigation(e, '/compliance')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <ShieldCheck className="w-4 h-4 mr-2.5 text-emerald-400" />
+                    Statutory Compliance Hub
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/security" onClick={(e) => handleNavigation(e, '/security')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Lock className="w-4 h-4 mr-2.5 text-cyan-400" />
+                    Technical Security Model
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/how-it-works" onClick={(e) => handleNavigation(e, '/how-it-works')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Home className="w-4 h-4 mr-2.5 text-blue-400" />
+                    How It Works
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/faqs" onClick={(e) => handleNavigation(e, '/faqs')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <BookOpen className="w-4 h-4 mr-2.5 text-amber-400" />
+                    E-Voting Knowledge Center (FAQs)
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Resources & Company Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-white transition-all outline-none px-3.5 py-2 rounded-full hover:bg-white/5 data-[state=open]:bg-white/10 data-[state=open]:text-white">
+                <BookOpen className="w-4 h-4 text-indigo-400" />
+                <span>Company</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-[#020817]/95 backdrop-blur-2xl border-white/10 text-white mt-4 rounded-2xl p-2 shadow-2xl" align="start">
+                <DropdownMenuItem asChild>
+                  <Link to="/about" onClick={(e) => handleNavigation(e, '/about')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Users className="w-4 h-4 mr-2.5 text-blue-400" />
+                    About Us
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/blog" onClick={(e) => handleNavigation(e, '/blog')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <BookOpen className="w-4 h-4 mr-2.5 text-indigo-400" />
+                    Blog &amp; Regulatory Guides
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/live-demo" onClick={(e) => handleNavigation(e, '/live-demo')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Layers className="w-4 h-4 mr-2.5 text-cyan-400" />
+                    Interactive Live Demo
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/contact" onClick={(e) => handleNavigation(e, '/contact')} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer py-2.5 w-full flex items-center text-xs font-medium">
+                    <Shield className="w-4 h-4 mr-2.5 text-emerald-400" />
+                    Contact &amp; Grievance
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Right: Login Island & Mobile Menu Trigger */}
@@ -200,23 +316,74 @@ const Navbar = () => {
         {/* Mobile Dropdown Menu (Fixed to viewport) */}
         {isMobileMenuOpen && (
           <div className="xl:hidden pointer-events-auto fixed top-[90px] left-4 right-4 bg-[#020817]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl p-4 flex flex-col gap-2 z-40 max-h-[calc(100vh-120px)] overflow-y-auto">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.href}
-                to={link.href}
-                onClick={(e) => handleNavigation(e, link.href)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 text-base font-medium px-4 py-3 rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? "text-white bg-white/10 border-l-2 border-primary"
-                      : "text-slate-300 hover:text-white hover:bg-white/5"
-                  }`
-                }
-              >
-                <link.icon className="w-5 h-5" strokeWidth={2} />
-                {link.label}
-              </NavLink>
-            ))}
+            <NavLink
+              to="/"
+              onClick={(e) => handleNavigation(e, "/")}
+              className={({ isActive }) =>
+                `flex items-center gap-3 text-base font-medium px-4 py-2.5 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? "text-white bg-white/10 border-l-2 border-primary"
+                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                }`
+              }
+            >
+              <Home className="w-5 h-5 text-cyan-400" />
+              Home
+            </NavLink>
+
+            <div className="pt-2 border-t border-white/10">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-4">Solutions</span>
+              <div className="flex flex-col gap-1 mt-1">
+                <Link to="/shareholder-voting" onClick={(e) => handleNavigation(e, '/shareholder-voting')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Users className="w-4 h-4 text-blue-400" /> Shareholder E-Voting
+                </Link>
+                <Link to="/remote-e-voting" onClick={(e) => handleNavigation(e, '/remote-e-voting')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" /> Remote E-Voting (Rule 20)
+                </Link>
+                <Link to="/agm-voting" onClick={(e) => handleNavigation(e, '/agm-voting')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Building2 className="w-4 h-4 text-indigo-400" /> AGM E-Voting
+                </Link>
+                <Link to="/egm-voting" onClick={(e) => handleNavigation(e, '/egm-voting')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Layers className="w-4 h-4 text-amber-400" /> EGM &amp; Postal Ballot
+                </Link>
+                <Link to="/corporate-voting" onClick={(e) => handleNavigation(e, '/corporate-voting')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Shield className="w-4 h-4 text-purple-400" /> Corporate Governance
+                </Link>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/10">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-4">Trust &amp; Governance</span>
+              <div className="flex flex-col gap-1 mt-1">
+                <Link to="/compliance" onClick={(e) => handleNavigation(e, '/compliance')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> Statutory Compliance Hub
+                </Link>
+                <Link to="/security" onClick={(e) => handleNavigation(e, '/security')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Lock className="w-4 h-4 text-cyan-400" /> Technical Security Model
+                </Link>
+                <Link to="/how-it-works" onClick={(e) => handleNavigation(e, '/how-it-works')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Home className="w-4 h-4 text-blue-400" /> How It Works
+                </Link>
+                <Link to="/faqs" onClick={(e) => handleNavigation(e, '/faqs')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <BookOpen className="w-4 h-4 text-amber-400" /> E-Voting FAQs
+                </Link>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/10">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-4">Company</span>
+              <div className="flex flex-col gap-1 mt-1">
+                <Link to="/about" onClick={(e) => handleNavigation(e, '/about')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Users className="w-4 h-4 text-blue-400" /> About Us
+                </Link>
+                <Link to="/blog" onClick={(e) => handleNavigation(e, '/blog')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <BookOpen className="w-4 h-4 text-indigo-400" /> Blog &amp; Insights
+                </Link>
+                <Link to="/contact" onClick={(e) => handleNavigation(e, '/contact')} className="flex items-center gap-3 text-sm px-4 py-2 rounded-xl text-slate-300 hover:bg-white/5">
+                  <Shield className="w-4 h-4 text-emerald-400" /> Contact Us
+                </Link>
+              </div>
+            </div>
             <div className="px-4 py-4 mt-2 border-t border-white/5 flex flex-col gap-2">
               <Link to="/shareholder-login" onClick={(e) => handleNavigation(e, '/shareholder-login')} className="flex items-center gap-3 text-base font-medium text-slate-300 hover:text-white transition-colors p-3 rounded-xl hover:bg-white/5">
                 <Users className="w-5 h-5 text-blue-400" /> Shareholder Login

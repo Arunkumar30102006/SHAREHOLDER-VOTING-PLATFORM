@@ -1,35 +1,69 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "motion/react";
-import { 
-  Building, 
-  ShieldCheck, 
-  Lock, 
-  CheckCircle2, 
-  ArrowRight, 
-  ChevronRight, 
-  Users, 
-  Scale, 
+import { motion, AnimatePresence } from "motion/react";
+import {
+  Building,
+  ShieldCheck,
+  Lock,
+  CheckCircle2,
+  ArrowRight,
+  ChevronRight,
+  ChevronDown,
+  Users,
+  Scale,
   Award,
-  Layers
+  Layers,
+  FileSpreadsheet,
+  FileCheck2,
+  Sparkles,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
-import { createBreadcrumbSchema } from "@/components/layout/StructuredData";
+import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
 
 const breadcrumbSchema = createBreadcrumbSchema([
   { name: "Home", url: "/" },
   { name: "Corporate Voting", url: "/corporate-voting" }
 ]);
 
+const corporateFaqs = [
+  {
+    q: "How does the platform handle depository Benpos records from CDSL and NSDL?",
+    a: "Corporate administrators upload standardized Benpos (Beneficial Position) rosters as on the cut-off date. The system parses DP ID, Client ID, PAN, email, and equity shareholding counts to configure voter entitlements accurately."
+  },
+  {
+    q: "What maker-checker controls exist for corporate resolution setup?",
+    a: "The platform supports multi-tier administrative permissions. Draft resolutions and explanatory statements under Section 102 can be created by secretarial operators and must be verified and authorized by the Company Secretary or Lead Admin before publication."
+  },
+  {
+    q: "How does the platform assist independent Scrutinizers?",
+    a: "Scrutinizers receive designated independent access to view meeting metadata, unblock digital ballots with witnesses post-meeting, review mathematical Merkle proofs, and export consolidated Form MGT-13 draft reports."
+  },
+  {
+    q: "Can private companies and unlisted entities use Vote India Secure?",
+    a: "Yes. Unlisted public companies with 1,000+ members mandated under Rule 20, as well as private entities, startups, and cooperative federations seeking transparent member balloting can utilize the platform."
+  }
+];
+
+const corporateFaqSchema = createFaqSchema(
+  corporateFaqs.map((f) => ({ question: f.q, answer: f.a }))
+);
+
 export const CorporateVoting = () => {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
-        title="Corporate Voting Platform | Enterprise Governance & Board Balloting"
-        description="Comprehensive corporate voting solutions for enterprises, private companies, and RTAs. Secure board resolutions, committee elections, and member ballots."
+        title="Corporate E-Voting & Issuer Governance Guide | Vote India Secure"
+        description="Comprehensive guide to corporate electronic voting for Indian enterprises: Benpos record ingestion, weighted voting power, resolution management, and Scrutinizer reports."
         canonical="/corporate-voting"
-        schemas={[breadcrumbSchema]}
+        schemas={[breadcrumbSchema, corporateFaqSchema]}
       />
 
       {/* Hero Section */}
@@ -46,18 +80,18 @@ export const CorporateVoting = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 text-xs font-bold uppercase tracking-wider mb-6">
               <Building className="w-4 h-4 text-purple-400" />
-              <span>Enterprise Governance Platform</span>
+              <span>Corporate Issuer Governance</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight mb-6 leading-tight">
-              Enterprise{" "}
+              Corporate E-Voting &amp;{" "}
               <span className="bg-gradient-to-r from-purple-400 via-blue-300 to-cyan-300 bg-clip-text text-transparent">
-                Corporate Voting
+                Issuer Governance
               </span>
             </h1>
 
             <p className="text-base sm:text-xl text-slate-200 max-w-3xl mx-auto font-normal leading-relaxed mb-10">
-              Unify all corporate balloting requirements — from board resolutions and committee elections to postal ballots and shareholder meetings — in a single, cryptographically verifiable platform.
+              A comprehensive technical guide for Corporate Secretarial teams, RTAs, and Board Administrators managing shareholder general meetings, depository synchronization, and statutory scrutinizer workflows.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -67,9 +101,9 @@ export const CorporateVoting = () => {
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
-              <Link to="/pricing" className="w-full sm:w-auto">
+              <Link to="/compliance" className="w-full sm:w-auto">
                 <Button variant="outline" size="xl" className="w-full border-white/20 hover:bg-white/10 text-white font-semibold gap-2 px-8 py-6 rounded-xl">
-                  View Enterprise Pricing
+                  Statutory Compliance Hub
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </Link>
@@ -82,40 +116,91 @@ export const CorporateVoting = () => {
       <section className="py-20 bg-[#0d1b2a]/50 border-y border-white/10 relative">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
-              Built for All Corporate Governance Use Cases
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-4">
+              Corporate Governance Capabilities
             </h2>
-            <p className="text-slate-300 text-base md:text-lg">
-              Scalable governance infrastructure tailored for modern compliance requirements.
+            <p className="text-slate-300 text-sm md:text-base">
+              Engineered for seamless compliance and mathematical auditability across all meeting types.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                title: "Listed Companies (BSE / NSE)",
-                desc: "Statutory remote e-voting and venue polling with automated Form MGT-13 reports satisfying SEBI LODR Regulation 44.",
-                badge: "SEBI Mandate"
-              },
-              {
-                title: "Private Limited & Unlisted Entities",
-                desc: "Cost-effective digital balloting for unlisted public companies with 1,000+ members, startups, and investor syndicates.",
-                badge: "High Growth"
-              },
-              {
-                title: "Registrars & Transfer Agents (RTAs)",
-                desc: "Multi-tenant company hub to manage hundreds of client general meetings, depository benpos uploads, and scrutinizer workflows.",
-                badge: "Multi-Company Hub"
-              }
-            ].map((sol, i) => (
-              <div key={i} className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl shadow-lg hover:border-purple-400/40 transition-all flex flex-col justify-between">
-                <div>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-400/30 mb-4">
-                    {sol.badge}
-                  </span>
-                  <h3 className="text-lg font-bold text-white mb-2">{sol.title}</h3>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{sol.desc}</p>
-                </div>
+            <div className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl shadow-lg space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-cyan-300">
+                <FileSpreadsheet className="w-5 h-5 text-cyan-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Depository Roster Ingestion</h3>
+              <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-normal">
+                Upload Benpos rosters from CDSL/NSDL or RTA registers. Automatically calculate weighted voting rights based on paid-up equity capital.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl shadow-lg space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300">
+                <Layers className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Resolution Configuration</h3>
+              <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-normal">
+                Configure Ordinary and Special resolutions with explanatory statements under Section 102 and director candidate profiles.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 backdrop-blur-xl shadow-lg space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300">
+                <FileCheck2 className="w-5 h-5 text-purple-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Scrutinizer Export &amp; Reporting</h3>
+              <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-normal">
+                Provide independent Scrutinizers with dedicated audit tools and export official Form MGT-13 reports for statutory filing.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Corporate FAQ Section */}
+      <section className="py-20 bg-[#020817]">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-3">
+              Corporate Issuer FAQs
+            </h2>
+            <p className="text-slate-300 text-sm">
+              Operational details for Company Secretaries, RTAs, and Board Administrators.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {corporateFaqs.map((faq, index) => (
+              <div
+                key={index}
+                className="rounded-2xl border border-white/15 bg-[#0d1b2a]/90 overflow-hidden backdrop-blur-xl transition-all shadow-lg"
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className="w-full flex items-center justify-between p-5 text-left text-sm md:text-base font-bold text-white hover:text-cyan-300 transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown
+                    className={`w-5 h-5 text-cyan-400 shrink-0 ml-4 transition-transform duration-300 ${
+                      openFaq === index ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {openFaq === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="px-5 pb-5 pt-1 text-xs md:text-sm text-slate-200 leading-relaxed border-t border-white/10 font-normal">
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>
@@ -123,21 +208,21 @@ export const CorporateVoting = () => {
       </section>
 
       {/* Internal Navigation */}
-      <section className="py-16 bg-[#020817]">
+      <section className="py-16 bg-[#0d1b2a]/50 border-t border-white/10">
         <div className="container mx-auto px-4 max-w-5xl">
-          <h2 className="text-xl font-bold text-white mb-6 text-center">Related Voting Modules</h2>
+          <h2 className="text-xl font-bold text-white mb-6 text-center">Related Governance Modules</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <Link to="/shareholder-voting" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
-              Shareholder Voting →
+              Shareholder Guide →
             </Link>
-            <Link to="/online-e-voting" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
-              Online E-Voting →
+            <Link to="/remote-e-voting" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
+              Remote E-Voting →
             </Link>
             <Link to="/agm-voting" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
               AGM E-Voting →
             </Link>
-            <Link to="/security" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
-              Security Standards →
+            <Link to="/compliance" className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-400/40 transition-all text-xs font-semibold text-slate-200 hover:text-cyan-300">
+              Compliance Hub →
             </Link>
           </div>
         </div>

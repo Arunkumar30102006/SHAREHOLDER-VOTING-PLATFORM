@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import AnimatedOtpVerification, { VerifyResult } from "@/components/auth/AnimatedOtpVerification";
 
 import { env } from "@/config/env";
 
@@ -26,7 +27,6 @@ const CompanyLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
-  const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [companyName, setCompanyName] = useState("");
   
@@ -46,8 +46,6 @@ const CompanyLogin = () => {
     e.preventDefault();
     if (step === 1) {
       await handlePasswordLogin();
-    } else {
-      handleOtpVerification();
     }
   };
 
@@ -152,20 +150,57 @@ const CompanyLogin = () => {
     }
   };
 
-  const handleOtpVerification = () => {
-    if (otp === generatedOtp) {
+  const handleOtpVerify = async (enteredOtp: string): Promise<VerifyResult> => {
+    if (enteredOtp.trim() === generatedOtp.trim()) {
       sessionStorage.setItem("company_2fa_verified", "true");
-      toast.success("Login successful!");
-      navigate("/company-dashboard");
+      return { success: true };
     } else {
-      toast.error("Invalid OTP. Please check your email and try again.");
+      return {
+        success: false,
+        error: "Invalid verification code. Please check your email and try again.",
+      };
     }
+  };
+
+  const handleOtpResend = async (): Promise<boolean> => {
+    try {
+      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(newOtp);
+
+      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
+        body: {
+          type: 'login_otp',
+          email: formData.email,
+          companyName: companyName || "Vote India Secure",
+          otp: newOtp
+        },
+        headers: {
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+        }
+      });
+
+      if (emailError) {
+        toast.error("Failed to send OTP email. Please try again.");
+        return false;
+      }
+
+      toast.success("New verification code sent to your registered email");
+      return true;
+    } catch (err: unknown) {
+      console.error("Resend OTP error:", err);
+      toast.error("Failed to resend verification code");
+      return false;
+    }
+  };
+
+  const handleOtpSuccess = () => {
+    toast.success("Login successful!");
+    navigate("/company-dashboard");
   };
 
   const handleBackToLogin = async () => {
     await supabase.auth.signOut();
     setStep(1);
-    setOtp("");
     setGeneratedOtp("");
   };
 
@@ -284,52 +319,17 @@ const CompanyLogin = () => {
                       </Button>
                     </form>
                   ) : (
-                    <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up">
-                      <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl mb-6">
-                        <p className="text-sm text-orange-200 text-center">
-                          A 6-digit OTP has been sent to <strong>{formData.email}</strong>.
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="otp">Enter Verification Code</Label>
-                        <div className="relative">
-                          <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-orange-400 transition-colors" />
-                          <Input
-                            id="otp"
-                            name="otp"
-                            type="text"
-                            maxLength={6}
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                            placeholder="000000"
-                            className="pl-11 text-center tracking-[0.5em] text-lg font-mono bg-black/40 border-white/10 focus:border-orange-500/50 transition-all"
-                            required
-                            disabled={isLoading}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-3 mt-6">
-                        <Button
-                          type="submit"
-                          variant="hero"
-                          className="w-full gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 border-none shadow-lg shadow-orange-500/25"
-                          disabled={isLoading || otp.length !== 6}
-                        >
-                          Verify & Login
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={handleBackToLogin}
-                          disabled={isLoading}
-                          className="text-slate-400 hover:text-white"
-                        >
-                          Back to Login
-                        </Button>
-                      </div>
-                    </form>
+                    <AnimatedOtpVerification
+                      length={6}
+                      recipientInfo={formData.email}
+                      themeColor="orange"
+                      title="Enter 2FA Code"
+                      subtitle={`A 6-digit administrator verification code has been sent to ${formData.email}.`}
+                      onVerify={handleOtpVerify}
+                      onResend={handleOtpResend}
+                      onSuccess={handleOtpSuccess}
+                      onBack={handleBackToLogin}
+                    />
                   )}
 
                   <div className="mt-6 pt-6 border-t border-white/10 text-center">

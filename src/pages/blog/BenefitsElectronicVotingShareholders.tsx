@@ -21,10 +21,10 @@ const BenefitsElectronicVotingShareholders = () => {
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">
-          1. Ironclad Cryptographic Security & Tamper Resistance
+          1. Cryptographic Security &amp; Tamper Evidence
         </h2>
         <p>
-          Unlike physical ballots or unencrypted digital forms, an enterprise-grade e-voting platform utilizes military-grade AES-256 encryption combined with SHA-256 hashing. Each vote generates a cryptographic signature anchored to an immutable audit ledger, ensuring that neither internal personnel nor external actors can alter submitted ballots.
+          Unlike physical ballots or unencrypted digital forms, an enterprise-grade e-voting platform utilizes AES-256 encryption combined with SHA-256 hashing. Each vote generates a cryptographic signature anchored to a verifiable Merkle audit ledger, ensuring that unauthorized modifications cannot occur undetected.
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">
@@ -35,30 +35,30 @@ const BenefitsElectronicVotingShareholders = () => {
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">
-          3. Maximized Shareholder Turnout & Democratic Participation
+          3. Maximized Shareholder Turnout &amp; Democratic Participation
         </h2>
         <p>
           Geography should never disenfranchise shareholders. Mobile-responsive e-voting enables domestic retail investors, NRIs across the globe, and institutional fund managers to cast informed votes in seconds from any smartphone, tablet, or laptop.
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">
-          4. Real-Time Quorum Tracking & Live Governance Analytics
+          4. Real-Time Quorum Tracking &amp; Live Governance Analytics
         </h2>
         <p>
           Company secretaries and chairpersons gain access to live administrative dashboards displaying quorum progression, promoter vs public participation ratios, and resolution voting trends in real time during the AGM proceedings.
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">
-          5. Automated Regulatory Filing (SEBI & MCA)
+          5. Automated Form MGT-13 Scrutinizer Reporting
         </h2>
         <p>
-          Compliance is fully streamlined. Scrutinizer reports, weighted percentage tallies, and stock exchange disclosure files are compiled automatically in strict accordance with SEBI (LODR) Regulation 44 and Section 108 of the Companies Act, 2013.
+          Compliance reporting is fully streamlined. Form MGT-13 style Scrutinizer draft reports, weighted percentage tallies, and resolution breakdowns are compiled automatically in alignment with SEBI (LODR) Regulation 44 and Section 108 of the Companies Act, 2013.
         </p>
 
         <div className="mt-10 p-8 rounded-3xl bg-gradient-to-r from-blue-950/60 to-indigo-950/60 border border-blue-500/20 text-center">
           <h3 className="text-2xl font-bold text-white mb-3">Partner with Vote India Secure</h3>
           <p className="text-slate-300 max-w-xl mx-auto mb-6">
-            Join forward-thinking companies transforming their corporate governance with our SEBI-compliant shareholder voting technology.
+            Join forward-thinking companies transforming their corporate governance with our statutory electronic shareholder voting technology.
           </p>
           <div className="flex justify-center gap-4">
             <Link to="/contact">

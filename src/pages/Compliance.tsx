@@ -399,6 +399,11 @@ export const Compliance = () => {
             </p>
           </div>
 
+          {/* Transparent Trust & Accreditation Notice */}
+          <div className="p-6 rounded-3xl bg-amber-500/10 border border-amber-400/30 text-amber-200 text-xs md:text-sm leading-relaxed mb-10">
+            <strong>Transparent Regulatory & Accreditation Notice:</strong> Vote India Secure is an independent corporate governance software platform. Its workflows are engineered in architectural alignment with Section 108 of the Companies Act, 2013 and Rule 20 of the Companies (Management and Administration) Rules, 2014. The platform is not currently accredited by NSDL/CDSL or certified by STQC. Form MGT-13 exports are generated to facilitate statutory reporting by appointed Scrutinizers.
+          </div>
+
           <div className="overflow-x-auto rounded-3xl border border-white/15 shadow-2xl bg-[#020817]/80 backdrop-blur-xl">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -406,7 +411,7 @@ export const Compliance = () => {
                   <th className="py-4 px-6">Statutory Requirement</th>
                   <th className="py-4 px-6">Legal Citation</th>
                   <th className="py-4 px-6">Platform Implementation</th>
-                  <th className="py-4 px-6 text-right">Compliance Status</th>
+                  <th className="py-4 px-6 text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 text-sm">
@@ -421,8 +426,8 @@ export const Compliance = () => {
                     <td className="py-4 px-6 font-mono text-xs text-cyan-300/90">{row.law}</td>
                     <td className="py-4 px-6 text-slate-300 leading-relaxed text-xs">{row.implementation}</td>
                     <td className="py-4 px-6 text-right">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-cyan-300 border border-cyan-400/30">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                         {row.status}
                       </span>
                     </td>

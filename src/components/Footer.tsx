@@ -59,10 +59,10 @@ const Footer = () => {
             <ul className="space-y-3">
               {[
                 { name: "Shareholder Voting", path: "/shareholder-voting" },
+                { name: "Remote E-Voting (Rule 20)", path: "/remote-e-voting" },
                 { name: "AGM E-Voting", path: "/agm-voting" },
-                { name: "EGM E-Voting", path: "/egm-voting" },
-                { name: "Online E-Voting", path: "/online-e-voting" },
-                { name: "Corporate Voting", path: "/corporate-voting" },
+                { name: "EGM & Postal Ballot", path: "/egm-voting" },
+                { name: "Corporate Governance", path: "/corporate-voting" },
                 { name: "Security Architecture", path: "/security" },
                 { name: "How It Works", path: "/how-it-works" },
               ].map((item) => (
@@ -77,12 +77,13 @@ const Footer = () => {
 
           {/* Quick Links & Legal */}
           <div>
-            <h3 className="font-semibold text-lg mb-4 text-white">Company & Legal</h3>
+            <h3 className="font-semibold text-lg mb-4 text-white">Governance &amp; Company</h3>
             <ul className="space-y-3">
               {[
+                { name: "Statutory Compliance", path: "/compliance" },
+                { name: "Knowledge Center (FAQs)", path: "/faqs" },
                 { name: "About Us", path: "/about" },
                 { name: "Services", path: "/services" },
-                { name: "SEBI Compliance", path: "/compliance" },
                 { name: "Blog & Insights", path: "/blog" },
                 { name: "Privacy Policy", path: "/privacy-policy" },
                 { name: "Terms of Service", path: "/terms-of-service" },

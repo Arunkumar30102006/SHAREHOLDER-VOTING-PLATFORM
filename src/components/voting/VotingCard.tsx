@@ -127,10 +127,10 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                         <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
                                                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                                                                 <ShieldCheck className="w-4 h-4" />
-                                                                Cryptographically Sealed & Tamper-Proof
+                                                                Cryptographically Sealed &amp; Tamper-Evident
                                                             </div>
                                                             <p className="text-xs text-slate-200">
-                                                                Your ballot is permanently authenticated with SHA-256 encryption and recorded into the official e-voting ledger.
+                                                                Your ballot is authenticated with SHA-256 hashing and recorded into the official e-voting Merkle ledger.
                                                             </p>
                                                         </div>
 

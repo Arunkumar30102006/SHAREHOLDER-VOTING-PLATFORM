@@ -29,7 +29,7 @@ const services = [
   {
     icon: ShieldCheck,
     title: "Scrutinizer Audit & Official PDF Reporting",
-    description: "Generate 1-click boardroom-grade Scrutinizer Audit PDF reports with full statutory motion breakdowns, quorum attestation, and certified sign-off blocks.",
+    description: "Generate 1-click boardroom-grade Scrutinizer Audit PDF reports with full statutory motion breakdowns, quorum attestation, and formal witness sign-off blocks.",
   },
   {
     icon: Link2,

@@ -2,7 +2,7 @@
  * generate-sitemap.cjs
  * 
  * Post-build script that generates dist/sitemap.xml and public/sitemap.xml
- * with all public routes adhering to specific priorities, change frequencies, and dates.
+ * with all canonical public routes.
  * 
  * Usage: node scripts/generate-sitemap.cjs
  */
@@ -17,49 +17,49 @@ const PUBLIC_DIR = path.resolve(ROOT_DIR, 'public');
 
 const routeEntries = [
   // Homepage
-  { path: '/', priority: '1.0', changefreq: 'weekly', lastmod: '2026-08-23' },
+  { path: '/', lastmod: '2026-08-24' },
 
-  // Service Pages
-  { path: '/shareholder-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/agm-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/egm-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/online-e-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/corporate-voting', priority: '0.9', changefreq: 'monthly', lastmod: '2026-08-23' },
+  // E-Voting Solutions
+  { path: '/shareholder-voting', lastmod: '2026-08-24' },
+  { path: '/remote-e-voting', lastmod: '2026-08-24' },
+  { path: '/agm-voting', lastmod: '2026-08-24' },
+  { path: '/egm-voting', lastmod: '2026-08-24' },
+  { path: '/online-e-voting', lastmod: '2026-08-24' },
+  { path: '/corporate-voting', lastmod: '2026-08-24' },
 
-  // Info Pages
-  { path: '/compliance', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/security', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/how-it-works', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/about', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/services', priority: '0.8', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/pricing', priority: '0.8', changefreq: 'weekly', lastmod: '2026-08-23' },
+  // Trust, Security & Compliance
+  { path: '/compliance', lastmod: '2026-08-24' },
+  { path: '/security', lastmod: '2026-08-24' },
+  { path: '/how-it-works', lastmod: '2026-08-24' },
+  { path: '/faqs', lastmod: '2026-08-24' },
+  { path: '/about', lastmod: '2026-08-24' },
+  { path: '/services', lastmod: '2026-08-24' },
+  { path: '/pricing', lastmod: '2026-08-24' },
 
-  // Conversion Pages
-  { path: '/contact', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/company-register', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/live-demo', priority: '0.7', changefreq: 'monthly', lastmod: '2026-08-23' },
+  // Interactive & Contact
+  { path: '/contact', lastmod: '2026-08-24' },
+  { path: '/company-register', lastmod: '2026-08-24' },
+  { path: '/live-demo', lastmod: '2026-08-24' },
 
-  // Content / Blog Cornerstone Guides
-  { path: '/blog', priority: '0.6', changefreq: 'weekly', lastmod: '2026-08-23' },
-  { path: '/blog/sebi-compliant-evoting-guide', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
-  { path: '/blog/role-of-scrutinizer-form-mgt-13', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/blog/agm-remote-evoting-timeline-checklist', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-23' },
-  { path: '/blog/how-online-shareholder-voting-works', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
-  { path: '/blog/agm-evoting-vs-physical-meeting', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
-  { path: '/blog/benefits-electronic-voting-shareholders', priority: '0.6', changefreq: 'monthly', lastmod: '2026-08-20' },
+  // Blog & Educational Regulatory Analysis
+  { path: '/blog', lastmod: '2026-08-24' },
+  { path: '/blog/sebi-compliant-evoting-guide', lastmod: '2026-08-24' },
+  { path: '/blog/role-of-scrutinizer-form-mgt-13', lastmod: '2026-08-24' },
+  { path: '/blog/agm-remote-evoting-timeline-checklist', lastmod: '2026-08-24' },
+  { path: '/blog/how-online-shareholder-voting-works', lastmod: '2026-08-24' },
+  { path: '/blog/agm-evoting-vs-physical-meeting', lastmod: '2026-08-24' },
+  { path: '/blog/benefits-electronic-voting-shareholders', lastmod: '2026-08-24' },
 
   // Legal
-  { path: '/privacy-policy', priority: '0.3', changefreq: 'yearly', lastmod: '2026-08-01' },
-  { path: '/terms-of-service', priority: '0.3', changefreq: 'yearly', lastmod: '2026-08-01' },
+  { path: '/privacy-policy', lastmod: '2026-08-01' },
+  { path: '/terms-of-service', lastmod: '2026-08-01' },
 ];
 
-const urlEntries = routeEntries.map(({ path: routePath, priority, changefreq, lastmod }) => {
+const urlEntries = routeEntries.map(({ path: routePath, lastmod }) => {
   const loc = routePath === '/' ? SITE_URL + '/' : SITE_URL + routePath;
   return `  <url>
     <loc>${loc}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
   </url>`;
 }).join('\n');
 

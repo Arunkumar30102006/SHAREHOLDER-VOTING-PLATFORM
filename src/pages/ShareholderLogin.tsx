@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { env } from "@/config/env";
 import { useTranslation } from "react-i18next";
+import AnimatedOtpVerification, { VerifyResult } from "@/components/auth/AnimatedOtpVerification";
 
 const ShareholderLogin = () => {
   const { t } = useTranslation();
@@ -31,9 +32,12 @@ const ShareholderLogin = () => {
     password: "",
   });
   const [loginStep, setLoginStep] = useState<"CREDENTIALS" | "OTP">("CREDENTIALS");
-  const [otp, setOtp] = useState("");
   const [maskedPhone, setMaskedPhone] = useState("");
-  const [shareholderId, setShareholderId] = useState("");
+  const [shareholderInfo, setShareholderInfo] = useState<{
+    id: string;
+    email: string;
+    name: string;
+  } | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -73,8 +77,6 @@ const ShareholderLogin = () => {
     try {
       if (loginStep === "CREDENTIALS") {
         await handleCredentialsSubmit();
-      } else {
-        await handleOtpSubmit();
       }
     } catch (err) {
       console.error("Login exception:", err);
@@ -118,8 +120,12 @@ const ShareholderLogin = () => {
         return;
       }
 
-      // Store ID for next step
-      setShareholderId(data.id);
+      // Store ID and details for next step
+      setShareholderInfo({
+        id: data.id,
+        email: email,
+        name: name,
+      });
 
       // Mask Email
       const [localPart, domain] = email.split("@");
@@ -146,7 +152,7 @@ const ShareholderLogin = () => {
         }
 
         toast.success("Credentials Verified", {
-          description: `OTP sent to register email ${maskedLocal}@${domain}`,
+          description: `OTP sent to registered email ${maskedLocal}@${domain}`,
         });
         setLoginStep("OTP");
       } catch (err: unknown) {
@@ -160,56 +166,110 @@ const ShareholderLogin = () => {
     }
   };
 
-  const handleOtpSubmit = async () => {
-    // Verify OTP
-    // 1. Fetch user to get current OTP hash and expiry
-    const { data, error } = await supabase
-      .from("shareholders")
-      .select("otp_code, otp_expiry, id")
-      .eq("id", shareholderId)
-      .single();
-
-    if (error || !data) {
-      toast.error("Verification failed. Please try logging in again.");
-      setLoginStep("CREDENTIALS");
-      return;
+  const handleOtpVerify = async (enteredOtp: string): Promise<VerifyResult> => {
+    if (!shareholderInfo?.id) {
+      return {
+        success: false,
+        error: "Session expired. Please sign in again.",
+      };
     }
 
-    // 2. Check Expiry
-    if (!data.otp_expiry || new Date(data.otp_expiry) < new Date()) {
-      toast.error("OTP has expired.", {
-        description: "Please go back and login again to receive a new OTP."
-      });
-      return;
-    }
-
-    // 3. Hash input OTP and compare
-    const inputHash = await hashPassword(otp); // Using same hashing function (SHA-256)
-
-    if (inputHash === data.otp_code) {
-      // Success!
-      // Mark credential as used AND clear OTP
-      await supabase
+    try {
+      // 1. Fetch user to get current OTP hash and expiry
+      const { data, error } = await supabase
         .from("shareholders")
-        .update({
-          is_credential_used: true,
-          otp_code: null,
-          otp_expiry: null
-        })
-        .eq("id", shareholderId);
+        .select("otp_code, otp_expiry, id")
+        .eq("id", shareholderInfo.id)
+        .single();
 
-      localStorage.setItem("shareholderId", shareholderId);
+      if (error || !data) {
+        return {
+          success: false,
+          error: "Verification failed. Please try logging in again.",
+        };
+      }
 
-      toast.success("Login successful!", {
-        description: "Redirecting to voting dashboard...",
+      // 2. Check Expiry
+      if (!data.otp_expiry || new Date(data.otp_expiry) < new Date()) {
+        return {
+          success: false,
+          error: "Verification code has expired. Please request a new code.",
+          isExpired: true,
+        };
+      }
+
+      // 3. Hash input OTP and compare with stored SHA-256 hash
+      const inputHash = await hashPassword(enteredOtp);
+
+      if (inputHash === data.otp_code) {
+        // Success! Mark credential as used AND clear OTP
+        await supabase
+          .from("shareholders")
+          .update({
+            is_credential_used: true,
+            otp_code: null,
+            otp_expiry: null
+          })
+          .eq("id", shareholderInfo.id);
+
+        localStorage.setItem("shareholderId", shareholderInfo.id);
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: "Invalid verification code. Please check your email and try again.",
+        };
+      }
+    } catch (err: unknown) {
+      console.error("OTP verification error:", err);
+      return {
+        success: false,
+        error: (err as Error).message || "An unexpected error occurred.",
+      };
+    }
+  };
+
+  const handleOtpResend = async (): Promise<boolean> => {
+    if (!shareholderInfo) {
+      toast.error("Session expired. Please sign in again.");
+      setLoginStep("CREDENTIALS");
+      return false;
+    }
+
+    try {
+      const { error: fnError } = await supabase.functions.invoke("send-shareholder-otp-email", {
+        body: {
+          shareholder_id: shareholderInfo.id,
+          email: shareholderInfo.email,
+          name: shareholderInfo.name,
+        },
+        headers: {
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+        }
       });
 
-      setTimeout(() => {
-        navigate("/voting-dashboard");
-      }, 1000);
-    } else {
-      toast.error("Invalid OTP. Please try again.");
+      if (fnError) {
+        throw fnError;
+      }
+
+      toast.success("New Code Sent", {
+        description: `A fresh OTP was sent to ${maskedPhone}`,
+      });
+      return true;
+    } catch (err: unknown) {
+      console.error("Resend OTP error:", err);
+      toast.error("Failed to resend code", {
+        description: (err as Error).message || "Please check your connection and try again.",
+      });
+      return false;
     }
+  };
+
+  const handleOtpSuccess = () => {
+    toast.success("Login successful!", {
+      description: "Redirecting to voting dashboard...",
+    });
+    navigate("/voting-dashboard");
   };
 
   return (
@@ -283,8 +343,8 @@ const ShareholderLogin = () => {
                 </CardHeader>
 
                 <CardContent className="relative z-10">
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    {loginStep === "CREDENTIALS" && (
+                  {loginStep === "CREDENTIALS" ? (
+                    <form onSubmit={handleSubmit} className="space-y-5">
                       <div className="space-y-5">
                         <div className="space-y-2">
                           <Label htmlFor="userId">{t("login_user_id")}</Label>
@@ -343,9 +403,7 @@ const ShareholderLogin = () => {
                           </p>
                         </div>
                       </div>
-                    )}
 
-                    {loginStep === "CREDENTIALS" ? (
                       <Button
                         type="submit"
                         variant="hero"
@@ -365,58 +423,20 @@ const ShareholderLogin = () => {
                           </>
                         )}
                       </Button>
-                    ) : (
-                      <div className="space-y-4 animate-fade-in-up">
-                        <div className="space-y-2">
-                          <Label htmlFor="otp">{t("login_otp_label")}</Label>
-                          <Input
-                            id="otp"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            placeholder={t("login_otp_placeholder")}
-                            className="text-center text-2xl tracking-widest bg-black/40 border-white/10 focus:border-cyan-500/50 transition-all py-6"
-                            maxLength={6}
-                            autoFocus
-                            required
-                          />
-                          <p className="text-xs text-center text-muted-foreground mt-2">
-                            {t("login_otp_sent")} <span className="font-semibold text-cyan-400">{maskedPhone}</span>
-                          </p>
-                        </div>
-
-                        <Button
-                          type="submit"
-                          variant="hero"
-                          size="lg"
-                          className="w-full gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 border-none shadow-lg shadow-teal-500/25"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <>
-                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              {t("login_verifying_otp")}
-                            </>
-                          ) : (
-                            <>
-                              {t("login_secure_btn")}
-                              <Lock className="w-5 h-5" />
-                            </>
-                          )}
-                        </Button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLoginStep("CREDENTIALS");
-                            setOtp("");
-                          }}
-                          className="w-full text-sm text-muted-foreground hover:text-white transition-colors py-2"
-                        >
-                          {t("login_back_btn")}
-                        </button>
-                      </div>
-                    )}
-                  </form>
+                    </form>
+                  ) : (
+                    <AnimatedOtpVerification
+                      length={6}
+                      recipientInfo={maskedPhone}
+                      themeColor="cyan"
+                      title={t("login_otp_label")}
+                      subtitle="Enter the 6-digit security code sent to your registered email to access the shareholder portal."
+                      onVerify={handleOtpVerify}
+                      onResend={handleOtpResend}
+                      onSuccess={handleOtpSuccess}
+                      onBack={() => setLoginStep("CREDENTIALS")}
+                    />
+                  )}
 
                   {/* Help Link */}
                   <div className="mt-6 pt-6 border-t border-white/10 text-center">

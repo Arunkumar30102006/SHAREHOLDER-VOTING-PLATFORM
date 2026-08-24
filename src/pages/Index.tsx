@@ -34,8 +34,8 @@ const faqItems = [
     answer: "Any publicly listed corporation, unlisted enterprise, cooperative, investment fund, or Registrar and Transfer Agent (RTA) conducting shareholder ballots, proxy votes, or board elections can use the platform."
   },
   {
-    question: "How does the platform guarantee vote integrity and prevent tampering?",
-    answer: "Vote India Secure enforces military-grade AES-256 encryption at rest and in transit. Every vote is cryptographically sealed with SHA-256 hashing and recorded to an immutable audit ledger, ensuring cast ballots cannot be modified prior to official scrutinizer unblocking."
+    question: "How does Vote India Secure guarantee ballot security and secrecy?",
+    answer: "Vote India Secure enforces AES-256 encryption at rest and TLS 1.3 in transit. Every vote is cryptographically sealed with SHA-256 hashing and recorded to a verifiable Merkle audit ledger, ensuring individual voter selections remain decoupled and cannot be modified prior to official Scrutinizer unblocking."
   },
   {
     question: "Can shareholders vote from their mobile devices?",
@@ -302,7 +302,7 @@ const Index = () => {
               Enterprise Governance <span className="text-blue-400">Capabilities</span>
             </h2>
             <p className="text-slate-200 text-base md:text-lg font-normal">
-              Everything corporate governance and legal teams need to conduct transparent, tamper-proof electronic voting.
+              Everything corporate governance and legal teams need to conduct transparent, tamper-evident electronic voting.
             </p>
           </div>
 
@@ -313,16 +313,16 @@ const Index = () => {
               <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-6">
                 <Lock className="w-6 h-6 text-blue-400" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">Military-Grade Cryptographic Vote Sealing</h3>
+              <h3 className="text-2xl font-bold text-white mb-3">Cryptographic SHA-256 Ballot Sealing</h3>
               <p className="text-slate-100 text-sm md:text-base leading-relaxed mb-6 font-normal">
-                All votes are encrypted end-to-end with AES-256 and recorded on an immutable ledger. No administrator or insider can modify or view cast ballots prior to official auditor unblocking.
+                Every cast ballot produces a SHA-256 cryptographic hash chained into a verifiable Merkle Tree. Under Rule 20(4)(xii), individual voter choices remain decoupled and sealed until official unblocking by the Scrutinizer.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-100 font-semibold">
                 <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
                   <Shield className="w-4 h-4 text-blue-400" /> SHA-256 Hashing
                 </div>
                 <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-cyan-400" /> Global Cloud Security
+                  <Globe className="w-4 h-4 text-cyan-400" /> Granular RLS Access
                 </div>
                 <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-emerald-400" /> Merkle Audit Proof
@@ -336,13 +336,13 @@ const Index = () => {
                 <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mb-6">
                   <FileCheck2 className="w-6 h-6 text-cyan-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">1-Click Scrutinizer Hub</h3>
+                <h3 className="text-xl font-bold text-white mb-3">Scrutinizer Audit Portal</h3>
                 <p className="text-slate-200 text-sm leading-relaxed mb-4 font-normal">
-                  Automated official scrutinizer reports and exchange-ready disclosure files generated instantly with zero calculation discrepancies.
+                  Automated vote consolidation and Form MGT-13 style report generation to assist the Scrutinizer and Company Secretary with statutory filings.
                 </p>
               </div>
               <Link to="/compliance" className="text-xs font-bold text-cyan-300 flex items-center gap-1 hover:underline">
-                View Compliance Standards <ArrowRight className="w-3.5 h-3.5" />
+                View Statutory Standards <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -389,7 +389,7 @@ const Index = () => {
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
               How It <span className="text-blue-400">Works</span>
             </h2>
-            <p className="text-slate-200 text-base font-normal">From organization setup to final regulatory filing in three steps.</p>
+            <p className="text-slate-200 text-base font-normal">From organization setup to consolidated Scrutinizer reporting in three steps.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 relative">
@@ -408,8 +408,8 @@ const Index = () => {
               },
               {
                 step: "03",
-                title: "Instant Filing",
-                desc: "Scrutinizers unblock digital vault with authorized keys and export statutory audit reports ready for exchange disclosure.",
+                title: "Scrutinizer Export",
+                desc: "Scrutinizers unblock digital vault with two witnesses and export consolidated Form MGT-13 reports for Chairman submission.",
                 icon: FileCheck2,
               }
             ].map((item, i) => (
