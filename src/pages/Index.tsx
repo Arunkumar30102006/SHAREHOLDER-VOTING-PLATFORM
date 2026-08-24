@@ -152,46 +152,26 @@ const Index = () => {
           <div className="text-center max-w-4xl mx-auto">
             
             {/* Top Regulatory Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs md:text-sm font-semibold mb-8 shadow-md backdrop-blur-md"
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs md:text-sm font-semibold mb-8 shadow-md backdrop-blur-md">
               <Globe className="w-4 h-4 text-cyan-400" />
               <span className="text-slate-100">Enterprise Governance Standards · AES-256 Bit Encryption</span>
-            </motion.div>
+            </div>
 
-            {/* Main Headline */}
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.1]"
-            >
+            {/* Main Headline (LCP Candidate - Instant Rendering) */}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
               Online Shareholder <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent drop-shadow-sm">
                 Voting Platform
               </span>
-            </motion.h1>
+            </h1>
 
             {/* Concise Subtitle with High Contrast */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-base sm:text-lg md:text-xl text-slate-100 max-w-2xl mx-auto mb-8 font-normal leading-relaxed"
-            >
+            <p className="text-base sm:text-lg md:text-xl text-slate-100 max-w-2xl mx-auto mb-8 font-normal leading-relaxed">
               Purpose-built electronic voting software for global public corporations, private enterprises, and transfer agents. Conduct secure AGMs, EGMs, and proxy ballots with real-time auditability.
-            </motion.p>
+            </p>
 
             {/* Quick Feature Pills */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-wrap justify-center gap-2.5 mb-10 max-w-2xl mx-auto"
-            >
+            <div className="flex flex-wrap justify-center gap-2.5 mb-10 max-w-2xl mx-auto">
               {[
                 "🔒 AES-256 Bit Encryption",
                 "⚡ Instant Quorum Tallying",
@@ -202,15 +182,10 @@ const Index = () => {
                   {feat}
                 </span>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTA Buttons */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to="/live-demo">
                 <Button size="xl" className="w-full sm:w-auto bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white font-bold gap-2 text-base px-8 py-6 rounded-xl shadow-lg shadow-blue-900/40 border border-blue-400/30">
                   <Play className="w-4 h-4 fill-white" />
@@ -224,7 +199,7 @@ const Index = () => {
                   <ArrowUpRight className="w-4 h-4" />
                 </Button>
               </Link>
-            </motion.div>
+            </div>
 
           </div>
         </div>

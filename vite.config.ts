@@ -24,11 +24,27 @@ export default defineConfig(({ isSsrBuild }) => ({
       output: isSsrBuild
         ? {}
         : {
-            manualChunks: {
-              react: ["react", "react-dom"],
-              supabase: ["@supabase/supabase-js"],
-              ui: ["motion", "lucide-react", "clsx", "tailwind-merge"],
-              animation: ["gsap"],
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                  return 'react-core';
+                }
+                if (id.includes('three') || id.includes('@react-three')) {
+                  return 'three-bundle';
+                }
+                if (id.includes('jspdf') || id.includes('html2canvas')) {
+                  return 'pdf-bundle';
+                }
+                if (id.includes('@supabase')) {
+                  return 'supabase-bundle';
+                }
+                if (id.includes('lucide-react')) {
+                  return 'icons';
+                }
+                if (id.includes('motion')) {
+                  return 'motion-bundle';
+                }
+              }
             },
           },
     },

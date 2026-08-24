@@ -112,12 +112,7 @@ const Pricing = () => {
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">
         <div className="max-w-6xl mx-auto">
           {/* Hero */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center space-y-4 md:space-y-6 mb-16"
-          >
+          <div className="text-center space-y-4 md:space-y-6 mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium shadow-sm">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>Simple, Transparent Pricing</span>
@@ -132,7 +127,7 @@ const Pricing = () => {
               Choose a plan that fits your organization's size and governance needs.
               All plans include enterprise-grade security and SEBI compliance foundations.
             </p>
-          </motion.div>
+          </div>
 
           {/* Pricing Cards */}
           <div className="grid md:grid-cols-3 gap-6 md:gap-8 mb-16">

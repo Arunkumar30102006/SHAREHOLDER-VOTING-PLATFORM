@@ -306,6 +306,7 @@ const Navbar = () => {
             
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle navigation menu"
               className="xl:hidden text-slate-300 hover:text-white p-2 mx-1 rounded-full hover:bg-white/10 transition-colors border border-transparent hover:border-white/10"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

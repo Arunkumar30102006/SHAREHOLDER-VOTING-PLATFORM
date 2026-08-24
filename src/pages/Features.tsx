@@ -172,12 +172,7 @@ const Features = () => {
       <main className="container mx-auto px-4 pt-28 pb-12 md:py-20">
         <div className="max-w-6xl mx-auto">
           {/* Hero */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center space-y-4 md:space-y-6 mb-16"
-          >
+          <div className="text-center space-y-4 md:space-y-6 mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium shadow-sm">
               <Shield className="w-4 h-4 text-blue-400" />
               <span>Platform Capabilities</span>
@@ -192,7 +187,7 @@ const Features = () => {
               A comprehensive platform built to handle every aspect of corporate electronic voting — from shareholder
               authentication to scrutinizer reports, fully aligned with global regulations.
             </p>
-          </motion.div>
+          </div>
 
           {/* Features Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">

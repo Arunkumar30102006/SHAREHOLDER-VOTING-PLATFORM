@@ -190,11 +190,7 @@ export const Faqs = () => {
         </div>
 
         <div className="container mx-auto px-4 max-w-5xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div>
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
               <HelpCircle className="w-4 h-4 text-cyan-400" />
               <span>Knowledge Base &amp; FAQ Center</span>
@@ -216,6 +212,7 @@ export const Faqs = () => {
               <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
+                aria-label="Search FAQs and corporate voting questions"
                 placeholder="Search questions on Section 108, cut-off dates, MGT-13, DP ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -246,7 +243,7 @@ export const Faqs = () => {
                 </button>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 

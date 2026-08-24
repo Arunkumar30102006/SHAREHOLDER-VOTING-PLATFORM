@@ -42,7 +42,7 @@ const BuiltBySection = () => {
                 Transparency
               </span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
               This platform is an enterprise-grade solution demonstrating how modern technology
               can transform corporate governance in India.
             </p>
@@ -64,7 +64,7 @@ const BuiltBySection = () => {
                   <Rocket className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3">Why We Built This</h3>
-                <p className="text-slate-400 leading-relaxed text-sm mb-4">
+                <p className="text-slate-300 leading-relaxed text-sm mb-4">
                   India's corporate governance ecosystem still relies on fragmented, outdated e-voting solutions.
                   We set out to build a modern, developer-friendly platform that prioritizes security, transparency,
                   and user experience — proving that SEBI-compliant e-voting can be elegant and accessible.
@@ -90,7 +90,7 @@ const BuiltBySection = () => {
                   <Shield className="w-6 h-6 text-secondary" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3">Enterprise Architecture</h3>
-                <p className="text-slate-400 leading-relaxed text-sm mb-4">
+                <p className="text-slate-300 leading-relaxed text-sm mb-4">
                   Developed as a comprehensive platform addressing the intersection of financial technology,
                   corporate law compliance, and modern web architecture. Built from the ground up with
                   production-grade security patterns and real-world regulatory awareness.
@@ -121,7 +121,7 @@ const BuiltBySection = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-center"
           >
-            <p className="text-sm text-muted-foreground mb-5 font-medium uppercase tracking-wider">
+            <p className="text-sm text-slate-300 mb-5 font-medium uppercase tracking-wider">
               Built With Modern Technology
             </p>
             <div className="flex flex-wrap justify-center gap-3">

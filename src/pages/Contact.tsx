@@ -228,12 +228,7 @@ const Contact = () => {
 
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Hero Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
             <Globe className="w-3.5 h-3.5" />
             24/7 Global Corporate & Shareholder Support
@@ -244,7 +239,7 @@ const Contact = () => {
           <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto font-normal leading-relaxed">
             Whether you're a company, shareholder, or visitor — we'd love to hear from you. Reach out for support, sales, partnerships, or assistance.
           </p>
-        </motion.div>
+        </div>
 
         {/* Inquiry Type Selector Cards */}
         {!submittedTicket && (

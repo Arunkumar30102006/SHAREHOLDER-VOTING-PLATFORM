@@ -249,11 +249,7 @@ export const Compliance = () => {
         </div>
 
         <div className="container mx-auto px-4 max-w-5xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div>
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-6">
               <ShieldCheck className="w-4 h-4 text-cyan-400" />
               <span>Statutory Compliance Architecture</span>
@@ -284,7 +280,7 @@ export const Compliance = () => {
                 </Button>
               </Link>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
