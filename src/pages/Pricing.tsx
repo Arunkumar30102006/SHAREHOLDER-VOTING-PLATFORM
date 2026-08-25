@@ -162,7 +162,7 @@ const Pricing = () => {
                   )}
 
                   <h3 className="text-2xl font-bold text-white mb-1">{tier.name}</h3>
-                  <p className="text-sm text-slate-400 mb-5">{tier.description}</p>
+                  <p className="text-sm text-slate-200 mb-5">{tier.description}</p>
 
                   {/* Price */}
                   <div className="mb-6 pb-6 border-b border-white/10">
@@ -203,10 +203,10 @@ const Pricing = () => {
             transition={{ duration: 0.6 }}
             className="flex justify-center mb-16"
           >
-            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400/90 text-xs font-medium">
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-blue-500/10 border border-blue-400/30 text-slate-200 text-xs font-medium">
+              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               <span>
-                Pricing is illustrative — this is a prototype platform. Contact us for actual deployment pricing.
+                Pricing tiers are customizable based on shareholder roster size and general meeting frequency. Contact us for enterprise quotes.
               </span>
             </div>
           </motion.div>
@@ -223,7 +223,7 @@ const Pricing = () => {
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
                 Frequently Asked Questions
               </h2>
-              <p className="text-slate-400">
+              <p className="text-slate-200">
                 Common questions about pricing and plans.
               </p>
             </div>
@@ -241,7 +241,7 @@ const Pricing = () => {
                     <HelpCircle className="w-4 h-4 text-primary shrink-0" />
                     {faq.q}
                   </h3>
-                  <p className="text-sm text-slate-400 leading-relaxed pl-6">
+                  <p className="text-sm text-slate-200 leading-relaxed pl-6">
                     {faq.a}
                   </p>
                 </motion.div>

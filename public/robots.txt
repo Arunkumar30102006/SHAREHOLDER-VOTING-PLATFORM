@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /company-dashboard
+Disallow: /company-login
+Disallow: /shareholder-login
 Disallow: /voting-dashboard
 Disallow: /voting-management
 Disallow: /shareholder-analysis

@@ -1,25 +1,20 @@
 import { Link } from "react-router-dom";
 import { Shield, Lock, Mail, Phone, MapPin } from "lucide-react";
-import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 
 const Footer = () => {
   const { t } = useTranslation();
   return (
-    <footer className="bg-black/20 backdrop-blur-md border-t border-white/10 text-foreground transition-colors duration-300">
+    <footer className="bg-black/20 backdrop-blur-md border-t border-white/10 text-foreground transition-colors duration-300" aria-label="Site footer">
       {/* Main Footer */}
       <div className="container mx-auto px-4 py-12 md:py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12"
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 animate-fade-in-up"
         >
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4">
-              <img src="/logo.png" alt="Vote India Secure Logo" width={48} height={48} className="h-12 w-12 object-contain mix-blend-screen rounded-xl" loading="lazy" />
+              <img src="/logo-96.webp" alt="Vote India Secure Logo" width={48} height={48} className="h-12 w-12 object-contain mix-blend-screen rounded-xl" loading="lazy" />
               <div>
                 <h2 className="text-xl font-bold">Vote India Secure</h2>
                 <p className="text-xs text-muted-foreground">shareholdervoting.in</p>
@@ -54,7 +49,7 @@ const Footer = () => {
           </div>
 
           {/* Solutions Column */}
-          <div>
+          <nav aria-label="E-Voting Solutions">
             <h3 className="font-semibold text-lg mb-4 text-white">E-Voting Solutions</h3>
             <ul className="space-y-3">
               {[
@@ -73,10 +68,10 @@ const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Quick Links & Legal */}
-          <div>
+          <nav aria-label="Governance and Company">
             <h3 className="font-semibold text-lg mb-4 text-white">Governance &amp; Company</h3>
             <ul className="space-y-3">
               {[
@@ -96,43 +91,37 @@ const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Contact */}
           <div>
             <h3 className="font-semibold text-lg mb-4 text-white">{t("footer_contact")}</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm text-slate-200 font-medium">
-                <Mail className="w-4 h-4 text-cyan-400" />
+                <Mail className="w-4 h-4 text-cyan-400" aria-hidden="true" />
                 <span>support@shareholdervoting.in</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-slate-200 font-medium">
-                <Mail className="w-4 h-4 text-cyan-400" />
+                <Mail className="w-4 h-4 text-cyan-400" aria-hidden="true" />
                 <span>admin@shareholdervoting.in</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-slate-200 font-medium">
-                <MapPin className="w-4 h-4 text-cyan-400 mt-0.5" />
+                <MapPin className="w-4 h-4 text-cyan-400 mt-0.5" aria-hidden="true" />
                 <span>Bandra Kurla Complex (BKC)<br />Mumbai, Maharashtra 400051, India</span>
               </li>
             </ul>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Bottom Bar */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="border-t border-white/10"
-      >
+      <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-5">
           <div className="flex items-center justify-center text-center text-sm text-slate-300 font-medium">
             <p>© 2026 Vote Secure. All rights reserved.</p>
           </div>
         </div>
-      </motion.div>
+      </div>
     </footer>
   );
 };

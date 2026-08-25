@@ -207,14 +207,14 @@ const StatusIndicator = ({ status, label }: { status: 'yes' | 'no' | 'partial'; 
       <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 shrink-0 mt-0.5 border border-amber-500/40">
         <RefreshCw className="w-3 h-3 stroke-[2.5]" />
       </span>
-      <span className="text-xs md:text-sm text-slate-300 leading-snug">{label}</span>
+      <span className="text-xs md:text-sm text-slate-200 leading-snug">{label}</span>
     </div>
   );
 };
 
 export const SecurityComplianceSection: React.FC = () => {
   return (
-    <section className="relative py-20 md:py-28 bg-[#0d1b2a] text-white overflow-hidden border-t border-b border-white/10">
+    <section className="relative py-20 md:py-28 bg-[#0d1b2a] text-white overflow-hidden border-t border-b border-white/10" aria-label="Security, compliance and platform benchmarks">
       {/* Background Lighting Gradients */}
       <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-blue-600/10 rounded-full blur-[140px]" />
@@ -293,10 +293,10 @@ export const SecurityComplianceSection: React.FC = () => {
           {/* Responsive Comparison Table */}
           <div className="overflow-x-auto -mx-6 sm:mx-0">
             <div className="inline-block min-w-full align-middle">
-              <table className="min-w-full text-left border-collapse">
+              <table className="min-w-full text-left border-collapse" aria-label="Platform feature comparison">
                 <thead>
                   <tr className="border-b border-white/15">
-                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-400 w-1/4">
+                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-300 w-1/4">
                       Feature & Parameter
                     </th>
                     <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-cyan-300 bg-blue-500/10 border-x border-blue-500/30 rounded-t-2xl w-1/4">
@@ -305,13 +305,13 @@ export const SecurityComplianceSection: React.FC = () => {
                         Vote India Secure
                       </div>
                     </th>
-                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-400 w-1/6">
+                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-300 w-1/6">
                       CDSL E-Voting
                     </th>
-                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-400 w-1/6">
+                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-300 w-1/6">
                       NSDL E-Voting
                     </th>
-                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-400 w-1/6">
+                    <th scope="col" className="py-4 px-4 sm:px-6 text-xs font-bold uppercase tracking-wider text-slate-300 w-1/6">
                       Right2Vote
                     </th>
                   </tr>
@@ -353,7 +353,7 @@ export const SecurityComplianceSection: React.FC = () => {
           </div>
 
           {/* Legend */}
-          <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400">
+          <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-300">
             <div className="flex items-center gap-5">
               <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
                 <Check className="w-3.5 h-3.5" /> Direct Cloud Native Feature
@@ -362,7 +362,7 @@ export const SecurityComplianceSection: React.FC = () => {
                 <RefreshCw className="w-3 h-3" /> Standard / Process-Dependent
               </span>
             </div>
-            <span className="text-slate-400">Comparison based on publicly available features as of August 2026</span>
+            <span className="text-slate-300">Comparison based on publicly available features as of August 2026</span>
           </div>
         </div>
 

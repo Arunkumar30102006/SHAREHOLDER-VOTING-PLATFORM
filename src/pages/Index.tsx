@@ -15,7 +15,7 @@ import {
   Users, BarChart3, Globe, Award, CheckCircle2,
   Zap, FileText, ArrowUpRight
 } from "lucide-react";
-import { motion } from "motion/react";
+
 import StatsSection from "@/components/home/StatsSection";
 import TrustBadgesRow from "@/components/home/TrustBadgesRow";
 import SecurityComplianceSection from "@/components/home/SecurityComplianceSection";
@@ -140,7 +140,7 @@ const Index = () => {
       />
 
       {/* ─── 1. HERO SECTION ─── */}
-      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
+      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden" aria-label="Hero section">
         {/* Dynamic Glowing Lighting */}
         <div className="absolute inset-0 -z-10 pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-blue-600/25 via-cyan-500/20 to-transparent rounded-full blur-[140px]" />
@@ -210,7 +210,7 @@ const Index = () => {
       <StatsSection />
 
       {/* ─── 3. AUDIENCE PERSONAS (Shareholders, Enterprises, Scrutinizers) ─── */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-20 relative overflow-hidden" aria-label="Platform users">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-slate-200 text-xs font-bold uppercase tracking-wider mb-4">
@@ -227,18 +227,15 @@ const Index = () => {
 
           <div className="grid md:grid-cols-3 gap-6">
             {audienceCards.map((card, index) => (
-              <motion.div
+              <div
                 key={card.title}
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`p-7 rounded-3xl bg-[#0d1b2a]/80 border ${card.border} backdrop-blur-xl flex flex-col justify-between hover:translate-y-[-4px] transition-all duration-300 shadow-xl group`}
+                className={`p-7 rounded-3xl bg-[#0d1b2a]/80 border ${card.border} backdrop-blur-xl flex flex-col justify-between hover:translate-y-[-4px] transition-all duration-300 shadow-xl group animate-fade-in-up`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div>
                   <div className="flex items-center justify-between gap-3 mb-5">
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.color} border border-white/20 flex items-center justify-center shadow-sm`}>
-                      <card.icon className="w-6 h-6 text-white" />
+                      <card.icon className="w-6 h-6 text-white" aria-hidden="true" />
                     </div>
                     <span className={`text-xs font-bold px-3 py-1 rounded-full border ${card.badgeColor}`}>
                       {card.subtitle}
@@ -250,7 +247,7 @@ const Index = () => {
                   <ul className="space-y-3 mb-8">
                     {card.points.map((pt, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
                         <span>{pt}</span>
                       </li>
                     ))}
@@ -263,14 +260,14 @@ const Index = () => {
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ─── 4. BENTO GRID FEATURES ─── */}
-      <section className="py-20 relative overflow-hidden bg-white/[0.02] border-y border-white/10">
+      <section className="py-20 relative overflow-hidden bg-white/[0.02] border-y border-white/10" aria-label="Enterprise features">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
@@ -333,7 +330,7 @@ const Index = () => {
                 </p>
               </div>
               <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
-                +40% Shareholder Turnout Lift
+                Designed for High Shareholder Turnout
               </span>
             </div>
 
@@ -358,7 +355,7 @@ const Index = () => {
       </section>
 
       {/* ─── 5. STREAMLINED 3-STEP PROCESS ─── */}
-      <section className="py-20">
+      <section className="py-20" aria-label="How it works">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
@@ -402,7 +399,7 @@ const Index = () => {
       <SecurityComplianceSection />
 
       {/* ─── 7. ACCORDION FAQ ─── */}
-      <section className="py-20">
+      <section className="py-20" aria-label="Frequently asked questions" id="faq">
         <div className="container mx-auto px-4 max-w-3xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
@@ -442,7 +439,7 @@ const Index = () => {
       </section>
 
       {/* ─── 8. FINAL CONVERSION BANNER ─── */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-24 relative overflow-hidden" aria-label="Call to action">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="p-10 md:p-16 rounded-3xl bg-gradient-to-br from-[#1e3a8a]/90 via-blue-900/80 to-indigo-950/90 border border-blue-400/40 text-center relative overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none" />

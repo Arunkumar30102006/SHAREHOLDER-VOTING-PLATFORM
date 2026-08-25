@@ -14,7 +14,6 @@ import {
   ChevronDown,
   Lock
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,12 +50,32 @@ const Navbar = () => {
     location.pathname.includes("/ai-power-suite");
 
   useEffect(() => {
-    checkAuth();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+    let unsubscribe: (() => void) | undefined;
+    const initAuth = async () => {
+      const hasToken =
+        typeof window !== "undefined" &&
+        Object.keys(localStorage).some(
+          (k) => k.startsWith("sb-") && k.endsWith("-auth-token")
+        );
+      if (hasToken || isPortalPage) {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setIsLoggedIn(!!session);
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+          setIsLoggedIn(!!session);
+        });
+        unsubscribe = () => subscription.unsubscribe();
+      }
+    };
+    initAuth();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [isPortalPage]);
 
   // Throttled Scroll listener for auto-hiding navbar on scroll down & glassmorphism
   useEffect(() => {
@@ -87,11 +106,6 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    setIsLoggedIn(!!session);
-  };
-
   const handleNavigation = useCallback(
     (e: React.MouseEvent, path: string) => {
       if (
@@ -115,6 +129,7 @@ const Navbar = () => {
   const confirmNavigation = async () => {
     if (pendingPath) {
       if (isLoggedIn) {
+        const { supabase } = await import("@/integrations/supabase/client");
         await supabase.auth.signOut();
       }
       navigate(pendingPath);
@@ -126,6 +141,8 @@ const Navbar = () => {
   return (
     <>
       <header
+        role="banner"
+        aria-label="Main navigation"
         className={`fixed top-0 left-0 right-0 z-50 w-full px-4 md:px-6 pointer-events-none transition-all duration-500 ease-in-out ${
           !isVisible
             ? "-translate-y-28 opacity-0 pointer-events-none"
@@ -138,7 +155,7 @@ const Navbar = () => {
           {/* Left: Logo Island */}
           <div className="pointer-events-auto flex items-center h-[56px] px-5 rounded-full bg-[#020817]/70 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40 hover:border-white/20 transition-all flex-shrink-0">
             <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-              <img src="/logo.png" alt="Vote India Secure Logo" className="h-8 w-8 object-contain rounded-lg" />
+              <img src="/logo-48.webp" alt="Vote India Secure Logo" width={32} height={32} className="h-8 w-8 object-contain rounded-lg" />
               <span className="text-lg font-bold text-white tracking-tight hidden sm:block">Vote Secure</span>
             </Link>
           </div>

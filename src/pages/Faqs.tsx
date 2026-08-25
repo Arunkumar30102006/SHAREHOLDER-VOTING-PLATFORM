@@ -209,14 +209,14 @@ export const Faqs = () => {
 
             {/* Search Box */}
             <div className="max-w-2xl mx-auto relative mb-8">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Search className="w-5 h-5 text-slate-300 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 aria-label="Search FAQs and corporate voting questions"
                 placeholder="Search questions on Section 108, cut-off dates, MGT-13, DP ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-13 pl-12 pr-4 rounded-2xl bg-[#0d1b2a]/90 border border-white/20 text-white placeholder:text-slate-400 text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 backdrop-blur-xl transition-all shadow-xl"
+                className="w-full h-13 pl-12 pr-4 rounded-2xl bg-[#0d1b2a]/90 border border-white/20 text-white placeholder:text-slate-300 text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 backdrop-blur-xl transition-all shadow-xl"
               />
             </div>
 

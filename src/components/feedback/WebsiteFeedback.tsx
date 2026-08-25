@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLocation } from "react-router-dom";
 import { env } from "@/config/env";
@@ -37,10 +36,13 @@ const WebsiteFeedback = () => {
             try {
                 const sessionToken = localStorage.getItem("supabase.auth.token");
                 if (sessionToken && (sessionToken.includes('"expires_at":') || sessionToken.includes('access_token'))) {
+                    const { supabase } = await import("@/integrations/supabase/client");
                     await supabase.auth.signOut({ scope: 'local' });
                     localStorage.removeItem("supabase.auth.token");
                 }
-            } catch (e) { /* silent */ }
+            } catch (err) {
+                console.debug("Safe session reset caught:", err);
+            }
         };
         clearSession();
     }, [open]);
@@ -67,6 +69,7 @@ const WebsiteFeedback = () => {
         setIsSubmitting(true);
 
         try {
+            const { supabase } = await import("@/integrations/supabase/client");
             const { data: { user } } = await supabase.auth.getUser();
             const userEmail = email || user?.email || "anonymous";
 

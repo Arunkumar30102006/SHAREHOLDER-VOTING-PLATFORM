@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 export const SITE_URL = 'https://www.shareholdervoting.in';
 
 /**

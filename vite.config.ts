@@ -20,6 +20,13 @@ export default defineConfig(({ isSsrBuild }) => ({
   },
   build: {
     minify: "esbuild",
+    modulePreload: {
+      polyfill: false,
+      resolveDependencies(filename, deps) {
+        // Exclude heavy lazy chunks and auth chunks from initial page HTML preloads
+        return deps.filter(dep => !dep.includes('three') && !dep.includes('pdf') && !dep.includes('supabase'));
+      },
+    },
     rollupOptions: {
       output: isSsrBuild
         ? {}
@@ -43,6 +50,9 @@ export default defineConfig(({ isSsrBuild }) => ({
                 }
                 if (id.includes('motion')) {
                   return 'motion-bundle';
+                }
+                if (id.includes('i18next') || id.includes('react-i18next')) {
+                  return 'i18n-bundle';
                 }
               }
             },
