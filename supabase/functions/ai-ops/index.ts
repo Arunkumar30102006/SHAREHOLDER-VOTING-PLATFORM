@@ -148,17 +148,20 @@ Need help with any step?`
             ? userPrompt.substring(0, MAX_PAYLOAD_CHARS) + "\n\n[Note: This document was extremely long and was truncated to fit within AI analysis limits. The summary is based on the first section.]"
             : userPrompt;
 
-        // Call Groq API with Retry Logic
-        const makeGroqRequest = async (retryCount = 0): Promise<Response> => {
+        // Call Groq API with Model Fallback and Retry Logic
+        const candidateModels = ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"];
+
+        const makeGroqRequest = async (modelIndex = 0, retryCount = 0): Promise<Response> => {
+            const currentModel = candidateModels[modelIndex] || candidateModels[0];
             try {
                 const response = await fetch(GROQ_API_URL, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${GROQ_API_KEY}`,
+                        'Authorization': `Bearer ${GROQ_API_KEY.trim()}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
+                        model: currentModel,
                         messages: [
                             { role: "system", content: systemPrompt },
                             { role: "user", content: truncatedUserPrompt }
@@ -172,12 +175,19 @@ Need help with any step?`
                 if (response.status === 429) {
                     if (retryCount < 5) {
                         const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 500;
-                        console.warn(`Groq 429 hit. Retrying ${retryCount + 1}/5 in ${Math.round(delay)}ms...`);
+                        console.warn(`Groq 429 hit on ${currentModel}. Retrying ${retryCount + 1}/5 in ${Math.round(delay)}ms...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
-                        return makeGroqRequest(retryCount + 1);
+                        return makeGroqRequest(modelIndex, retryCount + 1);
                     } else {
                         throw new Error('AI_RATE_LIMIT_EXCEEDED');
                     }
+                }
+
+                // If model not found or decommissioned (400 / 404), try next candidate model
+                if (!response.ok && (response.status === 400 || response.status === 404) && modelIndex + 1 < candidateModels.length) {
+                    const errorText = await response.text();
+                    console.warn(`Model ${currentModel} returned ${response.status}: ${errorText}. Falling back to ${candidateModels[modelIndex + 1]}`);
+                    return makeGroqRequest(modelIndex + 1, 0);
                 }
 
                 if (!response.ok) {
@@ -188,10 +198,10 @@ Need help with any step?`
 
                 return response;
             } catch (error) {
-                if (retryCount < 5 && (error instanceof TypeError || (error instanceof Error && error.message.includes('network')))) {
+                if (retryCount < 3 && (error instanceof TypeError || (error instanceof Error && error.message.includes('network')))) {
                     const delay = 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
-                    return makeGroqRequest(retryCount + 1);
+                    return makeGroqRequest(modelIndex, retryCount + 1);
                 }
                 throw error;
             }

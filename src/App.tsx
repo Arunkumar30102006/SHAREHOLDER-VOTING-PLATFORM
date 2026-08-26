@@ -1,20 +1,19 @@
-/* eslint-disable react-refresh/only-export-components */
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ScrollToTop from "./components/ScrollToTop";
-import ScrollToTopButton from "./components/ScrollToTopButton";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { ClientOnly } from "vite-react-ssg";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-// Lazy-load floating widgets (not needed for first paint)
+// Lazy-load floating widgets and toasts (not needed for initial paint)
+const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
+const Sonner = lazy(() => import("@/components/ui/sonner").then(m => ({ default: m.Toaster })));
+const ScrollToTopButton = lazy(() => import("./components/ScrollToTopButton"));
 const WebsiteFeedback = lazy(() => import("./components/feedback/WebsiteFeedback"));
 const VoteAssistant = lazy(() => import("./components/ai/VoteAssistant").then(m => ({ default: m.VoteAssistant })));
 
@@ -80,14 +79,14 @@ const RootLayout = () => {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <GlobalErrorBoundary>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
             <ScrollToTop />
 
-            {/* Client-only floating widgets — crash in Node.js SSG */}
+            {/* Client-only floating widgets & toasts — deferred after initial paint */}
             <ClientOnly fallback={null}>
               {() => (
                 <Suspense fallback={null}>
+                  <Toaster />
+                  <Sonner />
                   <WebsiteFeedback />
                   <VoteAssistant />
                   <ScrollToTopButton />
