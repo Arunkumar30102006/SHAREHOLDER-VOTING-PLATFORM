@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
