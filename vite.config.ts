@@ -23,16 +23,8 @@ export default defineConfig(({ isSsrBuild }) => ({
     modulePreload: {
       polyfill: false,
       resolveDependencies(filename, deps) {
-        // Exclude heavy lazy chunks, WebGL, PDF, Charts, Forms, and Supabase from initial HTML preloads
-        return deps.filter(dep =>
-          !dep.includes('three') &&
-          !dep.includes('doc-tools') &&
-          !dep.includes('pdf') &&
-          !dep.includes('charts') &&
-          !dep.includes('supabase') &&
-          !dep.includes('forms') &&
-          !dep.includes('motion')
-        );
+        // Exclude heavy lazy chunks and auth chunks from initial page HTML preloads
+        return deps.filter(dep => !dep.includes('three') && !dep.includes('pdf') && !dep.includes('supabase'));
       },
     },
     rollupOptions: {
@@ -41,53 +33,26 @@ export default defineConfig(({ isSsrBuild }) => ({
         : {
             manualChunks(id) {
               if (id.includes('node_modules')) {
-                // 1. Three.js / WebGL bundle (isolated so never in critical path)
+                if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                  return 'react-core';
+                }
                 if (id.includes('three') || id.includes('@react-three')) {
                   return 'three-bundle';
                 }
-                // 2. Heavy Document & PDF parsing libraries (isolated to reporting / OCR)
-                if (id.includes('jspdf') || id.includes('pdfjs-dist') || id.includes('mammoth') || id.includes('tesseract')) {
-                  return 'doc-tools-bundle';
+                if (id.includes('jspdf') || id.includes('html2canvas')) {
+                  return 'pdf-bundle';
                 }
-                // 3. Heavy Charts (recharts / d3)
-                if (id.includes('recharts') || id.includes('d3-')) {
-                  return 'charts-bundle';
-                }
-                // 4. Supabase Client & auth
                 if (id.includes('@supabase')) {
                   return 'supabase-bundle';
                 }
-                // 5. Animation (Motion)
-                if (id.includes('/motion') || id.includes('framer-motion')) {
+                if (id.includes('lucide-react')) {
+                  return 'icons';
+                }
+                if (id.includes('motion')) {
                   return 'motion-bundle';
                 }
-                // 6. UI / Radix primitives
-                if (id.includes('@radix-ui')) {
-                  return 'radix-bundle';
-                }
-                // 7. Forms & validation
-                if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('/zod/')) {
-                  return 'forms-bundle';
-                }
-                // 8. Internationalization (i18n)
                 if (id.includes('i18next') || id.includes('react-i18next')) {
                   return 'i18n-bundle';
-                }
-                // 9. Icons
-                if (id.includes('lucide-react')) {
-                  return 'icons-bundle';
-                }
-                // 10. Core React runtime ONLY (exact matching)
-                if (
-                  id.includes('/react/') ||
-                  id.includes('/react-dom/') ||
-                  id.includes('/scheduler/') ||
-                  id.includes('/react-router/') ||
-                  id.includes('/react-router-dom/') ||
-                  id.includes('/@tanstack/react-query/') ||
-                  id.includes('/react-helmet-async/')
-                ) {
-                  return 'react-core';
                 }
               }
             },
