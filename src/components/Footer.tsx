@@ -14,7 +14,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4">
-              <img src="/logo-96.webp" alt="Vote India Secure Logo" width={48} height={48} className="h-12 w-12 object-contain mix-blend-screen rounded-xl" loading="lazy" />
+              <img src="/logo-96.webp" alt="Vote India Secure Logo" width={48} height={48} decoding="async" className="h-12 w-12 object-contain mix-blend-screen rounded-xl" loading="lazy" />
               <div>
                 <h2 className="text-xl font-bold">Vote India Secure</h2>
                 <p className="text-xs text-muted-foreground">shareholdervoting.in</p>

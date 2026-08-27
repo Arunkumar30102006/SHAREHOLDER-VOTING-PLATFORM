@@ -155,7 +155,7 @@ const Navbar = () => {
           {/* Left: Logo Island */}
           <div className="pointer-events-auto flex items-center h-[56px] px-5 rounded-full bg-[#020817]/70 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40 hover:border-white/20 transition-all flex-shrink-0">
             <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-              <img src="/logo-48.webp" alt="Vote India Secure Logo" width={32} height={32} className="h-8 w-8 object-contain rounded-lg" />
+              <img src="/logo-48.webp" alt="Vote India Secure Logo" width={32} height={32} decoding="async" className="h-8 w-8 object-contain rounded-lg" />
               <span className="text-lg font-bold text-white tracking-tight hidden sm:block">Vote Secure</span>
             </Link>
           </div>

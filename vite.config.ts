@@ -33,26 +33,17 @@ export default defineConfig(({ isSsrBuild }) => ({
         : {
             manualChunks(id) {
               if (id.includes('node_modules')) {
-                if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-                  return 'react-core';
-                }
-                if (id.includes('three') || id.includes('@react-three')) {
+                // Three.js & 3D WebGL (standalone leaf)
+                if (/[\\/]node_modules[\\/](three|@react-three|ogl)[\\/]/.test(id)) {
                   return 'three-bundle';
                 }
-                if (id.includes('jspdf') || id.includes('html2canvas')) {
+                // PDF & Document Generation (standalone leaf)
+                if (/[\\/]node_modules[\\/](jspdf|jspdf-autotable|pdfjs-dist|mammoth|tesseract\.js)[\\/]/.test(id)) {
                   return 'pdf-bundle';
                 }
-                if (id.includes('@supabase')) {
+                // Supabase SDK (standalone leaf)
+                if (/[\\/]node_modules[\\/]@supabase[\\/]/.test(id)) {
                   return 'supabase-bundle';
-                }
-                if (id.includes('lucide-react')) {
-                  return 'icons';
-                }
-                if (id.includes('motion')) {
-                  return 'motion-bundle';
-                }
-                if (id.includes('i18next') || id.includes('react-i18next')) {
-                  return 'i18n-bundle';
                 }
               }
             },

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { SEO } from "@/components/layout/SEO";
 import { 
   organizationSchema, 
@@ -19,6 +19,9 @@ import {
 import StatsSection from "@/components/home/StatsSection";
 import TrustBadgesRow from "@/components/home/TrustBadgesRow";
 import SecurityComplianceSection from "@/components/home/SecurityComplianceSection";
+
+// Lazy-load 3D WebGL Globe post-LCP so it doesn't block critical mobile paint
+const HeroGlobe3D = lazy(() => import("@/components/3d/HeroGlobe3D"));
 
 const faqItems = [
   {
@@ -129,6 +132,26 @@ const comparisonPoints = [
 
 const Index = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [show3DGlobe, setShow3DGlobe] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if ("requestIdleCallback" in window) {
+        const handle = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(
+          () => setShow3DGlobe(true),
+          { timeout: 1200 }
+        );
+        return () => {
+          if ("cancelIdleCallback" in window) {
+            (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(handle);
+          }
+        };
+      } else {
+        const timer = setTimeout(() => setShow3DGlobe(true), 400);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
@@ -147,6 +170,13 @@ const Index = () => {
           <div className="absolute top-1/3 -left-32 w-80 h-80 bg-blue-700/15 rounded-full blur-[100px]" />
           <div className="absolute top-1/2 -right-32 w-80 h-80 bg-teal-600/15 rounded-full blur-[100px]" />
         </div>
+
+        {/* 3D WebGL Globe Background (Deferred) */}
+        {show3DGlobe && (
+          <Suspense fallback={null}>
+            <HeroGlobe3D />
+          </Suspense>
+        )}
 
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center max-w-4xl mx-auto">

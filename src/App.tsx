@@ -7,16 +7,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ScrollToTop from "./components/ScrollToTop";
-import ScrollToTopButton from "./components/ScrollToTopButton";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { ClientOnly } from "vite-react-ssg";
+import SafeClientWidgets from "./components/layout/SafeClientWidgets";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-// Lazy-load floating widgets (not needed for first paint)
-const WebsiteFeedback = lazy(() => import("./components/feedback/WebsiteFeedback"));
-const VoteAssistant = lazy(() => import("./components/ai/VoteAssistant").then(m => ({ default: m.VoteAssistant })));
+import Index from "./pages/Index";
 
 import GlobalErrorBoundary from "./components/layout/GlobalErrorBoundary";
 import "./i18n/config"; // Initialize i18n
@@ -84,16 +80,8 @@ const RootLayout = () => {
             <Sonner />
             <ScrollToTop />
 
-            {/* Client-only floating widgets — crash in Node.js SSG */}
-            <ClientOnly fallback={null}>
-              {() => (
-                <Suspense fallback={null}>
-                  <WebsiteFeedback />
-                  <VoteAssistant />
-                  <ScrollToTopButton />
-                </Suspense>
-              )}
-            </ClientOnly>
+            {/* Post-hydration safe floating widgets */}
+            <SafeClientWidgets />
 
             <div className="flex flex-col min-h-screen">
               <Navbar />
@@ -116,15 +104,15 @@ const RootLayout = () => {
 /**
  * Route configuration as a data array for vite-react-ssg.
  * All routes are children of the RootLayout route so they inherit providers.
- * Using `lazy` on route objects for SSG-compatible code splitting.
+ * Using eager Index for instant home hydration and `lazy` for all secondary routes.
  */
 export const routes: RouteRecord[] = [
   {
     path: '/',
     element: <RootLayout />,
     children: [
-      // ─── Home ───
-      { index: true, lazy: lazyPage(() => import('./pages/Index')) },
+      // ─── Home (Eager for zero-suspense instant hydration) ───
+      { index: true, element: <Index /> },
 
       // ─── Auth / Dashboard Routes ───
       { path: 'company-register', lazy: lazyPage(() => import('./pages/CompanyRegister')) },
