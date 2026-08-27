@@ -136,10 +136,14 @@ const Index = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Skip 3D globe on low-end devices (≤2 CPU cores) to avoid TBT spikes
+      const cores = navigator.hardwareConcurrency || 2;
+      if (cores <= 2) return;
+
       if ("requestIdleCallback" in window) {
         const handle = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(
           () => setShow3DGlobe(true),
-          { timeout: 1200 }
+          { timeout: 3000 }
         );
         return () => {
           if ("cancelIdleCallback" in window) {
@@ -147,7 +151,7 @@ const Index = () => {
           }
         };
       } else {
-        const timer = setTimeout(() => setShow3DGlobe(true), 400);
+        const timer = setTimeout(() => setShow3DGlobe(true), 2000);
         return () => clearTimeout(timer);
       }
     }
@@ -416,7 +420,7 @@ const Index = () => {
               }
             ].map((item, i) => (
               <div key={i} className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 relative group hover:border-blue-500/40 transition-all shadow-lg">
-                <div className="text-4xl font-black text-blue-400/40 mb-4 font-mono">{item.step}</div>
+                <div className="text-4xl font-black text-blue-400/70 mb-4 font-mono">{item.step}</div>
                 <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
                 <p className="text-slate-200 text-xs sm:text-sm leading-relaxed font-normal">{item.desc}</p>
               </div>

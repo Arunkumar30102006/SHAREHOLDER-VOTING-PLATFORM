@@ -34,7 +34,7 @@ const Globe = ({ isMobile }: { isMobile: boolean }) => {
   return (
     <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.8}>
       {/* Outer Wireframe Distort Sphere */}
-      <Sphere ref={sphereRef} args={[1, isMobile ? 24 : 32, isMobile ? 24 : 32]} scale={1.4}>
+      <Sphere ref={sphereRef} args={[1, isMobile ? 16 : 24, isMobile ? 16 : 24]} scale={1.4}>
         <MeshDistortMaterial
           color="#06b6d4" // Cyan
           attach="material"
@@ -59,15 +59,17 @@ const Globe = ({ isMobile }: { isMobile: boolean }) => {
         />
       </Sphere>
 
-      {/* Sparkles Particle Field */}
-      <Sparkles
-        count={isMobile ? 30 : 65}
-        scale={3.5}
-        size={isMobile ? 1.5 : 2}
-        speed={0.3}
-        opacity={0.4}
-        color="#38bdf8"
-      />
+      {/* Sparkles Particle Field — disabled on mobile to reduce main-thread work */}
+      {!isMobile && (
+        <Sparkles
+          count={40}
+          scale={3.5}
+          size={2}
+          speed={0.3}
+          opacity={0.4}
+          color="#38bdf8"
+        />
+      )}
     </Float>
   );
 };
@@ -121,7 +123,7 @@ export const HeroGlobe3D: React.FC = () => {
     >
       <Canvas
         camera={{ position: [0, 0, 4.5], fov: 45 }}
-        dpr={[1, isMobile ? 1.25 : 1.5]}
+        dpr={[1, isMobile ? 1 : 1.5]}
         frameloop={shouldRender ? 'always' : 'never'}
         gl={{
           powerPreference: 'low-power',

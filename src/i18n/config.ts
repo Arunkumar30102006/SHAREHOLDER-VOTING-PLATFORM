@@ -1,16 +1,12 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import enTranslation from './locales/en.json';
-
-const resources = {
-    en: enTranslation,
-};
-
+// Initialize i18n immediately with empty resources so React can mount,
+// then load translations dynamically to keep them off the critical path.
 i18n
     .use(initReactI18next)
     .init({
-        resources,
+        resources: {},
         lng: 'en',
         fallbackLng: 'en',
         interpolation: {
@@ -18,4 +14,10 @@ i18n
         },
     });
 
+// Lazy-load translations after initial paint (removes 33KB from critical bundle)
+import('./locales/en.json').then((enTranslation) => {
+    i18n.addResourceBundle('en', 'translation', enTranslation.default?.translation || enTranslation.default || enTranslation, true, true);
+});
+
 export default i18n;
+

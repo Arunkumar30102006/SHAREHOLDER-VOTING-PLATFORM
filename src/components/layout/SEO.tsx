@@ -52,6 +52,12 @@ export const SEO = ({
       <meta name="author" content={name} />
       <link rel="canonical" href={canonicalUrl} />
 
+      {/* Language & Region Targeting */}
+      <link rel="alternate" hrefLang="en-IN" href={canonicalUrl} />
+      <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+      <meta name="geo.region" content="IN" />
+      <meta name="content-language" content="en-IN" />
+
       {noindex ? (
         <meta name="robots" content="noindex, nofollow" />
       ) : (
@@ -70,7 +76,8 @@ export const SEO = ({
       <meta property="og:image" content={imageUrl} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:image:alt" content={`${name} Platform`} />
+      <meta property="og:image:type" content="image/jpeg" />
+      <meta property="og:image:alt" content={`${name} — Secure Shareholder E-Voting Platform`} />
       <meta property="og:site_name" content={name} />
 
       {/* Twitter Card */}
@@ -78,7 +85,7 @@ export const SEO = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={imageUrl} />
-      <meta name="twitter:image:alt" content={`${name} Platform`} />
+      <meta name="twitter:image:alt" content={`${name} — Secure Shareholder E-Voting Platform`} />
 
       {/* JSON-LD Schemas */}
       {allSchemas.map((s, i) => (

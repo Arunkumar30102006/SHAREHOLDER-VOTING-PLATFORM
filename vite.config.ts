@@ -23,8 +23,15 @@ export default defineConfig(({ isSsrBuild }) => ({
     modulePreload: {
       polyfill: false,
       resolveDependencies(filename, deps) {
-        // Exclude heavy lazy chunks and auth chunks from initial page HTML preloads
-        return deps.filter(dep => !dep.includes('three') && !dep.includes('pdf') && !dep.includes('supabase'));
+        // Exclude heavy lazy chunks from initial page HTML preloads
+        return deps.filter(dep =>
+          !dep.includes('three') &&
+          !dep.includes('pdf') &&
+          !dep.includes('supabase') &&
+          !dep.includes('charts') &&
+          !dep.includes('animation') &&
+          !dep.includes('markdown')
+        );
       },
     },
     rollupOptions: {
@@ -44,6 +51,26 @@ export default defineConfig(({ isSsrBuild }) => ({
                 // Supabase SDK (standalone leaf)
                 if (/[\\/]node_modules[\\/]@supabase[\\/]/.test(id)) {
                   return 'supabase-bundle';
+                }
+                // Charts library (only used on dashboard pages)
+                if (/[\\/]node_modules[\\/]recharts[\\/]/.test(id)) {
+                  return 'charts-bundle';
+                }
+                // Animation libraries (deferred, non-critical)
+                if (/[\\/]node_modules[\\/](motion|framer-motion|gsap)[\\/]/.test(id)) {
+                  return 'animation-bundle';
+                }
+                // Icon library (large tree, split for better caching)
+                if (/[\\/]node_modules[\\/]lucide-react[\\/]/.test(id)) {
+                  return 'icons-bundle';
+                }
+                // Markdown renderer (only used on blog/content pages)
+                if (/[\\/]node_modules[\\/]react-markdown[\\/]/.test(id)) {
+                  return 'markdown-bundle';
+                }
+                // i18n runtime (loaded eagerly but cacheable separately)
+                if (/[\\/]node_modules[\\/](i18next|react-i18next|i18next-browser-languagedetector)[\\/]/.test(id)) {
+                  return 'i18n-bundle';
                 }
               }
             },
