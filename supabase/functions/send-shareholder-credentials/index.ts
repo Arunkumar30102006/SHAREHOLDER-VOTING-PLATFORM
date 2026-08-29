@@ -56,155 +56,329 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (type === "deregistration_otp") {
       if (!otp) throw new Error("OTP is required");
-      subject = `Deregistration Verification Code - ${companyName}`;
-      text = `Deregistration Request for ${companyName}\n\nYour OTP is: ${otp}\n\nValid for 10 minutes. If you did not request this, please contact support immediately.`;
+      subject = `Security Verification Code - Deregistration of ${companyName}`;
+      text = `DEREGISTRATION VERIFICATION CODE: ${otp}\n\nYou have requested to deregister ${companyName} on Vote India Secure.\nThis will permanently delete all company resolutions, voter rosters, and audit records.\nValid for 10 minutes.`;
       html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Deregistration Request</title>
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; margin: 0; padding: 20px; color: #ffffff;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: #1e293b; border-radius: 16px; padding: 32px; border: 1px solid #ef4444;">
-            <h2 style="color: #ef4444; margin-top: 0;">⚠️ Deregistration Request</h2>
-            <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6;">You have requested to deregister <strong>${companyName}</strong> on the Vote India Secure platform.</p>
-            <p style="color: #fca5a5; font-size: 14px; line-height: 1.6;">This action will <strong>permanently delete</strong> all company data, including shareholders, resolutions, and audit records.</p>
-            <p style="color: #cbd5e1; font-size: 14px;">Use the following OTP to confirm this action:</p>
-            <div style="background-color: #0f172a; border-radius: 8px; padding: 18px; text-align: center; border: 1px solid #ef4444; margin: 24px 0;">
-              <span style="font-family: 'Courier New', monospace; font-size: 32px; font-weight: 700; color: #f87171; letter-spacing: 8px;">${otp}</span>
-            </div>
-            <p style="color: #94a3b8; font-size: 12px;">This code expires in 10 minutes. If you did not request this, please contact support immediately.</p>
-          </div>
-        </body>
-        </html>
-      `;
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deregistration Code</title>
+</head>
+<body style="margin:0;padding:0;background-color:#020817;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#020817;padding:30px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:580px;background-color:#0d1b2a;border:1px solid #ef4444;border-radius:16px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.6);">
+          <tr>
+            <td style="padding:32px;background:linear-gradient(180deg,#1e1b4b 0%,#0d1b2a 100%);">
+              <div style="text-align:center;margin-bottom:20px;">
+                <span style="font-size:32px;">⚠️</span>
+                <h2 style="color:#ef4444;margin:10px 0 4px;font-size:22px;font-weight:800;">Deregistration Confirmation</h2>
+                <p style="color:#94a3b8;font-size:13px;margin:0;">Vote India Secure Corporate Governance Portal</p>
+              </div>
+              <p style="color:#cbd5e1;font-size:15px;line-height:1.6;">You have initiated a request to deregister <strong style="color:#f87171;">${companyName}</strong>. This action will irreversibly terminate all voting sessions and purge database records.</p>
+              <div style="background-color:#020817;border:1px dashed #ef4444;border-radius:12px;padding:20px;text-align:center;margin:24px 0;">
+                <span style="font-family:'Courier New',monospace;font-size:36px;font-weight:800;color:#f87171;letter-spacing:10px;">${otp}</span>
+              </div>
+              <p style="color:#94a3b8;font-size:12px;line-height:1.5;margin:0;">⏱️ Valid for 10 minutes. If you did not authorize this action, secure your account immediately.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
     } else if (type === "login_otp" || type === "otp") {
-      // Company Admin Login OTP
       if (!otp) throw new Error("OTP is required");
-      subject = `Login Verification Code - ${companyName}`;
-      text = `Admin Login Verification - ${companyName}\n\nYour One-Time Password is: ${otp}\n\nValid for 10 minutes. Never share this OTP with anyone.\n\nVote India Secure Enterprise Platform`;
+      subject = `Login Verification Passcode: ${companyName}`;
+      text = `ADMIN LOGIN OTP: ${otp}\n\nCompany: ${companyName}\nPlatform: Vote India Secure\nValid for 10 minutes. Never share this code with anyone.`;
       html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Login Verification Code</title>
-        </head>
-        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020817; color: #ffffff;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <div style="text-align: center; margin-bottom: 32px;">
-              <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border-radius: 14px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
-                <span style="color: white; font-size: 26px; font-weight: bold;">🔒</span>
-              </div>
-              <h1 style="color: #ffffff; font-size: 22px; margin: 0 0 6px; font-weight: 800;">Vote India Secure</h1>
-              <p style="color: #94a3b8; font-size: 13px; margin: 0;">Enterprise Shareholder E-Voting Platform</p>
-            </div>
-
-            <div style="background: linear-gradient(135deg, #0d1b2a 0%, #0b1523 100%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 36px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
-              <h2 style="color: #ffffff; font-size: 20px; margin: 0 0 12px; font-weight: 700;">Admin Login Verification</h2>
-              <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
-                You are logging into the Administrator Portal for <strong style="color: #38bdf8;">${companyName}</strong>. Please use the one-time verification code below to authenticate your session:
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login Passcode</title>
+</head>
+<body style="margin:0;padding:0;background-color:#020817;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#020817;padding:30px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:580px;background-color:#0d1b2a;border:1px solid rgba(2,132,199,0.4);border-radius:20px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.7);">
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 32px 20px;background:linear-gradient(180deg,#0a192f 0%,#0d1b2a 100%);text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 12px;">
+                <tr>
+                  <td style="background-color:#0284c7;border-radius:12px;width:48px;height:48px;text-align:center;vertical-align:middle;color:#ffffff;font-size:24px;">🔒</td>
+                </tr>
+              </table>
+              <h1 style="color:#ffffff;font-size:22px;margin:0 0 4px;font-weight:800;letter-spacing:-0.5px;">Vote India Secure</h1>
+              <p style="color:#38bdf8;font-size:12px;font-weight:600;margin:0;text-transform:uppercase;letter-spacing:1.5px;">Corporate Governance Portal</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px;">
+              <h2 style="color:#ffffff;font-size:18px;margin:0 0 12px;font-weight:700;">Administrator Verification</h2>
+              <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 24px;">
+                You are authenticating into the corporate issuer console for <strong style="color:#38bdf8;">${companyName}</strong>. Please enter the one-time authentication passcode below:
               </p>
-
-              <div style="background: #020817; border: 1px solid #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin: 28px 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);">
-                <span style="font-family: 'Courier New', monospace; font-size: 36px; font-weight: 800; color: #38bdf8; letter-spacing: 10px; display: inline-block;">
-                  ${otp}
-                </span>
+              <div style="background-color:#020817;border:2px solid #0284c7;border-radius:14px;padding:22px;text-align:center;margin:0 0 24px;">
+                <span style="font-family:'Courier New',Courier,monospace;font-size:38px;font-weight:800;color:#38bdf8;letter-spacing:10px;display:inline-block;">${otp}</span>
               </div>
-
-              <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 14px; margin-top: 24px;">
-                <p style="color: #7dd3fc; font-size: 12px; margin: 0; line-height: 1.5;">
-                  ⏱️ <strong>Valid for 10 minutes.</strong> Never share this OTP with anyone. If you did not attempt to sign in to ${companyName}, please secure your account credentials immediately.
-                </p>
-              </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 28px;">
-              <p style="color: #64748b; font-size: 12px; margin: 0;">
-                © 2026 Vote India Secure · Bandra Kurla Complex (BKC), Mumbai, India<br>
-                Automated security notification · Do not reply directly to this email
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:rgba(2,132,199,0.1);border-left:4px solid #0284c7;border-radius:0 8px 8px 0;padding:12px 16px;">
+                <tr>
+                  <td style="color:#93c5fd;font-size:12px;line-height:1.5;">
+                    ⏱️ <strong>Passcode Validity:</strong> This code expires in 10 minutes. Never disclose this code to anyone.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 32px;background-color:#070d18;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
+              <p style="color:#64748b;font-size:11px;line-height:1.6;margin:0;">
+                © 2026 Vote India Secure · Bandra Kurla Complex (BKC), Mumbai, India<br/>
+                Automated statutory system notification · Do not reply directly
               </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
     } else {
-      // Default: Shareholder Credentials
+      // Default: Shareholder Credentials Email
       if (!shareholderName || !loginId || !password) throw new Error("Missing credentials fields");
       subject = `Statutory E-Voting Notice & Credentials: ${companyName}`;
       
-      // Plain text fallback (essential for Outlook/Exchange deliverability)
-      text = `Hello ${shareholderName},\n\nYou have been registered on the electronic voting roster for ${companyName}.\n\nYour confidential e-voting credentials:\n- VOTING USER ID: ${loginId}\n- SECURITY PIN: ${password}\n\nAccess the portal to cast your ballot:\nhttps://www.shareholdervoting.in/shareholder-login\n\nStatutory Notice (Companies Act Rule 20):\nYour vote is encrypted with AES-256 and decoupled from your identity. Under statutory regulations, voting choices are permanent once cast.\n\nVote India Secure Enterprise Platform`;
+      // Plain text version (Outlook fallback)
+      text = `VOTE INDIA SECURE — STATUTORY E-VOTING NOTICE
+-----------------------------------------------------------------
+Issuer: ${companyName}
+Shareholder: ${shareholderName}
+Compliance: Section 108 Companies Act 2013 & SEBI LODR Regulation 44
 
+Dear ${shareholderName},
+
+You have been enrolled on the official electronic voting roster for ${companyName}.
+Please use your confidential electronic credentials below to access the voting terminal:
+
+YOUR VOTING CREDENTIALS:
+- VOTING USER ID : ${loginId}
+- SECURITY PIN    : ${password}
+
+ACCESS PORTAL:
+https://www.shareholdervoting.in/shareholder-login
+
+HOW TO VOTE IN 3 EASY STEPS:
+1. Navigate to the Shareholder Portal using the link above.
+2. Enter your Voting User ID and Security PIN.
+3. Review statutory resolutions and cast your AES-256 encrypted weighted ballot.
+
+STATUTORY BALLOT SECRECY (MCA Rule 20):
+Your voting decision is mathematically decoupled from your identity and sealed in an encrypted vault. Under Rule 20(4)(xii), votes cannot be modified after submission.
+
+-----------------------------------------------------------------
+Vote India Secure · Mumbai, India · support@shareholdervoting.in`;
+
+      // Ultra-Premium, Outlook-Optimized HTML Email Template
       html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>E-Voting Credentials</title>
-        </head>
-        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020817; color: #ffffff;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <div style="text-align: center; margin-bottom: 32px;">
-              <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border-radius: 14px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
-                <span style="color: white; font-size: 26px; font-weight: bold;">🗳️</span>
-              </div>
-              <h1 style="color: #ffffff; font-size: 24px; margin: 0 0 6px; font-weight: 800;">Vote India Secure</h1>
-              <p style="color: #94a3b8; font-size: 13px; margin: 0;">SEBI LODR Reg 44 & Section 108 Compliant E-Voting</p>
-            </div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+<head>
+  <!--[if gte mso 9]><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>E-Voting Credentials</title>
+  <style type="text/css">
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    table { border-collapse: collapse !important; }
+    body { margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #020817; }
+    .credential-box { background-color: #050d1a !important; }
+    @media only screen and (max-width: 620px) {
+      .email-container { width: 100% !important; }
+      .mobile-stack { display: block !important; width: 100% !important; }
+      .hero-pad { padding: 24px 18px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#020817;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  
+  <!-- Outer Wrapper -->
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#020817;padding:30px 10px;">
+    <tr>
+      <td align="center">
+        
+        <!-- Main Email Container (600px) -->
+        <table role="presentation" class="email-container" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:600px;background-color:#0d1b2a;border:1px solid rgba(255,255,255,0.12);border-radius:24px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.8);">
+          
+          <!-- Top Statutory Decorative Bar -->
+          <tr>
+            <td height="5" style="background:linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #10b981 100%);background-color:#0284c7;font-size:0;line-height:0;">&nbsp;</td>
+          </tr>
 
-            <div style="background: linear-gradient(135deg, #0d1b2a 0%, #0b1523 100%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 36px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
-              <h2 style="color: #ffffff; font-size: 20px; margin: 0 0 12px; font-weight: 700;">Hello ${shareholderName},</h2>
-              <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
-                You have been registered on the electronic voting roster for <strong style="color: #38bdf8;">${companyName}</strong>. Please use your confidential one-time voting token below to cast your ballot during the remote e-voting window:
+          <!-- Header Section -->
+          <tr>
+            <td class="hero-pad" style="padding:36px 36px 24px;background:linear-gradient(180deg,#0a192f 0%,#0d1b2a 100%);text-align:center;border-bottom:1px solid rgba(255,255,255,0.08);">
+              
+              <!-- Compliance Pill Badge -->
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 16px;">
+                <tr>
+                  <td style="background-color:rgba(2,132,199,0.18);border:1px solid rgba(56,189,248,0.4);border-radius:20px;padding:6px 14px;color:#38bdf8;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+                    🏛️ SECTION 108 &amp; SEBI LODR 44 COMPLIANT
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Brand Title -->
+              <h1 style="color:#ffffff;font-size:26px;margin:0 0 6px;font-weight:800;letter-spacing:-0.5px;">Vote India Secure</h1>
+              <p style="color:#94a3b8;font-size:13px;margin:0;font-weight:500;">National Corporate E-Voting &amp; Stakeholder Portal</p>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td class="hero-pad" style="padding:32px 36px;">
+              
+              <!-- Salutation -->
+              <h2 style="color:#ffffff;font-size:20px;margin:0 0 10px;font-weight:700;">Dear ${shareholderName},</h2>
+              <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 24px;">
+                You are officially registered on the electronic voting register for <strong style="color:#38bdf8;font-size:15px;">${companyName}</strong>. Your confidential digital credentials have been generated to enable remote ballot participation:
               </p>
 
-              <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 14px; padding: 24px; margin-bottom: 24px;">
-                <h3 style="color: #38bdf8; font-size: 13px; font-weight: 700; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 1px;">Confidential Voting Credentials</h3>
+              <!-- Confidential Credentials Card -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#050d1a;border:1px solid rgba(56,189,248,0.35);border-radius:16px;overflow:hidden;margin:0 0 28px;box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+                <tr>
+                  <td style="padding:14px 20px;background-color:#091528;border-bottom:1px solid rgba(56,189,248,0.2);">
+                    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="color:#38bdf8;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">
+                          🔑 CONFIDENTIAL VOTING TOKEN
+                        </td>
+                        <td align="right" style="color:#10b981;font-size:11px;font-weight:700;">
+                          ● ACTIVE ROSTER
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:24px 20px;">
+                    
+                    <!-- User ID Field -->
+                    <div style="margin-bottom:18px;">
+                      <span style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:6px;">VOTING USER ID (LOGIN TOKEN)</span>
+                      <div style="background-color:#020817;border:1px solid #1e3a8a;border-radius:10px;padding:12px 16px;">
+                        <code style="color:#38bdf8;font-family:'Courier New',Courier,monospace;font-size:20px;font-weight:800;letter-spacing:1.5px;">${loginId}</code>
+                      </div>
+                    </div>
 
-                <div style="margin-bottom: 16px;">
-                  <p style="color: #94a3b8; font-size: 11px; margin: 0 0 4px; font-weight: 600; text-transform: uppercase;">Voting User ID</p>
-                  <div style="background: #020817; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px;">
-                    <code style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace;">${loginId}</code>
-                  </div>
-                </div>
+                    <!-- Security PIN Field -->
+                    <div>
+                      <span style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:6px;">SECURITY PIN / PASSCODE</span>
+                      <div style="background-color:#020817;border:1px solid #065f46;border-radius:10px;padding:12px 16px;">
+                        <code style="color:#34d399;font-family:'Courier New',Courier,monospace;font-size:20px;font-weight:800;letter-spacing:2px;">${password}</code>
+                      </div>
+                    </div>
 
-                <div>
-                  <p style="color: #94a3b8; font-size: 11px; margin: 0 0 4px; font-weight: 600; text-transform: uppercase;">Security PIN / Password</p>
-                  <div style="background: #020817; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px;">
-                    <code style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace;">${password}</code>
-                  </div>
-                </div>
-              </div>
+                  </td>
+                </tr>
+              </table>
 
-              <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 14px; margin-bottom: 24px;">
-                <p style="color: #fbbf24; font-size: 12px; font-weight: 600; margin: 0 0 4px;">⚠️ STATUTORY BALLOT SECRECY (Rule 20)</p>
-                <p style="color: #cbd5e1; font-size: 12px; margin: 0; line-height: 1.5;">
-                  Your voting decision is encrypted with AES-256 and decoupled from your identity. Under MCA Rule 20, once cast, a vote cannot be altered or cast again at the physical venue.
-                </p>
-              </div>
+              <!-- Action Button (Outlook Bulletproof VML + CSS) -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin:0 0 28px;text-align:center;">
+                <tr>
+                  <td align="center">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://www.shareholdervoting.in/shareholder-login" style="height:52px;v-text-anchor:middle;width:280px;" arcsize="18%" stroke="f" fillcolor="#0284c7">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:sans-serif;font-size:15px;font-weight:bold;">Cast Your Ballot Now &rarr;</center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <a href="https://www.shareholdervoting.in/shareholder-login" target="_blank" style="background-color:#0284c7;background-image:linear-gradient(135deg, #0284c7 0%, #1e40af 100%);border-radius:12px;color:#ffffff;display:inline-block;font-size:15px;font-weight:800;line-height:52px;text-align:center;text-decoration:none;width:280px;box-shadow:0 6px 20px rgba(2,132,199,0.4);letter-spacing:0.5px;mso-hide:all;">
+                      Cast Your Ballot Now &rarr;
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top:10px;">
+                    <span style="color:#64748b;font-size:11px;">Direct Link: https://www.shareholdervoting.in/shareholder-login</span>
+                  </td>
+                </tr>
+              </table>
 
-              <div style="text-align: center; margin-top: 24px;">
-                <a href="https://www.shareholdervoting.in/shareholder-login" style="background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 700; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
-                  Access Shareholder Portal →
-                </a>
-              </div>
-            </div>
+              <!-- 3-Step Guide -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px 20px;margin-bottom:24px;">
+                <tr>
+                  <td style="color:#ffffff;font-size:13px;font-weight:700;padding-bottom:10px;">
+                    📋 Simple 3-Step Voting Procedure:
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#cbd5e1;font-size:12px;line-height:1.8;">
+                    <strong>1.</strong> Click the button above to enter the Shareholder Portal.<br/>
+                    <strong>2.</strong> Log in using your <strong>User ID</strong> and <strong>Security PIN</strong>.<br/>
+                    <strong>3.</strong> Review resolution agendas and submit your cryptographically signed vote.
+                  </td>
+                </tr>
+              </table>
 
-            <div style="text-align: center; margin-top: 28px;">
-              <p style="color: #64748b; font-size: 12px; margin: 0;">
-                © 2026 Vote India Secure · Enterprise Corporate E-Voting SaaS<br>
-                Automated statutory dispatch · Please do not reply directly to this email
+              <!-- Statutory Rule 20 Notice -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 18px;">
+                <tr>
+                  <td style="color:#fbbf24;font-size:12px;font-weight:700;padding-bottom:4px;">
+                    ⚠️ MCA Rule 20 &amp; Statutory Ballot Secrecy:
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#cbd5e1;font-size:11.5px;line-height:1.5;">
+                    Your vote is sealed using AES-256 encryption. Under Rule 20(4)(xii) of the Companies Act 2013, once a vote is cast remotely, it cannot be modified or re-cast at the general meeting.
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:28px 36px;background-color:#070d18;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
+              
+              <!-- Security Badges -->
+              <p style="color:#38bdf8;font-size:11px;font-weight:700;margin:0 0 8px;letter-spacing:1px;">
+                🔒 256-BIT ENCRYPTED · DPDP ACT 2023 COMPLIANT · CERT-IN ALIGNED
               </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+              
+              <p style="color:#64748b;font-size:11px;line-height:1.6;margin:0 0 12px;">
+                This is an automated statutory communication issued on behalf of <strong>${companyName}</strong> via Vote India Secure.<br/>
+                For technical support, contact <a href="mailto:support@shareholdervoting.in" style="color:#38bdf8;text-decoration:none;">support@shareholdervoting.in</a>
+              </p>
+
+              <p style="color:#475569;font-size:10px;margin:0;">
+                © 2026 Vote India Secure · Regd. Office: Bandra Kurla Complex (BKC), Mumbai, Maharashtra 400051, India
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>`;
     }
 
     // Try sending with primary domain, fallback to onboarding@resend.dev if domain not yet verified

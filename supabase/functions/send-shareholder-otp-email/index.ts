@@ -42,46 +42,73 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY is not set in Supabase Edge Function environment.");
     }
 
+    const textContent = `VOTE INDIA SECURE — 2-FACTOR VOTING AUTHENTICATION\n\nHello ${name || "Valued Shareholder"},\n\nYour One-Time Passcode (OTP) is: ${otp}\n\nThis verification code is valid for 10 minutes.\nNever share this code with anyone.\n\nVote India Secure Enterprise Platform`;
+
     const htmlContent = `
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Shareholder Login OTP</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voter Verification OTP</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020817; margin: 0; padding: 20px; color: #ffffff;">
-  <div style="max-width: 600px; margin: 0 auto; background-color: #0d1b2a; border-radius: 20px; padding: 36px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
-    
-    <div style="text-align: center; margin-bottom: 28px;">
-      <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border-radius: 14px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
-        <span style="color: white; font-size: 26px; font-weight: bold;">🔒</span>
-      </div>
-      <h1 style="color: #ffffff; font-size: 22px; margin: 0 0 6px; font-weight: 800;">Vote India Secure</h1>
-      <p style="color: #94a3b8; font-size: 13px; margin: 0;">Two-Factor Voter Authentication</p>
-    </div>
+<body style="margin:0;padding:0;background-color:#020817;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#020817;padding:30px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:580px;background-color:#0d1b2a;border:1px solid rgba(56,189,248,0.3);border-radius:24px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.8);">
+          
+          <!-- Top Bar -->
+          <tr>
+            <td height="5" style="background:linear-gradient(90deg, #0284c7 0%, #38bdf8 100%);background-color:#0284c7;font-size:0;line-height:0;">&nbsp;</td>
+          </tr>
 
-    <h2 style="color: #f8fafc; font-size: 18px; margin-top: 0; margin-bottom: 16px;">Hello ${name || "Valued Shareholder"},</h2>
-    
-    <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
-      To securely verify your identity and access your electronic voting ballot, please enter the one-time passcode (OTP) below:
-    </p>
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 32px 20px;background:linear-gradient(180deg,#0a192f 0%,#0d1b2a 100%);text-align:center;border-bottom:1px solid rgba(255,255,255,0.08);">
+              <h1 style="color:#ffffff;font-size:22px;margin:0 0 4px;font-weight:800;letter-spacing:-0.5px;">Vote India Secure</h1>
+              <p style="color:#38bdf8;font-size:12px;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:1px;">Two-Factor Voter Authentication</p>
+            </td>
+          </tr>
 
-    <div style="background-color: #020817; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #0284c7; margin: 24px 0;">
-      <span style="font-family: 'Courier New', monospace; font-size: 36px; font-weight: 800; color: #38bdf8; letter-spacing: 10px; display: inline-block;">${otp}</span>
-    </div>
-    
-    <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 12px; margin-top: 20px;">
-      <p style="color: #7dd3fc; font-size: 12px; margin: 0; line-height: 1.5;">
-        ⏱️ <strong>Valid for 10 minutes.</strong> Never share this code with anyone.
-      </p>
-    </div>
+          <!-- Content -->
+          <tr>
+            <td style="padding:32px;">
+              <h2 style="color:#ffffff;font-size:18px;margin:0 0 12px;font-weight:700;">Hello ${name || "Valued Shareholder"},</h2>
+              <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 24px;">
+                To securely authenticate your voting terminal session, please enter the confidential 6-digit passcode below:
+              </p>
 
-    <div style="text-align: center; margin-top: 28px; border-top: 1px solid rgba(255, 255, 255, 0.1); pt: 16px;">
-      <p style="color: #64748b; font-size: 11px; margin: 16px 0 0;">
-        © 2026 Vote India Secure · Enterprise E-Voting SaaS · Mumbai, India
-      </p>
-    </div>
-  </div>
+              <!-- OTP Box -->
+              <div style="background-color:#020817;border:2px solid #0284c7;border-radius:14px;padding:22px;text-align:center;margin:0 0 24px;">
+                <span style="font-family:'Courier New',Courier,monospace;font-size:38px;font-weight:800;color:#38bdf8;letter-spacing:12px;display:inline-block;">${otp}</span>
+              </div>
+
+              <!-- Notice -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:rgba(2,132,199,0.1);border-left:4px solid #0284c7;border-radius:0 8px 8px 0;padding:12px 16px;">
+                <tr>
+                  <td style="color:#93c5fd;font-size:12px;line-height:1.5;">
+                    ⏱️ <strong>Passcode Lifetime:</strong> Valid for 10 minutes. Never share this code with anyone.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 32px;background-color:#070d18;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
+              <p style="color:#64748b;font-size:11px;line-height:1.6;margin:0;">
+                © 2026 Vote India Secure · Enterprise Corporate E-Voting SaaS · Mumbai, India<br/>
+                Automated statutory dispatch · Please do not reply directly
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
     `;
@@ -98,8 +125,10 @@ serve(async (req) => {
     // 2. Email sending with domain fallback
     const emailPayload = {
       from: "Vote India Secure <notifications@shareholdervoting.in>",
+      reply_to: "support@shareholdervoting.in",
       to: [email],
-      subject: "Your Secure Login OTP — Vote India Secure",
+      subject: "Your Secure E-Voting Login OTP — Vote India Secure",
+      text: textContent,
       headers: {
         "X-Priority": "1",
         "Importance": "high",
