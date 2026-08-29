@@ -42,29 +42,29 @@ Built from the ground up to replace cumbersome legacy workflows, the platform fe
 ```mermaid
 flowchart TD
     subgraph Ingestion["1. Depository Benpos & Roster Ingestion"]
-        RTA[RTA / Depository Benpos] -->|NSDL / CDSL / Folio CSV| Admin[Issuer Portal]
-        Admin -->|Bulk CSV Upload & Validation| DB[(Supabase PostgreSQL + RLS)]
+        RTA["RTA / Depository Benpos"] -->|"NSDL / CDSL / Folio CSV"| Admin["Issuer Portal"]
+        Admin -->|"Bulk CSV Upload & Validation"| DB[("Supabase PostgreSQL + RLS")]
     end
 
     subgraph Authentication["2. Voter 2FA & Verification"]
-        Shareholder[Shareholder Portal] -->|Option A: Voting Token / PIN\nOption B: Demat 16-Digit + PAN| AuthEngine[Auth Engine]
-        AuthEngine -->|Trigger OTP via Edge Function| OTP[2-Factor OTP Verification]
-        OTP -->|Authenticated Session| Ballot[Interactive Weighted Ballot Card]
+        Shareholder["Shareholder Portal"] -->|"Option A: Voting Token / PIN<br/>Option B: Demat 16-Digit + PAN"| AuthEngine["Auth Engine"]
+        AuthEngine -->|"Trigger OTP via Edge Function"| OTP["2-Factor OTP Verification"]
+        OTP -->|"Authenticated Session"| Ballot["Interactive Weighted Ballot Card"]
     end
 
     subgraph Sealing["3. Cryptographic Sealing & Decoupling"]
-        Ballot -->|Submit Vote Choice (Rule 20)| CryptoEngine[Ballot Cryptographic Engine]
-        CryptoEngine -->|AES-256 GCM Encryption| Vault[(Encrypted Ballot Vault)]
-        CryptoEngine -->|SHA-256 Hashing| Merkle[Immutable Merkle Audit Ledger]
-        CryptoEngine -->|Digital Receipt| ShareholderReceipt[Verifiable QR & PDF Receipt]
+        Ballot -->|"Submit Vote Choice (Rule 20)"| CryptoEngine["Ballot Cryptographic Engine"]
+        CryptoEngine -->|"AES-256 GCM Encryption"| Vault[("Encrypted Ballot Vault")]
+        CryptoEngine -->|"SHA-256 Hashing"| Merkle["Immutable Merkle Audit Ledger"]
+        CryptoEngine -->|"Digital Receipt"| ShareholderReceipt["Verifiable QR & PDF Receipt"]
     end
 
     subgraph Scrutiny["4. Scrutiny & Statutory Filing"]
-        Scrutinizer[Independent Scrutinizer] -->|Two Independent Witnesses (Rule 20-4-xii)| MultiKey[Multi-Party Key Unblocking]
-        MultiKey -->|Decrypt Aggregates| Vault
-        Vault -->|Calculate Weighted Tallies| ReportEngine[Report Engine]
-        ReportEngine -->|Automated PDF / CSV| MGT13[Form MGT-13 Scrutinizer Report]
-        ReportEngine -->|Stock Exchange Filing| SEBI[SEBI LODR Reg 44 Filing]
+        Scrutinizer["Independent Scrutinizer"] -->|"Two Independent Witnesses (Rule 20-4-xii)"| MultiKey["Multi-Party Key Unblocking"]
+        MultiKey -->|"Decrypt Aggregates"| Vault
+        Vault -->|"Calculate Weighted Tallies"| ReportEngine["Report Engine"]
+        ReportEngine -->|"Automated PDF / CSV"| MGT13["Form MGT-13 Scrutinizer Report"]
+        ReportEngine -->|"Stock Exchange Filing"| SEBI["SEBI LODR Reg 44 Filing"]
     end
 ```
 
