@@ -286,10 +286,6 @@ const CompanyDashboard = () => {
           email: editFormData.email.trim().toLowerCase(),
           phone: editFormData.phone.trim() || null,
           shares_held: parsedShares,
-          category: editFormData.category,
-          holding_type: editFormData.holdingType,
-          pan_number: editFormData.panNumber.trim().toUpperCase() || null,
-          dpid_client_id: editFormData.dpidClientId.trim() || null,
         })
         .eq("id", editingShareholder.id)
         .eq("company_id", company.id);
@@ -354,29 +350,29 @@ const CompanyDashboard = () => {
       const { loginId, password } = generateSecureCredentials();
       const passwordHash = await hashPassword(password);
 
+      // Core fields guaranteed in Supabase PostgreSQL schema
+      const insertPayload: Record<string, unknown> = {
+        company_id: company.id,
+        shareholder_name: validatedData.name,
+        email: validatedData.email,
+        phone: validatedData.phone || null,
+        shares_held: validatedData.sharesHeld,
+        login_id: loginId,
+        password_hash: passwordHash,
+      };
+
       const insertResult = await supabase
         .from("shareholders")
-        .insert({
-          company_id: company.id,
-          shareholder_name: validatedData.name,
-          email: validatedData.email,
-          phone: validatedData.phone || null,
-          shares_held: validatedData.sharesHeld,
-          login_id: loginId,
-          password_hash: passwordHash,
-          category: validatedData.category,
-          holding_type: validatedData.holdingType,
-          pan_number: validatedData.panNumber || null,
-          dpid_client_id: validatedData.dpidClientId || null,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
       if (insertResult.error) {
+        console.error("Supabase insert error:", insertResult.error);
         if (insertResult.error.code === "23505") {
-          toast.error("A shareholder with this login ID or Demat identifier already exists.");
+          toast.error("A shareholder with this login ID or email already exists.");
         } else {
-          toast.error("Failed to register shareholder in depository ledger.");
+          toast.error(`Failed to register shareholder: ${insertResult.error.message}`);
         }
         setIsAddingShareholder(false);
         return;
@@ -518,10 +514,6 @@ const CompanyDashboard = () => {
           shares_held: row.sharesHeld,
           login_id: loginId,
           password_hash: passwordHash,
-          category: row.category,
-          holding_type: row.holdingType,
-          dpid_client_id: row.dpidClientId || null,
-          pan_number: row.panNumber || null,
         });
       }
 

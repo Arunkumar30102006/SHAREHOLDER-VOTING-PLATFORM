@@ -249,4 +249,21 @@ BEGIN
     BEGIN
         ALTER TABLE public.company_admins ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'admin' NOT NULL;
     EXCEPTION WHEN duplicate_column THEN END;
+
+    -- optional shareholders columns
+    BEGIN
+        ALTER TABLE public.shareholders ADD COLUMN IF NOT EXISTS category TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.shareholders ADD COLUMN IF NOT EXISTS holding_type TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.shareholders ADD COLUMN IF NOT EXISTS pan_number TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
+
+    BEGIN
+        ALTER TABLE public.shareholders ADD COLUMN IF NOT EXISTS dpid_client_id TEXT;
+    EXCEPTION WHEN duplicate_column THEN END;
 END $$;
