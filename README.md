@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://images.unsplash.com/photo-1555849898-f29b053c52a0?auto=format&fit=crop&q=80&w=1200" alt="Vote India Secure Banner" width="100%" style="border-radius: 16px;" />
+  <img src="public/og-image.jpg" alt="Vote India Secure Banner" width="100%" style="border-radius: 16px;" />
   
   <br />
   <br />
@@ -47,25 +47,33 @@ flowchart TD
     end
 
     subgraph Authentication["2. Voter 2FA & Verification"]
-        Shareholder["Shareholder Portal"] -->|"Option A: Voting Token / PIN<br/>Option B: Demat 16-Digit + PAN"| AuthEngine["Auth Engine"]
+        Shareholder["Shareholder Portal"] -->|"Voting Token / Demat + PAN"| AuthEngine["Auth Engine"]
         AuthEngine -->|"Trigger OTP via Edge Function"| OTP["2-Factor OTP Verification"]
         OTP -->|"Authenticated Session"| Ballot["Interactive Weighted Ballot Card"]
     end
 
     subgraph Sealing["3. Cryptographic Sealing & Decoupling"]
-        Ballot -->|"Submit Vote Choice (Rule 20)"| CryptoEngine["Ballot Cryptographic Engine"]
-        CryptoEngine -->|"AES-256 GCM Encryption"| Vault[("Encrypted Ballot Vault")]
-        CryptoEngine -->|"SHA-256 Hashing"| Merkle["Immutable Merkle Audit Ledger"]
-        CryptoEngine -->|"Digital Receipt"| ShareholderReceipt["Verifiable QR & PDF Receipt"]
+        CryptoEngine["Ballot Cryptographic Engine"]
+        Vault[("Encrypted Ballot Vault")]
+        Merkle["Immutable Merkle Audit Ledger"]
+        ShareholderReceipt["Verifiable QR & PDF Receipt"]
+        CryptoEngine -->|"AES-256 GCM Encryption"| Vault
+        CryptoEngine -->|"SHA-256 Hashing"| Merkle
+        CryptoEngine -->|"Digital Receipt"| ShareholderReceipt
     end
 
     subgraph Scrutiny["4. Scrutiny & Statutory Filing"]
-        Scrutinizer["Independent Scrutinizer"] -->|"Two Independent Witnesses (Rule 20-4-xii)"| MultiKey["Multi-Party Key Unblocking"]
-        MultiKey -->|"Decrypt Aggregates"| Vault
-        Vault -->|"Calculate Weighted Tallies"| ReportEngine["Report Engine"]
-        ReportEngine -->|"Automated PDF / CSV"| MGT13["Form MGT-13 Scrutinizer Report"]
-        ReportEngine -->|"Stock Exchange Filing"| SEBI["SEBI LODR Reg 44 Filing"]
+        Scrutinizer["Independent Scrutinizer"] -->|"Two Independent Witnesses"| MultiKey["Multi-Party Key Unblocking"]
+        ReportEngine["Report Engine"]
+        MGT13["Form MGT-13 Scrutinizer Report"]
+        SEBI["SEBI LODR Reg 44 Filing"]
+        ReportEngine -->|"Automated PDF / CSV"| MGT13
+        ReportEngine -->|"Stock Exchange Filing"| SEBI
     end
+
+    Ballot -->|"Submit Vote Choice"| CryptoEngine
+    MultiKey -->|"Decrypt Aggregates"| Vault
+    Vault -->|"Calculate Weighted Tallies"| ReportEngine
 ```
 
 ---
