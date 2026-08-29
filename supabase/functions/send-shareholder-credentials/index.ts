@@ -43,6 +43,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing email or company name");
     }
 
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY secret is missing in Supabase Edge Functions environment.");
+      throw new Error("Email service is temporarily unconfigured. Please configure RESEND_API_KEY.");
+    }
+
     console.log(`Processing ${type} email for ${targetEmail}`);
 
     let subject = "";
@@ -86,8 +91,6 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020817; color: #ffffff;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            
-            <!-- Header -->
             <div style="text-align: center; margin-bottom: 32px;">
               <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border-radius: 14px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
                 <span style="color: white; font-size: 26px; font-weight: bold;">🔒</span>
@@ -96,22 +99,18 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #94a3b8; font-size: 13px; margin: 0;">Enterprise Shareholder E-Voting Platform</p>
             </div>
 
-            <!-- Main Card -->
             <div style="background: linear-gradient(135deg, #0d1b2a 0%, #0b1523 100%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 36px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
               <h2 style="color: #ffffff; font-size: 20px; margin: 0 0 12px; font-weight: 700;">Admin Login Verification</h2>
-              
               <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
                 You are logging into the Administrator Portal for <strong style="color: #38bdf8;">${companyName}</strong>. Please use the one-time verification code below to authenticate your session:
               </p>
 
-              <!-- OTP Code Box -->
               <div style="background: #020817; border: 1px solid #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin: 28px 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);">
                 <span style="font-family: 'Courier New', monospace; font-size: 36px; font-weight: 800; color: #38bdf8; letter-spacing: 10px; display: inline-block;">
                   ${otp}
                 </span>
               </div>
 
-              <!-- Security Notice -->
               <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 14px; margin-top: 24px;">
                 <p style="color: #7dd3fc; font-size: 12px; margin: 0; line-height: 1.5;">
                   ⏱️ <strong>Valid for 10 minutes.</strong> Never share this OTP with anyone. If you did not attempt to sign in to ${companyName}, please secure your account credentials immediately.
@@ -119,7 +118,6 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
             </div>
 
-            <!-- Footer -->
             <div style="text-align: center; margin-top: 28px;">
               <p style="color: #64748b; font-size: 12px; margin: 0;">
                 © 2026 Vote India Secure · Bandra Kurla Complex (BKC), Mumbai, India<br>
@@ -133,7 +131,7 @@ const handler = async (req: Request): Promise<Response> => {
     } else {
       // Default: Shareholder Credentials
       if (!shareholderName || !loginId || !password) throw new Error("Missing credentials fields");
-      subject = `Your E-Voting Credentials for ${companyName}`;
+      subject = `Your Statutory E-Voting Credentials for ${companyName}`;
       html = `
         <!DOCTYPE html>
         <html>
@@ -142,65 +140,58 @@ const handler = async (req: Request): Promise<Response> => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>E-Voting Credentials</title>
         </head>
-        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a;">
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020817; color: #ffffff;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <!-- Header -->
             <div style="text-align: center; margin-bottom: 32px;">
-              <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #10b981); border-radius: 12px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
-                <span style="color: white; font-size: 24px; font-weight: bold;">✓</span>
+              <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border-radius: 14px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                <span style="color: white; font-size: 26px; font-weight: bold;">🗳️</span>
               </div>
-              <h1 style="color: #f8fafc; font-size: 24px; margin: 0 0 8px;">E-Voting Platform</h1>
-              <p style="color: #94a3b8; font-size: 14px; margin: 0;">Secure Digital Voting for Shareholders</p>
+              <h1 style="color: #ffffff; font-size: 24px; margin: 0 0 6px; font-weight: 800;">Vote India Secure</h1>
+              <p style="color: #94a3b8; font-size: 13px; margin: 0;">SEBI LODR Reg 44 & Section 108 Compliant E-Voting</p>
             </div>
-            
-            <!-- Main Card -->
-            <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #334155; border-radius: 16px; padding: 32px; margin-bottom: 24px;">
-              <h2 style="color: #f8fafc; font-size: 20px; margin: 0 0 8px;">Hello ${shareholderName},</h2>
-              <p style="color: #94a3b8; font-size: 14px; margin: 0 0 24px;">
-                You have been registered as a shareholder of <strong style="color: #f97316;">${companyName}</strong>. 
-                Please use the credentials below to access the e-voting portal.
+
+            <div style="background: linear-gradient(135deg, #0d1b2a 0%, #0b1523 100%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 36px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
+              <h2 style="color: #ffffff; font-size: 20px; margin: 0 0 12px; font-weight: 700;">Hello ${shareholderName},</h2>
+              <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+                You have been registered on the electronic voting roster for <strong style="color: #38bdf8;">${companyName}</strong>. Please use your confidential one-time voting token below to cast your ballot during the remote e-voting window:
               </p>
-              
-              <!-- Credentials Box -->
-              <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-                <h3 style="color: #3b82f6; font-size: 14px; font-weight: 600; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 1px;">Your Login Credentials</h3>
-                
+
+              <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 14px; padding: 24px; margin-bottom: 24px;">
+                <h3 style="color: #38bdf8; font-size: 13px; font-weight: 700; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 1px;">Confidential Voting Credentials</h3>
+
                 <div style="margin-bottom: 16px;">
-                  <p style="color: #94a3b8; font-size: 12px; margin: 0 0 4px;">USER ID</p>
-                  <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px;">
-                    <code style="color: #22d3ee; font-size: 18px; font-weight: 600; font-family: 'Courier New', monospace;">${loginId}</code>
+                  <p style="color: #94a3b8; font-size: 11px; margin: 0 0 4px; font-weight: 600; text-transform: uppercase;">Voting User ID</p>
+                  <div style="background: #020817; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px;">
+                    <code style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace;">${loginId}</code>
                   </div>
                 </div>
-                
+
                 <div>
-                  <p style="color: #94a3b8; font-size: 12px; margin: 0 0 4px;">PASSWORD</p>
-                  <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px;">
-                    <code style="color: #22d3ee; font-size: 18px; font-weight: 600; font-family: 'Courier New', monospace;">${password}</code>
+                  <p style="color: #94a3b8; font-size: 11px; margin: 0 0 4px; font-weight: 600; text-transform: uppercase;">Security PIN / Password</p>
+                  <div style="background: #020817; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px;">
+                    <code style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace;">${password}</code>
                   </div>
                 </div>
               </div>
-              
-              <!-- Security Notice -->
-              <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 16px;">
-                <p style="color: #fbbf24; font-size: 12px; font-weight: 600; margin: 0 0 4px;">⚠️ IMPORTANT SECURITY NOTICE</p>
-                <ul style="color: #94a3b8; font-size: 12px; margin: 0; padding-left: 16px;">
-                  <li style="margin-bottom: 4px;">This is a one-time credential. It will be invalidated after first use.</li>
-                  <li style="margin-bottom: 4px;">Do not share these credentials with anyone.</li>
-                  <li>Delete this email after saving your credentials securely.</li>
-                </ul>
+
+              <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 14px; margin-bottom: 24px;">
+                <p style="color: #fbbf24; font-size: 12px; font-weight: 600; margin: 0 0 4px;">⚠️ STATUTORY BALLOT SECRECY (Rule 20)</p>
+                <p style="color: #cbd5e1; font-size: 12px; margin: 0; line-height: 1.5;">
+                  Your voting decision is encrypted with AES-256 and decoupled from your identity. Under MCA Rule 20, once cast, a vote cannot be altered or cast again at the physical venue.
+                </p>
               </div>
-             <div style="text-align: center; margin-top: 24px;">
-                <a href="https://www.shareholdervoting.in/shareholder-login" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);">
-                  Login to Vote
+
+              <div style="text-align: center; margin-top: 24px;">
+                <a href="https://www.shareholdervoting.in/shareholder-login" style="background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 700; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
+                  Access Shareholder Portal →
                 </a>
               </div>
             </div>
-            
-            <!-- Footer -->
-            <div style="text-align: center;">
+
+            <div style="text-align: center; margin-top: 28px;">
               <p style="color: #64748b; font-size: 12px; margin: 0;">
-                This is an automated message from the E-Voting Platform.<br>
-                If you did not expect this email, please contact your company administrator.
+                © 2026 Vote India Secure · Enterprise Corporate E-Voting SaaS<br>
+                Automated statutory dispatch · Please do not reply directly to this email
               </p>
             </div>
           </div>
@@ -209,26 +200,52 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
-    // Send email via Resend API
-    const res = await fetch("https://api.resend.com/emails", {
+    // Try sending with primary domain, fallback to onboarding@resend.dev if domain not yet verified
+    const sendPayload = {
+      from: "Vote India Secure <notifications@shareholdervoting.in>",
+      to: [targetEmail],
+      subject: subject,
+      html: html,
+    };
+
+    let res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify({
-        from: "Vote India Secure <notifications@shareholdervoting.in>",
-        to: [targetEmail],
-        subject: subject,
-        html: html,
-      }),
+      body: JSON.stringify(sendPayload),
     });
+
+    if (!res.ok) {
+      const errorJson = await res.clone().json().catch(() => null);
+      console.warn("Primary sender failed, testing fallback sender:", errorJson);
+
+      // If domain verification is pending in Resend, retry with onboarding@resend.dev
+      if (
+        errorJson?.message?.toLowerCase().includes("domain") ||
+        errorJson?.name === "validation_error" ||
+        res.status === 403
+      ) {
+        res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            ...sendPayload,
+            from: "Vote India Secure <onboarding@resend.dev>",
+          }),
+        });
+      }
+    }
 
     const data = await res.json();
     console.log("Email API response:", data);
 
     if (!res.ok) {
-      throw new Error(data.message || "Failed to send email");
+      throw new Error(data.message || "Failed to deliver email via Resend");
     }
 
     return new Response(JSON.stringify(data), {

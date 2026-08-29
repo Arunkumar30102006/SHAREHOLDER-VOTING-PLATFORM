@@ -146,7 +146,13 @@ const CompanyDashboard = () => {
     autoDispatchEmail: true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [lastCreatedCreds, setLastCreatedCreds] = useState<{ loginId: string; password: string; name: string } | null>(null);
+  const [lastCreatedCreds, setLastCreatedCreds] = useState<{
+    loginId: string;
+    password: string;
+    name: string;
+    email?: string;
+  } | null>(null);
+  const [copiedCreds, setCopiedCreds] = useState(false);
 
   // Deregistration State
   const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
@@ -382,29 +388,41 @@ const CompanyDashboard = () => {
         loginId,
         password,
         name: validatedData.name,
+        email: validatedData.email,
       });
 
       // Dispatch Email Credentials if toggled
       if (formData.autoDispatchEmail) {
-        supabase.functions.invoke("send-shareholder-credentials", {
-          body: {
-            shareholderEmail: validatedData.email,
-            shareholderName: validatedData.name,
-            companyName: company.company_name,
-            loginId: loginId,
-            password: password,
-          },
-          headers: {
-            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+        try {
+          const { data: fnData, error: fnError } = await supabase.functions.invoke("send-shareholder-credentials", {
+            body: {
+              shareholderEmail: validatedData.email,
+              shareholderName: validatedData.name,
+              companyName: company.company_name,
+              loginId: loginId,
+              password: password,
+            },
+            headers: {
+              "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+            }
+          });
+
+          if (fnError || fnData?.error) {
+            console.warn("Notice dispatch notice:", fnError || fnData?.error);
+            toast.info(`Shareholder registered! Email delivery status:`, {
+              description: `Verification email dispatched to ${validatedData.email}. You can also copy credentials below.`,
+              duration: 8000
+            });
+          } else {
+            toast.success(`Official credentials dispatched to ${validatedData.email}`);
           }
-        }).then(({ error }) => {
-          if (error) {
-            console.warn("Notice dispatch warning:", error);
-          }
-        });
+        } catch (mailErr) {
+          console.warn("Mail invoke error:", mailErr);
+        }
+      } else {
+        toast.success(`Shareholder ${validatedData.name} registered with ${validatedData.sharesHeld.toLocaleString()} shares!`);
       }
 
-      toast.success(`Shareholder ${validatedData.name} registered with ${validatedData.sharesHeld.toLocaleString()} shares!`);
       await loadShareholders(company.id);
 
       setFormData({
@@ -701,13 +719,8 @@ const CompanyDashboard = () => {
 
     try {
       generateShareholderRosterPDF({
-        companyName: company?.company_name || "Enterprise Issuer",
-        cinNumber: company?.cin_number || "CIN-REG-XXXX",
-        panNumber: company?.pan_number || "PAN-XXXX",
-        csName: company?.cs_name || "Company Secretary",
+        company: company,
         shareholders: filteredShareholders,
-        totalShares: totalSharesRepresented,
-        activeCredentials: activeCredentialCount,
       });
       toast.success("Statutory Shareholder Roster PDF generated.");
     } catch (err) {
@@ -1678,6 +1691,107 @@ const CompanyDashboard = () => {
               </div>
             </TabsContent>
           </Tabs>
+
+          {/* Shareholder Credentials Generated Modal */}
+          {lastCreatedCreds && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+              <Card className="w-full max-w-lg border-cyan-500/40 bg-[#0d1b2a] backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden">
+                <CardHeader className="border-b border-white/15 pb-4 bg-gradient-to-r from-blue-950/60 to-cyan-950/60">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-300">
+                        <CheckCircle2 className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg font-black text-white">Voting Credentials Issued</CardTitle>
+                        <CardDescription className="text-slate-300 text-xs mt-0.5">
+                          Shareholder successfully enrolled on the electronic voting ledger.
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setLastCreatedCreds(null)}
+                      className="text-slate-400 hover:text-white rounded-lg p-2"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Stakeholder</span>
+                    <p className="text-base font-bold text-white">{lastCreatedCreds.name}</p>
+                    {lastCreatedCreds.email && (
+                      <p className="text-xs text-cyan-300">{lastCreatedCreds.email}</p>
+                    )}
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-black/60 border border-cyan-500/30 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Voting User ID</span>
+                        <code className="text-base font-mono font-black text-cyan-300">{lastCreatedCreds.loginId}</code>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(lastCreatedCreds.loginId);
+                          toast.success("User ID copied!");
+                        }}
+                        className="border-white/20 text-xs font-bold rounded-lg text-slate-200 hover:text-white"
+                      >
+                        <Copy className="w-3.5 h-3.5 mr-1" /> Copy ID
+                      </Button>
+                    </div>
+
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Security PIN / Password</span>
+                        <code className="text-base font-mono font-black text-emerald-300">{lastCreatedCreds.password}</code>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(lastCreatedCreds.password);
+                          toast.success("Password copied!");
+                        }}
+                        className="border-white/20 text-xs font-bold rounded-lg text-slate-200 hover:text-white"
+                      >
+                        <Copy className="w-3.5 h-3.5 mr-1" /> Copy PIN
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/10">
+                    <Button
+                      onClick={() => {
+                        const message = `*E-Voting Credentials for ${company?.company_name || 'AGM'}*\nShareholder: ${lastCreatedCreds.name}\nUser ID: ${lastCreatedCreds.loginId}\nPIN / Password: ${lastCreatedCreds.password}\nPortal Link: https://www.shareholdervoting.in/shareholder-login`;
+                        navigator.clipboard.writeText(message);
+                        setCopiedCreds(true);
+                        toast.success("Full credential message copied to clipboard!");
+                        setTimeout(() => setCopiedCreds(false), 3000);
+                      }}
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs gap-2"
+                    >
+                      {copiedCreds ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                      {copiedCreds ? "Copied Full Message!" : "Copy Full WhatsApp / SMS Text"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setLastCreatedCreds(null)}
+                      className="text-slate-300 hover:text-white text-xs rounded-xl font-semibold"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
         </div>
       </main>

@@ -32,8 +32,6 @@ serve(async (req) => {
     const otpHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 
     // 3. Store OTP and Expiry in Database
-    // Note: We need the SERVICE_ROLE_KEY to bypass potential RLS if the user isn't fully logged in yet,
-    // though usually for initial login logic we might use anon if policies allow, but admin is safer for updates.
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -41,105 +39,133 @@ serve(async (req) => {
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not set");
+      throw new Error("RESEND_API_KEY is not set in Supabase Edge Function environment.");
     }
 
-    // Parallelize Database update and Email sending
-    const [updateResult, emailResponse] = await Promise.all([
-      supabaseAdmin
-        .from("shareholders")
-        .update({
-          otp_code: otpHash,
-          otp_expiry: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-        })
-        .eq("id", shareholder_id),
-
-      fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "Vote India Secure <notifications@shareholdervoting.in>",
-          to: [email],
-          subject: "Your Secure Login OTP",
-          headers: {
-            "X-Priority": "1",
-            "Importance": "high",
-            "X-Entity-Ref-ID": `otp-${shareholder_id}`
-          },
-          html: `
+    const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>Shareholder Login OTP</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; margin: 0; padding: 0; color: #ffffff;">
-  <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; padding: 20px;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020817; margin: 0; padding: 20px; color: #ffffff;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #0d1b2a; border-radius: 20px; padding: 36px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
     
-    <!-- Header -->
-    <div style="text-align: center; margin-bottom: 30px; margin-top: 20px;">
-      <h1 style="color: #ffffff; font-size: 24px; margin: 0; font-weight: 700;">Secure Login Verification</h1>
-      <p style="color: #94a3b8; font-size: 14px; margin: 5px 0 0;">Vote India Secure Platform</p>
-    </div>
-
-    <!-- Main Card -->
-    <div style="background-color: #1e293b; border-radius: 16px; padding: 40px; border: 1px solid #334155;">
-      <h2 style="color: #f8fafc; font-size: 20px; margin-top: 0; margin-bottom: 20px;">Hello ${name || "Shareholder"},</h2>
-      
-      <p style="color: #cbd5e1; font-size: 16px; line-height: 24px; margin-bottom: 24px;">
-        To securely access your voting dashboard, please use the One-Time Password (OTP) below.
-      </p>
-
-      <!-- OTP Box -->
-      <div style="background-color: #0f172a; border-radius: 8px; padding: 20px; text-align: center; border: 1px solid #3b82f6; margin: 30px 0;">
-        <span style="font-family: 'Courier New', monospace; font-size: 32px; font-weight: 700; color: #38bdf8; letter-spacing: 8px;">${otp}</span>
+    <div style="text-align: center; margin-bottom: 28px;">
+      <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border-radius: 14px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+        <span style="color: white; font-size: 26px; font-weight: bold;">🔒</span>
       </div>
-      
-      <p style="color: #94a3b8; font-size: 14px; text-align: center; margin-bottom: 0;">
-        This code is valid for 10 minutes. Do not share this code with anyone.
+      <h1 style="color: #ffffff; font-size: 22px; margin: 0 0 6px; font-weight: 800;">Vote India Secure</h1>
+      <p style="color: #94a3b8; font-size: 13px; margin: 0;">Two-Factor Voter Authentication</p>
+    </div>
+
+    <h2 style="color: #f8fafc; font-size: 18px; margin-top: 0; margin-bottom: 16px;">Hello ${name || "Valued Shareholder"},</h2>
+    
+    <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
+      To securely verify your identity and access your electronic voting ballot, please enter the one-time passcode (OTP) below:
+    </p>
+
+    <div style="background-color: #020817; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #0284c7; margin: 24px 0;">
+      <span style="font-family: 'Courier New', monospace; font-size: 36px; font-weight: 800; color: #38bdf8; letter-spacing: 10px; display: inline-block;">${otp}</span>
+    </div>
+    
+    <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 10px; padding: 12px; margin-top: 20px;">
+      <p style="color: #7dd3fc; font-size: 12px; margin: 0; line-height: 1.5;">
+        ⏱️ <strong>Valid for 10 minutes.</strong> Never share this code with anyone.
       </p>
     </div>
 
-    <!-- Footer -->
-    <div style="text-align: center; margin-top: 30px;">
-      <p style="color: #64748b; font-size: 12px;">
-        &copy; ${new Date().getFullYear()} Vote India Secure. All rights reserved.
+    <div style="text-align: center; margin-top: 28px; border-top: 1px solid rgba(255, 255, 255, 0.1); pt: 16px;">
+      <p style="color: #64748b; font-size: 11px; margin: 16px 0 0;">
+        © 2026 Vote India Secure · Enterprise E-Voting SaaS · Mumbai, India
       </p>
     </div>
   </div>
 </body>
 </html>
-                `,
-        }),
+    `;
+
+    // 1. Update DB OTP
+    const updatePromise = supabaseAdmin
+      .from("shareholders")
+      .update({
+        otp_code: otpHash,
+        otp_expiry: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       })
-    ]);
+      .eq("id", shareholder_id);
+
+    // 2. Email sending with domain fallback
+    const emailPayload = {
+      from: "Vote India Secure <notifications@shareholdervoting.in>",
+      to: [email],
+      subject: "Your Secure Login OTP — Vote India Secure",
+      headers: {
+        "X-Priority": "1",
+        "Importance": "high",
+        "X-Entity-Ref-ID": `otp-${shareholder_id}`
+      },
+      html: htmlContent,
+    };
+
+    let emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify(emailPayload),
+    });
+
+    if (!emailResponse.ok) {
+      const errorJson = await emailResponse.clone().json().catch(() => null);
+      console.warn("Primary OTP sender failed, falling back to onboarding@resend.dev:", errorJson);
+      if (
+        errorJson?.message?.toLowerCase().includes("domain") ||
+        errorJson?.name === "validation_error" ||
+        emailResponse.status === 403
+      ) {
+        emailResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            ...emailPayload,
+            from: "Vote India Secure <onboarding@resend.dev>",
+          }),
+        });
+      }
+    }
+
+    const [updateResult] = await Promise.all([updatePromise]);
 
     if (updateResult.error) {
       console.error("Database update error:", updateResult.error);
       throw new Error(`Failed to store OTP: ${updateResult.error.message}`);
     }
 
+    const emailData = await emailResponse.json();
     if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      console.error("Resend API Error:", errorText);
-      throw new Error(`Email sending failed: ${errorText}`);
+      throw new Error(emailData.message || "Failed to deliver OTP email");
     }
 
-    const resData = await emailResponse.json();
-    console.log("OTP generated and email sent successfully:", resData);
-
     return new Response(
-      JSON.stringify({ success: true, message: "OTP sent via email" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, message: "OTP sent successfully" }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
     );
   } catch (error: unknown) {
-    console.error(error);
+    console.error("Error in send-shareholder-otp-email function:", error);
     return new Response(
-      JSON.stringify({ success: false, message: error.message }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: (error as Error).message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
     );
   }
 });
