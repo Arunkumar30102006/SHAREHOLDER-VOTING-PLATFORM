@@ -18,12 +18,14 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 2
 
-Sitemap: https://www.shareholdervoting.in/sitemap.xml
-
 # LLM / AI Agent access
 User-agent: GPTBot
 Allow: /
+
 User-agent: ChatGPT-User
 Allow: /
+
 User-agent: Google-Extended
 Allow: /
+
+Sitemap: https://www.shareholdervoting.in/sitemap.xml

@@ -1,0 +1,9 @@
+# Vote India Secure — Vulnerability Disclosure Policy
+# https://www.shareholdervoting.in
+
+Contact: mailto:support@shareholdervoting.in
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://www.shareholdervoting.in/.well-known/security.txt
+Policy: https://www.shareholdervoting.in/security
+Acknowledgments: https://www.shareholdervoting.in/compliance

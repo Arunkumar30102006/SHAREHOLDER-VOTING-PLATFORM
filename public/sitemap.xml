@@ -109,12 +109,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.shareholdervoting.in/company-register</loc>
-    <lastmod>2026-08-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://www.shareholdervoting.in/live-demo</loc>
     <lastmod>2026-08-25</lastmod>
     <changefreq>monthly</changefreq>
@@ -130,37 +124,37 @@
     <loc>https://www.shareholdervoting.in/blog/sebi-compliant-evoting-guide</loc>
     <lastmod>2026-08-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.shareholdervoting.in/blog/role-of-scrutinizer-form-mgt-13</loc>
     <lastmod>2026-08-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.shareholdervoting.in/blog/agm-remote-evoting-timeline-checklist</loc>
     <lastmod>2026-08-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.shareholdervoting.in/blog/how-online-shareholder-voting-works</loc>
     <lastmod>2026-08-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.shareholdervoting.in/blog/agm-evoting-vs-physical-meeting</loc>
     <lastmod>2026-08-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.shareholdervoting.in/blog/benefits-electronic-voting-shareholders</loc>
     <lastmod>2026-08-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.shareholdervoting.in/privacy-policy</loc>

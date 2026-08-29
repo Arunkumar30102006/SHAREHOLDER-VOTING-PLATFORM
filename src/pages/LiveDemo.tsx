@@ -480,9 +480,9 @@ const LiveDemo = () => {
 
         {/* Demo Notice */}
         <div className="max-w-3xl mx-auto mb-6">
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400/90 text-xs font-medium">
-            <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-            <span>This is a simulated demo — no real data or votes are involved. All credentials are pre-filled.</span>
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-medium">
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+            <span>Vote India Secure is an independent technology platform engineered in architectural alignment with SEBI LODR Regulation 44 and Companies Act 2013 Section 108. Not affiliated with CDSL, NSDL, or SEBI.</span>
           </div>
         </div>
 

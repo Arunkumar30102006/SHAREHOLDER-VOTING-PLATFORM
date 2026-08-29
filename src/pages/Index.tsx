@@ -157,7 +157,7 @@ const Index = () => {
 
             {/* Main Headline (LCP Candidate - Instant Rendering) */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
-              Online Shareholder <br className="hidden sm:inline" />
+              Online Shareholder{" "}
               <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent drop-shadow-sm">
                 Voting Platform for AGMs &amp; EGMs
               </span>

@@ -41,17 +41,16 @@ const routeEntries = [
 
   // Interactive & Contact
   { path: '/contact', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.7' },
-  { path: '/company-register', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
   { path: '/live-demo', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
 
   // Blog & Educational Regulatory Analysis
   { path: '/blog', lastmod: '2026-08-25', changefreq: 'weekly', priority: '0.7' },
-  { path: '/blog/sebi-compliant-evoting-guide', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
-  { path: '/blog/role-of-scrutinizer-form-mgt-13', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
-  { path: '/blog/agm-remote-evoting-timeline-checklist', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
-  { path: '/blog/how-online-shareholder-voting-works', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
-  { path: '/blog/agm-evoting-vs-physical-meeting', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
-  { path: '/blog/benefits-electronic-voting-shareholders', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/sebi-compliant-evoting-guide', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.8' },
+  { path: '/blog/role-of-scrutinizer-form-mgt-13', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.8' },
+  { path: '/blog/agm-remote-evoting-timeline-checklist', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.8' },
+  { path: '/blog/how-online-shareholder-voting-works', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.8' },
+  { path: '/blog/agm-evoting-vs-physical-meeting', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.8' },
+  { path: '/blog/benefits-electronic-voting-shareholders', lastmod: '2026-08-25', changefreq: 'monthly', priority: '0.8' },
 
   // Legal
   { path: '/privacy-policy', lastmod: '2026-08-01', changefreq: 'yearly', priority: '0.3' },
