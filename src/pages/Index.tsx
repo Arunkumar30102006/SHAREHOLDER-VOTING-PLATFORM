@@ -19,9 +19,7 @@ import {
 import StatsSection from "@/components/home/StatsSection";
 import TrustBadgesRow from "@/components/home/TrustBadgesRow";
 import SecurityComplianceSection from "@/components/home/SecurityComplianceSection";
-
-// Lazy-load 3D WebGL Globe post-LCP so it doesn't block critical mobile paint
-const HeroGlobe3D = lazy(() => import("@/components/3d/HeroGlobe3D"));
+import HeroCyberOrb from "@/components/home/HeroCyberOrb";
 
 const faqItems = [
   {
@@ -132,30 +130,6 @@ const comparisonPoints = [
 
 const Index = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [show3DGlobe, setShow3DGlobe] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Skip 3D globe on low-end devices (≤2 CPU cores) to avoid TBT spikes
-      const cores = navigator.hardwareConcurrency || 2;
-      if (cores <= 2) return;
-
-      if ("requestIdleCallback" in window) {
-        const handle = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(
-          () => setShow3DGlobe(true),
-          { timeout: 3000 }
-        );
-        return () => {
-          if ("cancelIdleCallback" in window) {
-            (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(handle);
-          }
-        };
-      } else {
-        const timer = setTimeout(() => setShow3DGlobe(true), 2000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#020817] text-white selection:bg-blue-500/30">
@@ -169,19 +143,8 @@ const Index = () => {
 
       {/* ─── 1. HERO SECTION ─── */}
       <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden" aria-label="Hero section">
-        {/* Dynamic Glowing Lighting */}
-        <div className="absolute inset-0 -z-10 pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-blue-600/25 via-cyan-500/20 to-transparent rounded-full blur-[140px]" />
-          <div className="absolute top-1/3 -left-32 w-80 h-80 bg-blue-700/15 rounded-full blur-[100px]" />
-          <div className="absolute top-1/2 -right-32 w-80 h-80 bg-teal-600/15 rounded-full blur-[100px]" />
-        </div>
-
-        {/* 3D WebGL Globe Background (Deferred) */}
-        {show3DGlobe && (
-          <Suspense fallback={null}>
-            <HeroGlobe3D />
-          </Suspense>
-        )}
+        {/* GPU-Accelerated Dynamic Cyber Lighting Visual */}
+        <HeroCyberOrb />
 
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center max-w-4xl mx-auto">
@@ -421,7 +384,7 @@ const Index = () => {
               }
             ].map((item, i) => (
               <div key={i} className="p-8 rounded-3xl bg-[#0d1b2a]/80 border border-white/15 relative group hover:border-blue-500/40 transition-all shadow-lg">
-                <div className="text-4xl font-black text-blue-400/70 mb-4 font-mono">{item.step}</div>
+                <div className="text-4xl font-black text-cyan-400 mb-4 font-mono">{item.step}</div>
                 <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
                 <p className="text-slate-200 text-xs sm:text-sm leading-relaxed font-normal">{item.desc}</p>
               </div>
@@ -484,14 +447,14 @@ const Index = () => {
             <p className="text-blue-100 text-base md:text-lg max-w-xl mx-auto mb-8 font-normal">
               Join leading global enterprises upgrading their shareholder voting infrastructure with Vote Secure.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/contact">
-                <Button size="xl" className="bg-white text-[#1e3a8a] hover:bg-slate-100 font-bold px-8 py-6 rounded-xl shadow-xl border border-white">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link to="/contact" className="w-full sm:w-auto inline-block">
+                <Button size="xl" className="w-full sm:w-auto bg-white text-[#1e3a8a] hover:bg-slate-100 font-bold px-8 py-6 rounded-xl shadow-xl border border-white">
                   Schedule Platform Walkthrough
                 </Button>
               </Link>
-              <Link to="/pricing">
-                <Button variant="outline" size="xl" className="border-white/40 text-white font-semibold hover:bg-white/15 px-8 py-6 rounded-xl">
+              <Link to="/pricing" className="w-full sm:w-auto inline-block">
+                <Button variant="outline" size="xl" className="w-full sm:w-auto border-white/40 text-white font-semibold hover:bg-white/15 px-8 py-6 rounded-xl">
                   View Transparent Pricing
                 </Button>
               </Link>
