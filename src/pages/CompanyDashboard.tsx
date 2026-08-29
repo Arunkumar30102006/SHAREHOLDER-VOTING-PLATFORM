@@ -1,5 +1,5 @@
 import { SEO } from "@/components/layout/SEO";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import {
   Building2,
   Users,
@@ -42,7 +42,15 @@ import {
   Pencil,
   AlertTriangle,
   Lock,
-  X
+  X,
+  CreditCard,
+  Upload,
+  Copy,
+  Info,
+  Layers,
+  PieChart,
+  UserCheck,
+  Check
 } from "lucide-react";
 import {
   Dialog,
@@ -52,23 +60,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { votingApi } from "@/services/api/voting";
-import { DashboardFeedback } from "@/components/company/DashboardFeedback";
 import { env } from "@/config/env";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -81,22 +77,42 @@ const shareholderSchema = z.object({
   email: z.string().email("Please enter a valid email address").max(255),
   phone: z.string().optional(),
   sharesHeld: z.number().min(1, "Shares must be at least 1"),
+  category: z.string().optional(),
+  holdingType: z.string().optional(),
+  panNumber: z.string().optional(),
+  dpidClientId: z.string().optional(),
 });
 
 const CompanyDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingShareholder, setIsAddingShareholder] = useState(false);
   const [isSendingCredentials, setIsSendingCredentials] = useState<string | null>(null);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
-  const [isDeletingCompany, setIsDeletingCompany] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
   const [shareholders, setShareholders] = useState<Shareholder[]>([]);
   const [activeTab, setActiveTab] = useState("shareholders");
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
   
+  // Registration Form Drawer & Mode
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addMode, setAddMode] = useState<"manual" | "csv">("manual");
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [parsedCsvRows, setParsedCsvRows] = useState<Array<{
+    name: string;
+    email: string;
+    phone: string;
+    sharesHeld: number;
+    category: string;
+    holdingType: string;
+    dpidClientId: string;
+    panNumber: string;
+  }>>([]);
+  const [isUploadingCsv, setIsUploadingCsv] = useState(false);
+
   // Edit Shareholder State
   const [editingShareholder, setEditingShareholder] = useState<Shareholder | null>(null);
   const [isUpdatingShareholder, setIsUpdatingShareholder] = useState(false);
@@ -105,19 +121,32 @@ const CompanyDashboard = () => {
     email: "",
     phone: "",
     sharesHeld: "",
+    category: "RETAIL",
+    holdingType: "NSDL_DEMAT",
+    panNumber: "",
+    dpidClientId: "",
   });
 
   // Search and Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
+  // Form Data State
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     sharesHeld: "",
+    category: "RETAIL",
+    holdingType: "NSDL_DEMAT",
+    panNumber: "",
+    dpidClientId: "",
+    shareClass: "ORDINARY_EQUITY",
+    autoDispatchEmail: true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [lastCreatedCreds, setLastCreatedCreds] = useState<{ loginId: string; password: string; name: string } | null>(null);
 
   // Deregistration State
   const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
@@ -141,7 +170,6 @@ const CompanyDashboard = () => {
       return;
     }
 
-    // Get company admin info
     const { data: adminData, error: adminError } = await supabase
       .from("company_admins")
       .select("company_id")
@@ -149,37 +177,30 @@ const CompanyDashboard = () => {
       .maybeSingle();
 
     if (adminError || !adminData) {
-      toast.error("Access denied. Not a company administrator.");
+      console.error("Admin check failed:", adminError);
       await supabase.auth.signOut();
       navigate("/company-login");
       return;
     }
 
-    // Get company details
     const { data: companyData, error: companyError } = await supabase
       .from("companies")
       .select("*")
       .eq("id", adminData.company_id)
-      .maybeSingle();
+      .single();
 
     if (companyError || !companyData) {
-      toast.error("Could not load company data");
+      console.error("Company fetch failed:", companyError);
+      toast.error("Failed to load company profile");
       setIsLoading(false);
       return;
     }
 
     setCompany(companyData);
-    await loadShareholders(companyData.id);
-
-    // Fetch Active Session for Results
-    try {
-      const activeSession = await votingApi.getActiveSession(companyData.id);
-      if (activeSession) {
-        setSessionId(activeSession.id);
-      }
-    } catch (e) {
-      console.error("Failed to fetch active session", e);
-    }
+    await Promise.all([
+      loadShareholders(companyData.id),
+      loadActiveSession(companyData.id),
+    ]);
 
     setIsLoading(false);
   };
@@ -192,22 +213,43 @@ const CompanyDashboard = () => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast.error("Failed to load shareholders");
-      return;
+      console.error("Failed loading shareholders:", error);
+      toast.error("Failed to fetch shareholder roster");
+    } else {
+      setShareholders(data || []);
     }
-
-    setShareholders(data || []);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: "" }));
+  const loadActiveSession = async (companyId: string) => {
+    try {
+      const session = await votingApi.getActiveSession(companyId);
+      if (session) {
+        setSessionId(session.id);
+      }
+    } catch (err) {
+      console.error("No active session:", err);
+    }
   };
 
-  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else if (name === "panNumber") {
+      setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setEditFormData(prev => ({ ...prev, [name]: value }));
+    if (name === "panNumber") {
+      setEditFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+    } else {
+      setEditFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleOpenEdit = (shareholder: Shareholder) => {
@@ -217,6 +259,10 @@ const CompanyDashboard = () => {
       email: shareholder.email,
       phone: shareholder.phone || "",
       sharesHeld: shareholder.shares_held.toString(),
+      category: shareholder.category || "RETAIL",
+      holdingType: shareholder.holding_type || "NSDL_DEMAT",
+      panNumber: shareholder.pan_number || "",
+      dpidClientId: shareholder.dpid_client_id || "",
     });
   };
 
@@ -224,39 +270,45 @@ const CompanyDashboard = () => {
     e.preventDefault();
     if (!editingShareholder || !company) return;
 
-    const sharesParsed = parseInt(editFormData.sharesHeld.trim(), 10);
-    if (isNaN(sharesParsed) || sharesParsed < 1) {
-      toast.error("Please enter a valid number of shares (minimum 1).");
-      return;
-    }
-
     setIsUpdatingShareholder(true);
     try {
+      const parsedShares = parseInt(String(editFormData.sharesHeld).trim(), 10);
+      if (isNaN(parsedShares) || parsedShares < 1) {
+        toast.error("Shares held must be a positive integer.");
+        setIsUpdatingShareholder(false);
+        return;
+      }
+
       const { error } = await supabase
         .from("shareholders")
         .update({
           shareholder_name: editFormData.name.trim(),
           email: editFormData.email.trim().toLowerCase(),
           phone: editFormData.phone.trim() || null,
-          shares_held: sharesParsed,
+          shares_held: parsedShares,
+          category: editFormData.category,
+          holding_type: editFormData.holdingType,
+          pan_number: editFormData.panNumber.trim().toUpperCase() || null,
+          dpid_client_id: editFormData.dpidClientId.trim() || null,
         })
-        .eq("id", editingShareholder.id);
+        .eq("id", editingShareholder.id)
+        .eq("company_id", company.id);
 
       if (error) throw error;
 
-      toast.success(`Shareholder updated! Shares set to ${sharesParsed.toLocaleString()}`);
+      toast.success(`Shareholder ${editFormData.name} updated successfully!`);
       setEditingShareholder(null);
       await loadShareholders(company.id);
     } catch (err: unknown) {
       console.error("Update failed:", err);
-      toast.error("Failed to update shareholder.");
+      toast.error("Failed to update shareholder record.");
     } finally {
       setIsUpdatingShareholder(false);
     }
   };
 
   const generateSecureCredentials = () => {
-    const loginId = Math.floor(10000000 + Math.random() * 90000000).toString();
+    const loginId = `SH-${Math.floor(10000000 + Math.random() * 90000000).toString()}`;
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
     let password = "";
     for (let i = 0; i < 12; i++) {
@@ -273,6 +325,7 @@ const CompanyDashboard = () => {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   };
 
+  // Add Single Shareholder
   const handleAddShareholder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAddingShareholder(true);
@@ -286,10 +339,14 @@ const CompanyDashboard = () => {
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim() || undefined,
         sharesHeld: parsedShares,
+        category: formData.category,
+        holdingType: formData.holdingType,
+        panNumber: formData.panNumber.trim().toUpperCase() || undefined,
+        dpidClientId: formData.dpidClientId.trim() || undefined,
       });
 
       if (!company) {
-        toast.error("Company not found");
+        toast.error("Company profile not loaded.");
         setIsAddingShareholder(false);
         return;
       }
@@ -297,163 +354,276 @@ const CompanyDashboard = () => {
       const { loginId, password } = generateSecureCredentials();
       const passwordHash = await hashPassword(password);
 
-      try {
-        const [insertResult, emailResult] = await Promise.all([
-          supabase
-            .from("shareholders")
-            .insert({
-              company_id: company.id,
-              shareholder_name: validatedData.name,
-              email: validatedData.email,
-              phone: validatedData.phone || null,
-              shares_held: validatedData.sharesHeld,
-              login_id: loginId,
-              password_hash: passwordHash,
-            })
-            .select()
-            .single(),
+      const insertResult = await supabase
+        .from("shareholders")
+        .insert({
+          company_id: company.id,
+          shareholder_name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          shares_held: validatedData.sharesHeld,
+          login_id: loginId,
+          password_hash: passwordHash,
+          category: validatedData.category,
+          holding_type: validatedData.holdingType,
+          pan_number: validatedData.panNumber || null,
+          dpid_client_id: validatedData.dpidClientId || null,
+        })
+        .select()
+        .single();
 
-          supabase.functions.invoke('send-shareholder-credentials', {
-            body: {
-              shareholderEmail: validatedData.email,
-              shareholderName: validatedData.name,
-              companyName: company.company_name,
-              loginId: loginId,
-              password: password,
-            },
-            headers: {
-              "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-            }
-          })
-        ]);
-
-        if (insertResult.error) {
-          if (insertResult.error.code === "23505") {
-            toast.error("A shareholder with this login ID already exists");
-          } else {
-            toast.error("Failed to add shareholder");
-          }
-          setIsAddingShareholder(false);
-          return;
-        }
-
-        if (emailResult.error) {
-          console.error("Email failed:", emailResult.error);
-          toast.success("Shareholder added! Save credentials:", {
-            description: `User ID: ${loginId} | Password: ${password}`,
-            duration: 30000,
-            action: {
-              label: "Copy",
-              onClick: () => navigator.clipboard.writeText(`ID: ${loginId}\nPassword: ${password}`)
-            }
-          });
-          toast.warning("Email service had an issue. Please manually share credentials.");
+      if (insertResult.error) {
+        if (insertResult.error.code === "23505") {
+          toast.error("A shareholder with this login ID or Demat identifier already exists.");
         } else {
-          toast.success(`Shareholder added with ${validatedData.sharesHeld.toLocaleString()} shares! Credentials sent via email.`);
+          toast.error("Failed to register shareholder in depository ledger.");
         }
-      } catch (err: unknown) {
-        console.error("Operation failed:", err);
-        toast.error("An error occurred while adding the shareholder.");
+        setIsAddingShareholder(false);
+        return;
       }
 
-      setFormData({ name: "", email: "", phone: "", sharesHeld: "" });
-      setShowAddForm(false);
-      await loadShareholders(company.id);
+      setLastCreatedCreds({
+        loginId,
+        password,
+        name: validatedData.name,
+      });
 
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        err.errors.forEach((error) => {
-          if (error.path[0]) {
-            fieldErrors[error.path[0] as string] = error.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
-    } finally {
-      setIsAddingShareholder(false);
-    }
-  };
-
-  const handleResendCredentials = async (shareholder: Shareholder) => {
-    setIsSendingCredentials(shareholder.id);
-
-    try {
-      const { loginId, password } = generateSecureCredentials();
-      const passwordHash = await hashPassword(password);
-
-      const [updateResult, emailResult] = await Promise.all([
-        supabase
-          .from("shareholders")
-          .update({
-            login_id: loginId,
-            password_hash: passwordHash,
-            is_credential_used: false,
-            credential_created_at: new Date().toISOString(),
-          })
-          .eq("id", shareholder.id),
-
-        supabase.functions.invoke('send-shareholder-credentials', {
+      // Dispatch Email Credentials if toggled
+      if (formData.autoDispatchEmail) {
+        supabase.functions.invoke("send-shareholder-credentials", {
           body: {
-            shareholderEmail: shareholder.email,
-            shareholderName: shareholder.shareholder_name,
-            companyName: company?.company_name,
+            shareholderEmail: validatedData.email,
+            shareholderName: validatedData.name,
+            companyName: company.company_name,
             loginId: loginId,
             password: password,
           },
           headers: {
             "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
           }
+        }).then(({ error }) => {
+          if (error) {
+            console.warn("Notice dispatch warning:", error);
+          }
+        });
+      }
+
+      toast.success(`Shareholder ${validatedData.name} registered with ${validatedData.sharesHeld.toLocaleString()} shares!`);
+      await loadShareholders(company.id);
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        sharesHeld: "",
+        category: "RETAIL",
+        holdingType: "NSDL_DEMAT",
+        panNumber: "",
+        dpidClientId: "",
+        shareClass: "ORDINARY_EQUITY",
+        autoDispatchEmail: true,
+      });
+      setShowAddForm(false);
+    } catch (err: unknown) {
+      console.error("Operation failed:", err);
+      toast.error("An error occurred while adding the shareholder.");
+    } finally {
+      setIsAddingShareholder(false);
+    }
+  };
+
+  // CSV Parsing & Bulk Import
+  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".csv")) {
+      toast.error("Please select a valid .csv file.");
+      return;
+    }
+
+    setCsvFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+        if (lines.length <= 1) {
+          toast.error("The CSV file appears to be empty or missing data rows.");
+          return;
+        }
+
+        const header = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/"/g, ''));
+        const nameIdx = header.findIndex(h => h.includes("name"));
+        const emailIdx = header.findIndex(h => h.includes("email"));
+        const phoneIdx = header.findIndex(h => h.includes("phone") || h.includes("mobile"));
+        const sharesIdx = header.findIndex(h => h.includes("share"));
+        const categoryIdx = header.findIndex(h => h.includes("category"));
+        const holdingIdx = header.findIndex(h => h.includes("holding") || h.includes("type"));
+        const dpidIdx = header.findIndex(h => h.includes("dpid") || h.includes("folio") || h.includes("client"));
+        const panIdx = header.findIndex(h => h.includes("pan"));
+
+        const parsed = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+          if (cols.length < 2) continue;
+
+          const name = nameIdx !== -1 ? cols[nameIdx] : cols[0];
+          const email = emailIdx !== -1 ? cols[emailIdx] : cols[1];
+          const phone = phoneIdx !== -1 ? cols[phoneIdx] : (cols[2] || "");
+          const shares = sharesIdx !== -1 ? parseInt(cols[sharesIdx], 10) || 100 : 100;
+          const category = categoryIdx !== -1 ? cols[categoryIdx] : "RETAIL";
+          const holdingType = holdingIdx !== -1 ? cols[holdingIdx] : "NSDL_DEMAT";
+          const dpidClientId = dpidIdx !== -1 ? cols[dpidIdx] : "";
+          const panNumber = panIdx !== -1 ? cols[panIdx].toUpperCase() : "";
+
+          if (name && email) {
+            parsed.push({
+              name,
+              email,
+              phone,
+              sharesHeld: shares,
+              category,
+              holdingType,
+              dpidClientId,
+              panNumber,
+            });
+          }
+        }
+
+        setParsedCsvRows(parsed);
+        toast.info(`Parsed ${parsed.length} shareholder records from CSV.`);
+      } catch (err) {
+        console.error("CSV parse error:", err);
+        toast.error("Failed to parse CSV file structure.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBulkInsertCsv = async () => {
+    if (!company || parsedCsvRows.length === 0) return;
+
+    setIsUploadingCsv(true);
+    try {
+      const recordsToInsert = [];
+      for (const row of parsedCsvRows) {
+        const { loginId, password } = generateSecureCredentials();
+        const passwordHash = await hashPassword(password);
+        recordsToInsert.push({
+          company_id: company.id,
+          shareholder_name: row.name,
+          email: row.email,
+          phone: row.phone || null,
+          shares_held: row.sharesHeld,
+          login_id: loginId,
+          password_hash: passwordHash,
+          category: row.category,
+          holding_type: row.holdingType,
+          dpid_client_id: row.dpidClientId || null,
+          pan_number: row.panNumber || null,
+        });
+      }
+
+      const { error } = await supabase.from("shareholders").insert(recordsToInsert);
+      if (error) throw error;
+
+      toast.success(`Successfully imported ${recordsToInsert.length} shareholders from Benpos CSV!`);
+      setParsedCsvRows([]);
+      setCsvFile(null);
+      setShowAddForm(false);
+      await loadShareholders(company.id);
+    } catch (err: unknown) {
+      console.error("Bulk insert failed:", err);
+      toast.error("Failed to insert bulk records into database.");
+    } finally {
+      setIsUploadingCsv(false);
+    }
+  };
+
+  const handleDownloadSampleCsv = () => {
+    const headers = "shareholder_name,email,phone,shares_held,category,holding_type,dpid_client_id,pan_number";
+    const sampleRows = [
+      `"Rameshwar Patel","rameshwar.patel@example.com","+919876543210",2500,"RETAIL","NSDL_DEMAT","IN30012610293847","ABCDE1234F"`,
+      `"Sundaram Mutual Fund Trustee","compliance@sundaram.in","+912248920192",50000,"INSTITUTIONAL","CDSL_DEMAT","1201090000982341","AABCS9821K"`,
+      `"Meera Singhania (Promoter)","meera.singhania@promoter.org","+919820019283",120000,"PROMOTER","NSDL_DEMAT","IN30115112349876","AAAPS8712P"`,
+    ];
+    const content = "data:text/csv;charset=utf-8," + [headers, ...sampleRows].join("\n");
+    const encoded = encodeURI(content);
+    const link = document.createElement("a");
+    link.setAttribute("href", encoded);
+    link.setAttribute("download", "sample_benpos_shareholder_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleResendCredentials = async (shareholder: Shareholder) => {
+    if (!company) return;
+    setIsSendingCredentials(shareholder.id);
+
+    try {
+      const { password } = generateSecureCredentials();
+      const passwordHash = await hashPassword(password);
+
+      const { error: updateError } = await supabase
+        .from("shareholders")
+        .update({
+          password_hash: passwordHash,
+          is_credential_used: false,
+          credential_created_at: new Date().toISOString()
         })
-      ]);
+        .eq("id", shareholder.id);
 
-      if (updateResult.error) {
-        toast.error("Failed to regenerate credentials");
-        return;
-      }
+      if (updateError) throw updateError;
 
-      if (emailResult.error) {
-        console.error("Resend failed:", emailResult.error);
-        toast.error(`Email failed: ${emailResult.error.message || "Unknown error"}`);
+      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
+        body: {
+          shareholderEmail: shareholder.email,
+          shareholderName: shareholder.shareholder_name,
+          companyName: company.company_name,
+          loginId: shareholder.login_id,
+          password: password,
+        },
+        headers: {
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+        }
+      });
+
+      if (emailError) {
+        toast.warning("New PIN generated. Please copy credentials manually:", {
+          description: `Login ID: ${shareholder.login_id} | PIN: ${password}`,
+          duration: 20000,
+        });
       } else {
-        toast.success("New credentials sent successfully!");
+        toast.success(`Fresh credentials dispatched to ${shareholder.email}`);
       }
 
-      if (company) await loadShareholders(company.id);
-
-    } catch (error: unknown) {
-      console.error("Resend failed:", error);
-      toast.error(`Email failed: ${(error as Error).message || "Unknown error"}`);
+      await loadShareholders(company.id);
+    } catch (err: unknown) {
+      console.error("Resend error:", err);
+      toast.error("Failed to reset credentials.");
     } finally {
       setIsSendingCredentials(null);
     }
   };
 
   const handleBroadcastAllCredentials = async () => {
-    const pendingList = shareholders.filter(s => !s.is_credential_used);
-    if (pendingList.length === 0) {
-      toast.info("All registered shareholders have already accessed their credentials.");
-      return;
-    }
-
-    if (!confirm(`Broadcast credentials to all ${pendingList.length} pending shareholders?`)) return;
-
+    if (!company || shareholders.length === 0) return;
     setIsBroadcasting(true);
-    let successCount = 0;
 
-    for (const sh of pendingList) {
+    let successCount = 0;
+    for (const sh of shareholders) {
       try {
-        const { loginId, password } = generateSecureCredentials();
+        const { password } = generateSecureCredentials();
         const passwordHash = await hashPassword(password);
 
         await supabase
           .from("shareholders")
           .update({
-            login_id: loginId,
             password_hash: passwordHash,
-            credential_created_at: new Date().toISOString(),
+            is_credential_used: false,
+            credential_created_at: new Date().toISOString()
           })
           .eq("id", sh.id);
 
@@ -461,15 +631,14 @@ const CompanyDashboard = () => {
           body: {
             shareholderEmail: sh.email,
             shareholderName: sh.shareholder_name,
-            companyName: company?.company_name,
-            loginId: loginId,
+            companyName: company.company_name,
+            loginId: sh.login_id,
             password: password,
           },
           headers: {
             "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
           }
         });
-
         successCount++;
       } catch (err) {
         console.error(`Failed sending to ${sh.email}`, err);
@@ -477,8 +646,26 @@ const CompanyDashboard = () => {
     }
 
     setIsBroadcasting(false);
-    toast.success(`Broadcast complete: Sent credentials to ${successCount} shareholders.`);
+    toast.success(`Broadcast complete: Dispatched credentials to ${successCount} shareholders.`);
     if (company) await loadShareholders(company.id);
+  };
+
+  const handleDeleteShareholder = async (shareholderId: string) => {
+    if (!company) return;
+    try {
+      const { error } = await supabase
+        .from("shareholders")
+        .delete()
+        .eq("id", shareholderId)
+        .eq("company_id", company.id);
+
+      if (error) throw error;
+      toast.success("Shareholder removed from register.");
+      await loadShareholders(company.id);
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to remove shareholder.");
+    }
   };
 
   const handleExportCSV = () => {
@@ -487,12 +674,16 @@ const CompanyDashboard = () => {
       return;
     }
 
-    const headers = ["Shareholder Name", "Email Address", "Phone", "Shares Held", "Login ID", "Status", "Created At"];
+    const headers = ["Shareholder Name", "Email Address", "Phone", "Shares Held", "Category", "Holding Type", "DPID/Folio", "PAN", "Login ID", "Status", "Created At"];
     const rows = filteredShareholders.map(s => [
       `"${s.shareholder_name.replace(/"/g, '""')}"`,
       `"${s.email}"`,
       `"${s.phone || ''}"`,
       s.shares_held,
+      `"${s.category || 'RETAIL'}"`,
+      `"${s.holding_type || 'NSDL_DEMAT'}"`,
+      `"${s.dpid_client_id || ''}"`,
+      `"${s.pan_number || ''}"`,
       `"${s.login_id}"`,
       s.is_credential_used ? "Active / Voted" : "Pending Access",
       `"${s.created_at || s.credential_created_at || new Date().toISOString()}"`
@@ -518,136 +709,72 @@ const CompanyDashboard = () => {
 
     try {
       generateShareholderRosterPDF({
-        company,
+        companyName: company?.company_name || "Enterprise Issuer",
+        cinNumber: company?.cin_number || "CIN-REG-XXXX",
+        panNumber: company?.pan_number || "PAN-XXXX",
+        csName: company?.cs_name || "Company Secretary",
         shareholders: filteredShareholders,
+        totalShares: totalSharesRepresented,
+        activeCredentials: activeCredentialCount,
       });
-      toast.success("Boardroom Shareholder Registry PDF downloaded.");
+      toast.success("Statutory Shareholder Roster PDF generated.");
     } catch (err) {
-      console.error("PDF Export error:", err);
-      toast.error("Failed to generate PDF.");
+      console.error("PDF generation failed:", err);
+      toast.error("Failed to generate PDF export.");
     }
   };
-
-  const handleDeleteShareholder = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this shareholder?")) return;
-
-    const { error } = await supabase
-      .from("shareholders")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      toast.error("Failed to delete shareholder");
-      return;
-    }
-
-    toast.success("Shareholder deleted");
-    if (company) await loadShareholders(company.id);
-  };
-
-  // Filtered Shareholders calculation
-  const filteredShareholders = useMemo(() => {
-    return shareholders.filter(s => {
-      const matchesSearch = 
-        s.shareholder_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (s.login_id && s.login_id.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (s.phone && s.phone.includes(searchQuery));
-
-      if (!matchesSearch) return false;
-
-      if (statusFilter === "active") return s.is_credential_used;
-      if (statusFilter === "pending") return !s.is_credential_used;
-      return true;
-    });
-  }, [shareholders, searchQuery, statusFilter]);
-
-  const totalSharesRepresented = useMemo(() => {
-    return shareholders.reduce((acc, s) => acc + (s.shares_held || 0), 0);
-  }, [shareholders]);
-
-  const activeCredentialCount = useMemo(() => {
-    return shareholders.filter(s => s.is_credential_used).length;
-  }, [shareholders]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/company-login");
   };
 
-  const handleStartDeregistration = async () => {
-    if (!company) return;
-    setIsSendingDeregisterOtp(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const adminEmail = session?.user?.email;
-      if (!adminEmail) throw new Error("Could not retrieve admin email address");
+  // Calculations & KPIs
+  const totalSharesRepresented = useMemo(() => {
+    return shareholders.reduce((sum, s) => sum + (s.shares_held || 0), 0);
+  }, [shareholders]);
 
-      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedDeregisterOtp(newOtp);
+  const activeCredentialCount = useMemo(() => {
+    return shareholders.filter(s => s.is_credential_used).length;
+  }, [shareholders]);
 
-      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
-        body: {
-          type: 'deregistration_otp',
-          email: adminEmail,
-          companyName: company.company_name,
-          otp: newOtp
-        },
-        headers: {
-          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-        }
-      });
-
-      if (emailError) throw emailError;
-
-      toast.success("Deregistration verification code sent to your admin email");
-      setDeregisterStep(2);
-    } catch (err: unknown) {
-      console.error("Deregister OTP error:", err);
-      toast.error((err as Error).message || "Failed to send deregistration OTP");
-    } finally {
-      setIsSendingDeregisterOtp(false);
+  // Section 103 Companies Act Quorum Calculation
+  const statutoryQuorum = useMemo(() => {
+    const count = shareholders.length;
+    let requiredMembers = 5;
+    if (count > 5000) {
+      requiredMembers = 30;
+    } else if (count > 1000) {
+      requiredMembers = 15;
     }
-  };
+    const currentAttended = activeCredentialCount;
+    const isQuorumMet = currentAttended >= requiredMembers;
+    return { requiredMembers, currentAttended, isQuorumMet };
+  }, [shareholders, activeCredentialCount]);
 
-  const handleConfirmDeregistration = async () => {
-    if (!company) return;
+  // Filtering
+  const filteredShareholders = useMemo(() => {
+    return shareholders.filter(s => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        s.shareholder_name.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q) ||
+        (s.login_id && s.login_id.toLowerCase().includes(q)) ||
+        (s.dpid_client_id && s.dpid_client_id.toLowerCase().includes(q)) ||
+        (s.pan_number && s.pan_number.toLowerCase().includes(q));
 
-    if (confirmNameInput.trim().toLowerCase() !== company.company_name.trim().toLowerCase()) {
-      toast.error("Company name does not match. Please enter the exact company name.");
-      return;
-    }
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && s.is_credential_used) ||
+        (statusFilter === "pending" && !s.is_credential_used);
 
-    if (deregisterOtp.trim() !== generatedDeregisterOtp.trim()) {
-      toast.error("Invalid verification code. Please enter the 6-digit OTP sent to your email.");
-      return;
-    }
+      const matchesCategory =
+        categoryFilter === "all" ||
+        (s.category && s.category.toUpperCase() === categoryFilter.toUpperCase());
 
-    setIsDeregistering(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Authentication session expired");
-
-      const { data, error } = await supabase.functions.invoke('delete-account', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      await supabase.auth.signOut();
-      toast.success("Company and all associated records have been permanently purged.");
-      setShowDeregisterDialog(false);
-      navigate("/");
-    } catch (err: unknown) {
-      console.error("Deregistration error:", err);
-      toast.error((err as Error).message || "Failed to complete company deregistration.");
-    } finally {
-      setIsDeregistering(false);
-    }
-  };
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  }, [shareholders, searchQuery, statusFilter, categoryFilter]);
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -657,7 +784,7 @@ const CompanyDashboard = () => {
     <div className="min-h-screen relative bg-[#020817] text-white selection:bg-blue-500/30">
       <SEO
         title="Company Governance Dashboard | Vote India Secure"
-        description="Manage corporate shareholder rosters, voting sessions, and compliance filings."
+        description="Manage corporate shareholder rosters, depository Benpos ingestion, voting sessions, and statutory MCA filings."
         canonical="/company-dashboard"
         noindex={true}
       />
@@ -676,14 +803,18 @@ const CompanyDashboard = () => {
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                 {company?.company_name}
               </h1>
-              <p className="text-slate-100 text-sm mt-1.5 font-medium leading-relaxed">
-                Manage corporate shareholder rosters, voting sessions, and compliance filings.
-              </p>
+              <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-slate-300 mt-2">
+                <span className="font-mono bg-black/40 px-2.5 py-0.5 rounded-lg border border-white/10 text-cyan-300">CIN: {company?.cin_number}</span>
+                <span>•</span>
+                <span className="font-mono bg-black/40 px-2.5 py-0.5 rounded-lg border border-white/10 text-emerald-300">PAN: {company?.pan_number}</span>
+                <span>•</span>
+                <span className="text-slate-400">CS: {company?.cs_name || "Designated PCS"}</span>
+              </div>
             </div>
             <div className="flex flex-wrap gap-3 items-center">
               <Button 
                 onClick={() => navigate("/voting-management")} 
-                className="bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white font-bold gap-2 rounded-xl px-5 py-5 shadow-lg shadow-blue-900/40 border border-blue-400/40"
+                className="bg-[#1e3a8a] hover:bg-blue-800 text-white font-bold gap-2 rounded-xl px-5 py-5 shadow-lg shadow-blue-900/40 border border-blue-400/40"
               >
                 <Shield className="w-4 h-4" />
                 Voting Management Hub
@@ -705,9 +836,9 @@ const CompanyDashboard = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Total Shareholders</p>
+                    <p className="text-xs font-black text-slate-300 uppercase tracking-wider">Registered Shareholders</p>
                     <p className="text-3xl font-black text-white mt-1 tabular-nums">{shareholders.length}</p>
-                    <p className="text-xs text-cyan-300 mt-1 font-bold">Registered on Ledger</p>
+                    <p className="text-xs text-cyan-300 mt-1 font-bold">Depository Benpos Roster</p>
                   </div>
                   <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shadow-md">
                     <Users className="w-6 h-6 text-blue-300" />
@@ -720,11 +851,11 @@ const CompanyDashboard = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Voting Capital</p>
+                    <p className="text-xs font-black text-slate-300 uppercase tracking-wider">Voting Capital</p>
                     <p className="text-3xl font-black text-white mt-1 tabular-nums">
                       {totalSharesRepresented.toLocaleString()}
                     </p>
-                    <p className="text-xs text-emerald-300 mt-1 font-bold">Total Shares Represented</p>
+                    <p className="text-xs text-emerald-300 mt-1 font-bold">Total Equity Shares Represented</p>
                   </div>
                   <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shadow-md">
                     <Hash className="w-6 h-6 text-emerald-300" />
@@ -733,18 +864,24 @@ const CompanyDashboard = () => {
               </CardContent>
             </Card>
 
+            {/* Quorum Metric Card */}
             <Card className="bg-[#0d1b2a]/90 border-white/20 backdrop-blur-xl shadow-xl hover:border-amber-500/40 transition-all">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">Credential Usage</p>
-                    <p className="text-3xl font-black text-white mt-1 tabular-nums">
-                      {shareholders.length > 0 ? Math.round((activeCredentialCount / shareholders.length) * 100) : 0}%
+                    <p className="text-xs font-black text-slate-300 uppercase tracking-wider">Sec 103 Quorum</p>
+                    <p className="text-2xl font-black text-white mt-1 flex items-center gap-2">
+                      <span className={statutoryQuorum.isQuorumMet ? "text-emerald-400" : "text-amber-300"}>
+                        {statutoryQuorum.currentAttended} / {statutoryQuorum.requiredMembers}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${statutoryQuorum.isQuorumMet ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"}`}>
+                        {statutoryQuorum.isQuorumMet ? "Quorum Met" : "In Progress"}
+                      </span>
                     </p>
-                    <p className="text-xs text-amber-300 mt-1 font-bold">{activeCredentialCount} of {shareholders.length} Activated</p>
+                    <p className="text-xs text-slate-400 mt-1 font-medium">Req. {statutoryQuorum.requiredMembers} members for general meeting</p>
                   </div>
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center shadow-md">
-                    <CheckCircle2 className="w-6 h-6 text-amber-300" />
+                    <UserCheck className="w-6 h-6 text-amber-300" />
                   </div>
                 </div>
               </CardContent>
@@ -754,11 +891,11 @@ const CompanyDashboard = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black text-slate-200 uppercase tracking-wider">AGM Status</p>
+                    <p className="text-xs font-black text-slate-300 uppercase tracking-wider">AGM Infrastructure</p>
                     <p className="text-2xl font-black text-white mt-1">
-                      {sessionId ? "Live / Active" : "Configured"}
+                      {sessionId ? "Live Session" : "Configured"}
                     </p>
-                    <p className="text-xs text-purple-300 mt-1 font-bold">Session Infrastructure</p>
+                    <p className="text-xs text-purple-300 mt-1 font-bold">Rule 20 Sealed Vault</p>
                   </div>
                   <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center shadow-md">
                     <TrendingUp className="w-6 h-6 text-purple-300" />
@@ -781,10 +918,10 @@ const CompanyDashboard = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-black text-white flex items-center gap-2">
-                      AI Document & Investor Sentiment Suite
+                      AI Document &amp; Investor Sentiment Suite
                       <span className="px-2.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 text-xs font-bold border border-purple-400/40">Enterprise</span>
                     </h3>
-                    <p className="text-sm text-slate-100 mt-1 font-normal leading-relaxed">
+                    <p className="text-sm text-slate-200 mt-1 font-normal leading-relaxed">
                       Generate executive summaries of annual reports and analyze live shareholder sentiment during meetings.
                     </p>
                   </div>
@@ -813,16 +950,16 @@ const CompanyDashboard = () => {
             {/* TAB 1: SHAREHOLDERS */}
             <TabsContent value="shareholders" className="space-y-6">
               
-              {/* Controls Bar: Search, Status Filter, Bulk Actions */}
+              {/* Controls Bar */}
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-5 rounded-3xl bg-[#0d1b2a]/90 border border-white/20 backdrop-blur-xl shadow-xl">
                 <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input
-                      placeholder="Search by name, email, or login ID..."
+                      placeholder="Search by name, email, login ID, DP ID or PAN..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 bg-black/60 border-white/25 text-white placeholder:text-slate-300 rounded-xl font-medium"
+                      className="pl-10 bg-black/60 border-white/25 text-white placeholder:text-slate-400 rounded-xl font-medium"
                     />
                   </div>
 
@@ -832,17 +969,17 @@ const CompanyDashboard = () => {
                       value={statusFilter}
                       onValueChange={(val) => setStatusFilter(val as "all" | "active" | "pending")}
                     >
-                      <SelectTrigger className="w-[185px] bg-[#020817] border-white/25 text-white font-bold rounded-xl text-xs h-10 px-3.5 shadow-md">
-                        <SelectValue placeholder="Filter by status" />
+                      <SelectTrigger className="w-[170px] bg-[#020817] border-white/25 text-white font-bold rounded-xl text-xs h-10 px-3 shadow-md">
+                        <SelectValue placeholder="Filter status" />
                       </SelectTrigger>
                       <SelectContent className="bg-[#020817] border-white/20 text-white rounded-xl shadow-2xl z-50 p-1.5">
-                        <SelectItem value="all" className="text-white hover:bg-blue-600 hover:text-white font-bold cursor-pointer rounded-lg px-3 py-2 text-xs focus:bg-blue-600 focus:text-white">
+                        <SelectItem value="all" className="text-white hover:bg-blue-600 font-bold rounded-lg text-xs">
                           All Statuses ({shareholders.length})
                         </SelectItem>
-                        <SelectItem value="active" className="text-emerald-300 hover:bg-emerald-600 hover:text-white font-bold cursor-pointer rounded-lg px-3 py-2 text-xs focus:bg-emerald-600 focus:text-white">
+                        <SelectItem value="active" className="text-emerald-300 hover:bg-emerald-600 font-bold rounded-lg text-xs">
                           Active / Voted ({activeCredentialCount})
                         </SelectItem>
-                        <SelectItem value="pending" className="text-amber-300 hover:bg-amber-600 hover:text-white font-bold cursor-pointer rounded-lg px-3 py-2 text-xs focus:bg-amber-600 focus:text-white">
+                        <SelectItem value="pending" className="text-amber-300 hover:bg-amber-600 font-bold rounded-lg text-xs">
                           Pending Access ({shareholders.length - activeCredentialCount})
                         </SelectItem>
                       </SelectContent>
@@ -866,7 +1003,7 @@ const CompanyDashboard = () => {
                     className="border-white/30 hover:bg-white/10 text-white font-bold rounded-xl gap-2 text-xs shadow-sm"
                   >
                     <FileText className="w-4 h-4 text-emerald-400" />
-                    Export Roster PDF
+                    Roster PDF
                   </Button>
 
                   <Button
@@ -881,185 +1018,439 @@ const CompanyDashboard = () => {
 
                   <Button
                     onClick={() => setShowAddForm(!showAddForm)}
-                    className="bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white font-bold rounded-xl gap-2 text-xs border border-blue-400/40 shadow-md"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2 text-xs border border-blue-400/40 shadow-md"
                   >
-                    {showAddForm ? "Cancel" : <><Plus className="w-4 h-4" /> Add Shareholder</>}
+                    {showAddForm ? "Close Form" : <><Plus className="w-4 h-4" /> Register Shareholder</>}
                   </Button>
                 </div>
               </div>
 
-              {/* Add Shareholder Drawer/Form */}
+              {/* Enhanced Register Shareholder Form / Drawer */}
               {showAddForm && (
-                <Card className="border-blue-500/40 bg-[#0d1b2a]/95 backdrop-blur-xl rounded-3xl shadow-2xl">
-                  <CardHeader className="border-b border-white/15">
-                    <CardTitle className="text-xl font-black text-white flex items-center gap-2">
-                      <Plus className="w-5 h-5 text-cyan-400" />
-                      Register New Shareholder
-                    </CardTitle>
-                    <CardDescription className="text-slate-100 font-normal">
-                      Credentials and secure voting access links will be instantly generated and dispatched via email.
-                    </CardDescription>
+                <Card className="border-blue-500/40 bg-[#0d1b2a]/95 backdrop-blur-xl rounded-3xl shadow-2xl animate-in fade-in slide-in-from-top-3 duration-300 overflow-hidden">
+                  <CardHeader className="border-b border-white/15 pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-xl font-black text-white flex items-center gap-2">
+                          <Plus className="w-5 h-5 text-cyan-400" />
+                          Register Stakeholder &amp; Issue Voting Token
+                        </CardTitle>
+                        <CardDescription className="text-slate-300 text-xs sm:text-sm mt-0.5">
+                          Add individual shareholders or bulk-import depository Benpos records with automated credential dispatch.
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant={addMode === "manual" ? "default" : "outline"}
+                          onClick={() => setAddMode("manual")}
+                          className={`rounded-xl text-xs font-bold ${addMode === "manual" ? "bg-blue-600 text-white" : "border-white/20 text-slate-300"}`}
+                        >
+                          Manual Form
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={addMode === "csv" ? "default" : "outline"}
+                          onClick={() => setAddMode("csv")}
+                          className={`rounded-xl text-xs font-bold ${addMode === "csv" ? "bg-cyan-600 text-white" : "border-white/20 text-slate-300"}`}
+                        >
+                          <FileSpreadsheet className="w-3.5 h-3.5 mr-1" />
+                          Bulk Benpos CSV
+                        </Button>
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent className="pt-6">
-                    <form onSubmit={handleAddShareholder} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name" className="text-slate-100 font-bold text-xs">Shareholder Full Name</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            placeholder="e.g. Eleanor Vance"
-                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
-                            required
-                            disabled={isAddingShareholder}
-                          />
-                          {errors.name && <p className="text-xs text-rose-400 font-bold">{errors.name}</p>}
-                        </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="email" className="text-slate-100 font-bold text-xs">Official Email Address</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                  <CardContent className="pt-6">
+                    {addMode === "manual" ? (
+                      /* MANUAL FORM */
+                      <form onSubmit={handleAddShareholder} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          
+                          {/* Full Name */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="name" className="text-slate-200 font-bold text-xs">
+                              Shareholder / Entity Legal Name *
+                            </Label>
                             <Input
-                              id="email"
-                              name="email"
-                              type="email"
-                              value={formData.email}
+                              id="name"
+                              name="name"
+                              value={formData.name}
                               onChange={handleInputChange}
-                              placeholder="shareholder@enterprise.com"
-                              className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                              placeholder="e.g. Aditi Sharma / Sundaram Trustee"
+                              className="bg-black/60 border-white/20 text-white rounded-xl font-medium text-sm h-11"
                               required
                               disabled={isAddingShareholder}
                             />
+                            {errors.name && <p className="text-xs text-rose-400 font-bold">{errors.name}</p>}
                           </div>
-                          {errors.email && <p className="text-xs text-rose-400 font-bold">{errors.email}</p>}
-                        </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="phone" className="text-slate-100 font-bold text-xs">Phone (Optional / SMS OTP)</Label>
-                          <div className="relative">
-                            <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                          {/* Email */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="email" className="text-slate-200 font-bold text-xs">
+                              Registered Email Address (for 2FA OTP) *
+                            </Label>
+                            <div className="relative">
+                              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                placeholder="shareholder@domain.com"
+                                className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium text-sm h-11"
+                                required
+                                disabled={isAddingShareholder}
+                              />
+                            </div>
+                            {errors.email && <p className="text-xs text-rose-400 font-bold">{errors.email}</p>}
+                          </div>
+
+                          {/* Phone */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="phone" className="text-slate-200 font-bold text-xs">
+                              Mobile Number (SMS OTP / Notice)
+                            </Label>
+                            <div className="relative">
+                              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                id="phone"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                                placeholder="+91 98765 43210"
+                                className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium text-sm h-11"
+                                disabled={isAddingShareholder}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Shares Held */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="sharesHeld" className="text-slate-200 font-bold text-xs">
+                              Voting Shares Held (Record Date) *
+                            </Label>
                             <Input
-                              id="phone"
-                              name="phone"
-                              value={formData.phone}
+                              id="sharesHeld"
+                              name="sharesHeld"
+                              type="number"
+                              value={formData.sharesHeld}
                               onChange={handleInputChange}
-                              placeholder="+1 (555) 019-2834"
-                              className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium"
+                              placeholder="e.g. 5000"
+                              min="1"
+                              className="bg-black/60 border-white/20 text-white rounded-xl font-medium text-sm h-11"
+                              required
                               disabled={isAddingShareholder}
                             />
+                            {errors.sharesHeld && <p className="text-xs text-rose-400 font-bold">{errors.sharesHeld}</p>}
+                          </div>
+
+                          {/* Investor Category */}
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Investor Category</Label>
+                            <select
+                              name="category"
+                              value={formData.category}
+                              onChange={handleInputChange}
+                              className="w-full bg-black/60 border border-white/20 text-white rounded-xl h-11 px-3 text-xs focus:border-cyan-400"
+                            >
+                              <option value="RETAIL">Retail Individual Investor</option>
+                              <option value="PROMOTER">Promoter &amp; Promoter Group</option>
+                              <option value="INSTITUTIONAL">Domestic Institutional (DII / Mutual Fund)</option>
+                              <option value="FPI">Foreign Portfolio Investor (FPI)</option>
+                              <option value="BODY_CORPORATE">Body Corporate</option>
+                              <option value="NRI">Non-Resident Indian (NRI)</option>
+                            </select>
+                          </div>
+
+                          {/* Holding Structure */}
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Depository Holding Mode</Label>
+                            <select
+                              name="holdingType"
+                              value={formData.holdingType}
+                              onChange={handleInputChange}
+                              className="w-full bg-black/60 border border-white/20 text-white rounded-xl h-11 px-3 text-xs focus:border-cyan-400"
+                            >
+                              <option value="NSDL_DEMAT">Demat Account (NSDL)</option>
+                              <option value="CDSL_DEMAT">Demat Account (CDSL)</option>
+                              <option value="PHYSICAL_FOLIO">Physical Share Folio</option>
+                            </select>
+                          </div>
+
+                          {/* DP ID / Client ID / Folio */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="dpidClientId" className="text-slate-200 font-bold text-xs">
+                              DP ID / Client ID or Folio Number
+                            </Label>
+                            <div className="relative">
+                              <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                id="dpidClientId"
+                                name="dpidClientId"
+                                value={formData.dpidClientId}
+                                onChange={handleInputChange}
+                                placeholder="e.g. IN30012610293847"
+                                className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium text-sm h-11"
+                                disabled={isAddingShareholder}
+                              />
+                            </div>
+                          </div>
+
+                          {/* PAN Number */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="panNumber" className="text-slate-200 font-bold text-xs">
+                              Permanent Account Number (PAN)
+                            </Label>
+                            <div className="relative">
+                              <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                id="panNumber"
+                                name="panNumber"
+                                maxLength={10}
+                                value={formData.panNumber}
+                                onChange={handleInputChange}
+                                placeholder="e.g. ABCDE1234F"
+                                className="pl-10 bg-black/60 border-white/20 text-white rounded-xl font-medium text-sm uppercase h-11"
+                                disabled={isAddingShareholder}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Share Class */}
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Share Class Entitlement</Label>
+                            <select
+                              name="shareClass"
+                              value={formData.shareClass}
+                              onChange={handleInputChange}
+                              className="w-full bg-black/60 border border-white/20 text-white rounded-xl h-11 px-3 text-xs focus:border-cyan-400"
+                            >
+                              <option value="ORDINARY_EQUITY">Ordinary Equity Shares (1 Share = 1 Vote)</option>
+                              <option value="DVR">Class A Differential Voting Rights (DVR)</option>
+                              <option value="PREFERENCE">Voting Preference Shares</option>
+                            </select>
+                          </div>
+
+                        </div>
+
+                        {/* Dispatch Toggle & Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-white/10">
+                          <label className="flex items-center gap-2.5 cursor-pointer text-xs text-slate-200">
+                            <input
+                              type="checkbox"
+                              name="autoDispatchEmail"
+                              checked={formData.autoDispatchEmail}
+                              onChange={handleInputChange}
+                              className="w-4 h-4 rounded border-white/20 bg-black/40 text-blue-600 focus:ring-cyan-500"
+                            />
+                            <span>Automatically dispatch official AGM notice and voting credentials to registered email</span>
+                          </label>
+
+                          <div className="flex items-center gap-3">
+                            <Button type="button" variant="ghost" onClick={() => setShowAddForm(false)} className="text-slate-300 hover:text-white rounded-xl font-semibold">
+                              Cancel
+                            </Button>
+                            <Button type="submit" disabled={isAddingShareholder} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2 shadow-lg shadow-blue-500/20">
+                              {isAddingShareholder ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                              Issue Credentials &amp; Register
+                            </Button>
+                          </div>
+                        </div>
+                      </form>
+                    ) : (
+                      /* BULK BENPOS CSV UPLOAD */
+                      <div className="space-y-6">
+                        <div className="p-8 border-2 border-dashed border-cyan-500/40 rounded-3xl bg-black/40 text-center space-y-4">
+                          <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center mx-auto text-cyan-300">
+                            <Upload className="w-7 h-7" />
+                          </div>
+                          <div>
+                            <h4 className="text-base font-bold text-white">Upload NSDL / CDSL Depository Benpos CSV</h4>
+                            <p className="text-xs text-slate-300 mt-1 max-w-md mx-auto">
+                              Select a structured CSV file containing shareholder demographics, shares held, PAN, and Demat accounts.
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-center gap-3">
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              accept=".csv"
+                              onChange={handleCsvFileChange}
+                              className="hidden"
+                            />
+                            <Button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs gap-2"
+                            >
+                              <Upload className="w-4 h-4" />
+                              Browse CSV File
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleDownloadSampleCsv}
+                              className="border-white/20 hover:bg-white/10 text-cyan-300 font-bold rounded-xl text-xs gap-2"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download Sample Benpos Template (.csv)
+                            </Button>
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="sharesHeld" className="text-slate-100 font-bold text-xs">Voting Shares Held</Label>
-                          <Input
-                            id="sharesHeld"
-                            name="sharesHeld"
-                            type="number"
-                            value={formData.sharesHeld}
-                            onChange={handleInputChange}
-                            placeholder="1000"
-                            min="1"
-                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
-                            required
-                            disabled={isAddingShareholder}
-                          />
-                          {errors.sharesHeld && <p className="text-xs text-rose-400 font-bold">{errors.sharesHeld}</p>}
-                        </div>
+                        {/* Parsed Preview Table */}
+                        {parsedCsvRows.length > 0 && (
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h5 className="font-bold text-sm text-cyan-300">
+                                Parsed Records Preview ({parsedCsvRows.length} Stakeholders)
+                              </h5>
+                              <Button
+                                onClick={handleBulkInsertCsv}
+                                disabled={isUploadingCsv}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs gap-2"
+                              >
+                                {isUploadingCsv ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                Commit &amp; Register {parsedCsvRows.length} Stakeholders
+                              </Button>
+                            </div>
+                            <div className="max-h-60 overflow-y-auto rounded-2xl border border-white/15 bg-black/60">
+                              <table className="w-full text-left text-xs">
+                                <thead className="bg-black/80 text-slate-300 sticky top-0 border-b border-white/10">
+                                  <tr>
+                                    <th className="p-3">Name</th>
+                                    <th className="p-3">Email</th>
+                                    <th className="p-3">Shares</th>
+                                    <th className="p-3">Category</th>
+                                    <th className="p-3">DPID / Folio</th>
+                                    <th className="p-3">PAN</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/10">
+                                  {parsedCsvRows.slice(0, 10).map((row, idx) => (
+                                    <tr key={idx} className="hover:bg-white/5">
+                                      <td className="p-3 font-semibold text-white">{row.name}</td>
+                                      <td className="p-3 text-slate-300">{row.email}</td>
+                                      <td className="p-3 font-bold text-cyan-300">{row.sharesHeld.toLocaleString()}</td>
+                                      <td className="p-3 text-slate-400">{row.category}</td>
+                                      <td className="p-3 font-mono text-[11px] text-slate-300">{row.dpidClientId || "—"}</td>
+                                      <td className="p-3 font-mono text-[11px] text-slate-300">{row.panNumber || "—"}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
                       </div>
-
-                      <div className="flex items-center justify-end gap-3 pt-2">
-                        <Button type="button" variant="ghost" onClick={() => setShowAddForm(false)} className="text-slate-200 hover:text-white rounded-xl font-semibold">
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={isAddingShareholder} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 gap-2 shadow-lg">
-                          {isAddingShareholder ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                          Issue Credentials & Register
-                        </Button>
-                      </div>
-                    </form>
+                    )}
                   </CardContent>
                 </Card>
               )}
 
-              {/* Edit Shareholder Modal / Dialog */}
+              {/* Edit Shareholder Modal */}
               {editingShareholder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-                  <Card className="w-full max-w-lg border-cyan-500/40 bg-[#0d1b2a] backdrop-blur-2xl rounded-3xl shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+                  <Card className="w-full max-w-xl border-cyan-500/40 bg-[#0d1b2a] backdrop-blur-2xl rounded-3xl shadow-2xl">
                     <CardHeader className="border-b border-white/15 flex flex-row items-center justify-between pb-4">
                       <div>
                         <CardTitle className="text-xl font-black text-white flex items-center gap-2">
                           <Pencil className="w-5 h-5 text-cyan-400" />
-                          Edit Shareholder Details
+                          Edit Stakeholder Details
                         </CardTitle>
-                        <CardDescription className="text-slate-200 text-xs mt-0.5">
-                          Update name, email, or exact shares held for this stakeholder.
+                        <CardDescription className="text-slate-300 text-xs mt-0.5">
+                          Update demographic records, depository accounts, or voting entitlement.
                         </CardDescription>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => setEditingShareholder(null)} className="text-slate-300 hover:text-white rounded-lg p-2">
+                      <Button variant="ghost" size="sm" onClick={() => setEditingShareholder(null)} className="text-slate-400 hover:text-white rounded-lg p-2">
                         <X className="w-5 h-5" />
                       </Button>
                     </CardHeader>
                     <CardContent className="pt-6">
                       <form onSubmit={handleUpdateShareholder} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-slate-100 font-bold text-xs">Shareholder Name</Label>
-                          <Input
-                            name="name"
-                            value={editFormData.name}
-                            onChange={handleEditInputChange}
-                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
-                            required
-                          />
-                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Shareholder Name</Label>
+                            <Input
+                              name="name"
+                              value={editFormData.name}
+                              onChange={handleEditInputChange}
+                              className="bg-black/60 border-white/20 text-white rounded-xl text-sm"
+                              required
+                            />
+                          </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-slate-100 font-bold text-xs">Email Address</Label>
-                          <Input
-                            name="email"
-                            type="email"
-                            value={editFormData.email}
-                            onChange={handleEditInputChange}
-                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
-                            required
-                          />
-                        </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Email Address</Label>
+                            <Input
+                              name="email"
+                              type="email"
+                              value={editFormData.email}
+                              onChange={handleEditInputChange}
+                              className="bg-black/60 border-white/20 text-white rounded-xl text-sm"
+                              required
+                            />
+                          </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-slate-100 font-bold text-xs">Phone (Optional)</Label>
-                          <Input
-                            name="phone"
-                            value={editFormData.phone}
-                            onChange={handleEditInputChange}
-                            className="bg-black/60 border-white/20 text-white rounded-xl font-medium"
-                          />
-                        </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Phone Number</Label>
+                            <Input
+                              name="phone"
+                              value={editFormData.phone}
+                              onChange={handleEditInputChange}
+                              className="bg-black/60 border-white/20 text-white rounded-xl text-sm"
+                            />
+                          </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-cyan-300 font-black text-xs uppercase tracking-wider">
-                            Exact Shares Held
-                          </Label>
-                          <Input
-                            name="sharesHeld"
-                            type="number"
-                            min="1"
-                            value={editFormData.sharesHeld}
-                            onChange={handleEditInputChange}
-                            className="bg-black/60 border-cyan-500/40 text-cyan-300 font-extrabold text-lg rounded-xl"
-                            required
-                          />
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Voting Shares Held</Label>
+                            <Input
+                              name="sharesHeld"
+                              type="number"
+                              min="1"
+                              value={editFormData.sharesHeld}
+                              onChange={handleEditInputChange}
+                              className="bg-black/60 border-cyan-500/40 text-cyan-300 font-bold text-sm rounded-xl"
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">Category</Label>
+                            <select
+                              name="category"
+                              value={editFormData.category}
+                              onChange={handleEditInputChange}
+                              className="w-full bg-black/60 border border-white/20 text-white rounded-xl h-10 px-3 text-xs"
+                            >
+                              <option value="RETAIL">Retail Individual</option>
+                              <option value="PROMOTER">Promoter</option>
+                              <option value="INSTITUTIONAL">Institutional (DII / FPI)</option>
+                              <option value="BODY_CORPORATE">Body Corporate</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-200 font-bold text-xs">PAN Number</Label>
+                            <Input
+                              name="panNumber"
+                              maxLength={10}
+                              value={editFormData.panNumber}
+                              onChange={handleEditInputChange}
+                              className="bg-black/60 border-white/20 text-white uppercase font-mono text-sm rounded-xl"
+                            />
+                          </div>
                         </div>
 
                         <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
-                          <Button type="button" variant="ghost" onClick={() => setEditingShareholder(null)} className="text-slate-200 hover:text-white rounded-xl font-semibold">
+                          <Button type="button" variant="ghost" onClick={() => setEditingShareholder(null)} className="text-slate-300 hover:text-white rounded-xl font-semibold">
                             Cancel
                           </Button>
                           <Button type="submit" disabled={isUpdatingShareholder} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 shadow-lg gap-2">
                             {isUpdatingShareholder ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                            Save Changes
+                            Save Modifications
                           </Button>
                         </div>
                       </form>
@@ -1073,8 +1464,8 @@ const CompanyDashboard = () => {
                 <CardHeader className="border-b border-white/15 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg font-black text-white">Shareholder Registry</CardTitle>
-                      <CardDescription className="text-slate-100 text-xs font-medium">
+                      <CardTitle className="text-lg font-black text-white">Shareholder Registry Ledger</CardTitle>
+                      <CardDescription className="text-slate-300 text-xs font-medium">
                         Showing {filteredShareholders.length} of {shareholders.length} registered stakeholders
                       </CardDescription>
                     </div>
@@ -1084,85 +1475,129 @@ const CompanyDashboard = () => {
                   {filteredShareholders.length === 0 ? (
                     <div className="text-center py-16">
                       <Users className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                      <p className="text-white font-bold">No shareholders match your search.</p>
-                      <p className="text-xs text-slate-200 mt-1">Try modifying your search term or status filter.</p>
+                      <p className="text-white font-bold">No stakeholders match your current filter.</p>
+                      <p className="text-xs text-slate-400 mt-1">Try modifying your search keywords or clear filters.</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left">
                         <thead>
-                          <tr className="border-b border-white/15 bg-black/60 text-xs font-black text-slate-100 tracking-wider">
-                            <th className="py-4 px-6">NAME</th>
-                            <th className="py-4 px-6">EMAIL</th>
-                            <th className="py-4 px-6">SHARES HELD</th>
-                            <th className="py-4 px-6">LOGIN ID</th>
+                          <tr className="border-b border-white/15 bg-black/60 text-xs font-black text-slate-200 tracking-wider">
+                            <th className="py-4 px-6">STAKEHOLDER</th>
+                            <th className="py-4 px-6">CONTACT</th>
+                            <th className="py-4 px-6">SHARES &amp; WEIGHT</th>
+                            <th className="py-4 px-6">LOGIN TOKEN</th>
                             <th className="py-4 px-6">STATUS</th>
                             <th className="py-4 px-6 text-right">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/10">
-                          {filteredShareholders.map((shareholder) => (
-                            <tr key={shareholder.id} className="hover:bg-white/[0.04] transition-colors">
-                              <td className="py-4 px-6 font-bold text-white text-sm">{shareholder.shareholder_name}</td>
-                              <td className="py-4 px-6 text-slate-100 text-sm font-medium">{shareholder.email}</td>
-                              <td className="py-4 px-6 text-cyan-300 font-extrabold tabular-nums text-base">
-                                {shareholder.shares_held.toLocaleString()}
-                              </td>
-                              <td className="py-4 px-6">
-                                <code className="px-2.5 py-1 rounded-lg bg-black/80 border border-white/20 text-xs font-mono text-slate-100 font-bold">
-                                  {shareholder.login_id}
-                                </code>
-                              </td>
-                              <td className="py-4 px-6">
-                                {shareholder.is_credential_used ? (
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                    Active / Voted
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
-                                    Pending Access
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-4 px-6 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleOpenEdit(shareholder)}
-                                    className="hover:bg-blue-500/20 text-cyan-300 hover:text-cyan-200 rounded-lg text-xs font-bold gap-1.5"
-                                    title="Edit Shareholder and Shares"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleResendCredentials(shareholder)}
-                                    disabled={isSendingCredentials === shareholder.id}
-                                    className="hover:bg-white/15 text-slate-100 hover:text-white rounded-lg text-xs font-bold gap-1.5"
-                                  >
-                                    {isSendingCredentials === shareholder.id ? (
-                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    ) : (
-                                      <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
-                                    )}
-                                    Resend
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDeleteShareholder(shareholder.id)}
-                                    className="hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg p-2"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                          {filteredShareholders.map((shareholder) => {
+                            const weightPct = totalSharesRepresented > 0 
+                              ? ((shareholder.shares_held / totalSharesRepresented) * 100).toFixed(2)
+                              : "0.00";
+
+                            return (
+                              <tr key={shareholder.id} className="hover:bg-white/[0.04] transition-colors">
+                                <td className="py-4 px-6">
+                                  <div className="space-y-1">
+                                    <span className="font-bold text-white text-sm block">{shareholder.shareholder_name}</span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-cyan-300 text-[10px] font-semibold border border-blue-400/30">
+                                        {shareholder.category || "RETAIL"}
+                                      </span>
+                                      {shareholder.dpid_client_id && (
+                                        <span className="font-mono text-[10px] text-slate-400">
+                                          {shareholder.dpid_client_id.slice(0, 8)}...
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <div className="text-xs text-slate-300">
+                                    <span className="block font-medium text-white">{shareholder.email}</span>
+                                    {shareholder.phone && <span className="text-slate-400 text-[11px]">{shareholder.phone}</span>}
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <div>
+                                    <span className="text-cyan-300 font-extrabold tabular-nums text-base block">
+                                      {shareholder.shares_held.toLocaleString()}
+                                    </span>
+                                    <span className="text-[11px] text-slate-400 font-medium">
+                                      {weightPct}% voting power
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <div className="flex items-center gap-1.5">
+                                    <code className="px-2.5 py-1 rounded-lg bg-black/80 border border-white/20 text-xs font-mono text-cyan-300 font-bold">
+                                      {shareholder.login_id}
+                                    </code>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(shareholder.login_id || "");
+                                        toast.success("Login ID copied!");
+                                      }}
+                                      className="text-slate-400 hover:text-white p-1 rounded transition-colors"
+                                      title="Copy Login ID"
+                                    >
+                                      <Copy className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6">
+                                  {shareholder.is_credential_used ? (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                      Active / Voted
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
+                                      Pending Access
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-4 px-6 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleOpenEdit(shareholder)}
+                                      className="hover:bg-blue-500/20 text-cyan-300 hover:text-cyan-200 rounded-lg text-xs font-bold gap-1 px-2.5"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleResendCredentials(shareholder)}
+                                      disabled={isSendingCredentials === shareholder.id}
+                                      className="hover:bg-white/15 text-slate-200 hover:text-white rounded-lg text-xs font-bold gap-1 px-2.5"
+                                    >
+                                      {isSendingCredentials === shareholder.id ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                                      )}
+                                      Resend
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteShareholder(shareholder.id)}
+                                      className="hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg p-2"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -1179,7 +1614,7 @@ const CompanyDashboard = () => {
                 <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl p-12 text-center rounded-3xl shadow-2xl">
                   <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">No Active Voting Session</h3>
-                  <p className="text-slate-100 text-sm max-w-md mx-auto mb-6 font-normal">
+                  <p className="text-slate-300 text-sm max-w-md mx-auto mb-6 font-normal">
                     Schedule resolutions and launch an AGM session in Voting Management to monitor live results.
                   </p>
                   <Button onClick={() => navigate("/voting-management")} className="bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-white">
@@ -1202,19 +1637,19 @@ const CompanyDashboard = () => {
                   </CardHeader>
                   <CardContent className="pt-5 grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Company Name</p>
+                      <p className="text-xs text-slate-400 uppercase font-black tracking-wider">Company Name</p>
                       <p className="font-bold text-white text-base">{company?.company_name}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Company Type</p>
-                      <p className="font-semibold text-slate-100">{company?.company_type || "Corporation"}</p>
+                      <p className="text-xs text-slate-400 uppercase font-black tracking-wider">Company Type</p>
+                      <p className="font-semibold text-slate-200">{company?.company_type || "Corporation"}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Corporate ID / CIN</p>
+                      <p className="text-xs text-slate-400 uppercase font-black tracking-wider">Corporate ID / CIN</p>
                       <p className="font-mono text-sm text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded-lg w-fit border border-cyan-400/40 font-bold">{company?.cin_number}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Tax ID / PAN</p>
+                      <p className="text-xs text-slate-400 uppercase font-black tracking-wider">Tax ID / PAN</p>
                       <p className="font-mono text-sm text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-lg w-fit border border-emerald-400/40 font-bold">{company?.pan_number}</p>
                     </div>
                   </CardContent>
@@ -1224,167 +1659,38 @@ const CompanyDashboard = () => {
                 <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl rounded-3xl shadow-xl">
                   <CardHeader className="pb-3 border-b border-white/15">
                     <CardTitle className="text-base font-bold flex items-center gap-2 text-cyan-400">
-                      <FileText className="w-5 h-5" /> Capital & Scrutinizer
+                      <FileText className="w-5 h-5" /> Capital &amp; Scrutinizer
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-5 grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Authorized Capital</p>
+                      <p className="text-xs text-slate-400 uppercase font-black tracking-wider">Authorized Capital</p>
                       <p className="font-black text-white text-lg tabular-nums">
-                        ${company?.authorized_capital?.toLocaleString() || "10,000,000"}
+                        ₹{company?.authorized_capital?.toLocaleString() || "10,000,000"}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Paid-Up Capital</p>
+                      <p className="text-xs text-slate-400 uppercase font-black tracking-wider">Paid-Up Capital</p>
                       <p className="font-black text-white text-lg tabular-nums">
-                        ${company?.paid_up_capital?.toLocaleString() || "5,000,000"}
+                        ₹{company?.paid_up_capital?.toLocaleString() || "5,000,000"}
                       </p>
                     </div>
                     <div className="space-y-1 col-span-2">
-                      <p className="text-xs text-slate-200 uppercase font-black tracking-wider">Official Scrutinizer / Auditor</p>
+                      <p className="text-xs text-slate-400 uppercase font-black tracking-wider">Official Scrutinizer / Auditor</p>
                       <p className="text-sm font-bold text-white">{company?.cs_name || "Assigned Independent Scrutinizer"}</p>
-                      <p className="text-xs text-slate-200 font-medium">{company?.cs_email}</p>
+                      <p className="text-xs text-slate-300 font-medium">{company?.cs_email}</p>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Danger Zone: Company Deregistration */}
-                <Card className="border-rose-500/40 bg-[#1f0d14]/80 backdrop-blur-xl rounded-3xl shadow-2xl lg:col-span-2">
-                  <CardHeader className="pb-3 border-b border-rose-500/20">
-                    <CardTitle className="text-base font-bold flex items-center gap-2 text-rose-400">
-                      <AlertTriangle className="w-5 h-5" /> Danger Zone · Company Deregistration
-                    </CardTitle>
-                    <CardDescription className="text-slate-300 text-xs mt-1">
-                      Permanently delete this company account and purge all associated database records (shareholder rosters, voting sessions, resolutions, ballots, and administrator accounts).
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-bold text-white">Delete Company Account & Wipe All Data</p>
-                      <p className="text-xs text-rose-300/80 mt-0.5">This action is irreversible and requires email OTP verification.</p>
-                    </div>
-                    <Button 
-                      variant="destructive"
-                      onClick={() => {
-                        setDeregisterStep(1);
-                        setDeregisterOtp("");
-                        setConfirmNameInput("");
-                        setShowDeregisterDialog(true);
-                      }}
-                      className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl px-5 py-5 gap-2 shrink-0 shadow-lg shadow-rose-950/60 border border-rose-400/40"
-                    >
-                      <Trash2 className="w-4 h-4" /> Deregister Company
-                    </Button>
                   </CardContent>
                 </Card>
 
               </div>
             </TabsContent>
-
           </Tabs>
 
         </div>
       </main>
 
-      {/* Deregistration Confirmation Dialog */}
-      <Dialog open={showDeregisterDialog} onOpenChange={setShowDeregisterDialog}>
-        <DialogContent className="bg-[#0d1b2a] border border-rose-500/40 text-white rounded-3xl max-w-lg shadow-2xl p-6 sm:p-8">
-          <DialogHeader>
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 mb-2">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <DialogTitle className="text-xl font-black text-white">
-              {deregisterStep === 1 ? "Deregister Company Account" : "Verify & Confirm Deregistration"}
-            </DialogTitle>
-            <DialogDescription className="text-slate-300 text-xs leading-relaxed">
-              {deregisterStep === 1 
-                ? "This will permanently wipe all company records, shareholder rosters, active voting sessions, and administrator access. This operation cannot be undone."
-                : `Enter the 6-digit verification OTP sent to your registered admin email, and type "${company?.company_name}" to confirm.`
-              }
-            </DialogDescription>
-          </DialogHeader>
-
-          {deregisterStep === 1 ? (
-            <div className="space-y-4 my-2">
-              <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-xs text-rose-200 leading-relaxed">
-                <p className="font-bold text-rose-300 mb-1">⚠️ You are about to permanently delete:</p>
-                <ul className="list-disc list-inside space-y-1 text-slate-300">
-                  <li>Company profile: <strong>{company?.company_name}</strong></li>
-                  <li>All {shareholders.length} registered shareholder accounts</li>
-                  <li>All voting sessions, resolutions, and ballots</li>
-                  <li>All audit logs and administrator credentials</li>
-                </ul>
-              </div>
-
-              <DialogFooter className="gap-2 sm:gap-0 mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowDeregisterDialog(false)}
-                  className="border-white/20 hover:bg-white/10 text-white rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleStartDeregistration}
-                  disabled={isSendingDeregisterOtp}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl gap-2 shadow-lg shadow-rose-900/40"
-                >
-                  {isSendingDeregisterOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                  Send Deregistration OTP
-                </Button>
-              </DialogFooter>
-            </div>
-          ) : (
-            <div className="space-y-4 my-2">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-200">
-                  Enter 6-Digit Email OTP *
-                </Label>
-                <Input
-                  type="text"
-                  maxLength={6}
-                  placeholder="e.g. 528788"
-                  value={deregisterOtp}
-                  onChange={(e) => setDeregisterOtp(e.target.value)}
-                  className="bg-black/60 border-white/20 text-center font-mono text-xl tracking-widest text-rose-400 font-bold rounded-xl h-12"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-200">
-                  Type <span className="text-rose-400 font-bold">"{company?.company_name}"</span> to confirm *
-                </Label>
-                <Input
-                  type="text"
-                  placeholder={company?.company_name}
-                  value={confirmNameInput}
-                  onChange={(e) => setConfirmNameInput(e.target.value)}
-                  className="bg-black/60 border-white/20 text-white font-medium rounded-xl h-11"
-                />
-              </div>
-
-              <DialogFooter className="gap-2 sm:gap-0 mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setDeregisterStep(1)}
-                  className="border-white/20 hover:bg-white/10 text-white rounded-xl"
-                >
-                  Back
-                </Button>
-                <Button 
-                  onClick={handleConfirmDeregistration}
-                  disabled={isDeregistering || deregisterOtp.length !== 6 || !confirmNameInput}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl gap-2 shadow-lg shadow-rose-900/40"
-                >
-                  {isDeregistering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  Permanently Delete Everything
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
+      <Footer />
     </div>
   );
 };

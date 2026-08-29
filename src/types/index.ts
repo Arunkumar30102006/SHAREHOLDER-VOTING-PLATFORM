@@ -101,6 +101,10 @@ export interface Shareholder {
   is_credential_used?: boolean;
   credential_created_at?: string;
   created_at?: string;
+  category?: string;
+  holding_type?: string;
+  pan_number?: string;
+  dpid_client_id?: string;
 }
 
 export interface DashboardMetrics {
