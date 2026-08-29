@@ -1,10 +1,5 @@
 <div align="center">
-<img 
-  src="public/og-image.jpg" 
-  alt="Vote India Secure Banner" 
-  style="width: 300px; height: 300px; object-fit: cover; border-radius: 50%; display: block;"
-/>
-  
+
   <br />
   <br />
 
