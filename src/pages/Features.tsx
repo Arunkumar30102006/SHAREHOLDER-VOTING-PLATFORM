@@ -239,16 +239,16 @@ const Features = () => {
           >
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
             <div className="relative z-10 text-center max-w-3xl mx-auto">
-              <Vote className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                Designed for Global Regulatory Compliance
+              <Vote className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
+              <h2 className="text-2xl md:text-3xl font-black text-white mb-4">
+                Statutory Alignment with Indian Corporate Governance
               </h2>
-              <p className="text-slate-400 leading-relaxed mb-6">
-                Every feature is built with global corporate regulations in mind — including international data protection laws, GDPR, and standard corporate governance frameworks.
+              <p className="text-slate-200 leading-relaxed mb-6 font-normal">
+                Every architectural capability is engineered in strict compliance with Section 108 of the Companies Act 2013, Rule 20 of the Companies (M&amp;A) Rules 2014, SEBI LODR Regulation 44, Form MGT-13 standards, and India's Digital Personal Data Protection (DPDP) Act 2023.
               </p>
-              <Link to="/sebi-compliance">
-                <Button variant="outline" className="gap-2 border-white/10 hover:bg-white/5">
-                  View Compliance Details
+              <Link to="/compliance">
+                <Button variant="outline" className="gap-2 border-white/20 hover:bg-white/10 text-cyan-300 font-bold rounded-xl">
+                  View Compliance &amp; Regulatory Framework
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>

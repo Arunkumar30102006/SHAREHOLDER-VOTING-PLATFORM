@@ -19,11 +19,11 @@
   <p align="center">
     <a href="https://www.shareholdervoting.in">Live Platform</a> •
     <a href="https://www.shareholdervoting.in/live-demo">Live Demo</a> •
+    <a href="https://www.shareholdervoting.in/how-it-works">How It Works</a> •
     <a href="#-architectural-overview">Architecture</a> •
     <a href="#-statutory-compliance-matrix">Compliance</a> •
     <a href="#-key-features">Features</a> •
-    <a href="#-local-development-setup">Setup Guide</a> •
-    <a href="#-database-schema--rls">Database</a>
+    <a href="#-local-development-setup">Setup Guide</a>
   </p>
 </div>
 
@@ -33,7 +33,7 @@
 
 **Vote India Secure** ([shareholdervoting.in](https://www.shareholdervoting.in)) is an enterprise-grade, cryptographically verifiable electronic voting SaaS engineered specifically for Indian corporate democracy. It empowers publicly listed corporations, unlisted enterprises, cooperatives, and Registrar & Transfer Agents (RTAs) to conduct seamless Annual General Meetings (AGMs), Extraordinary General Meetings (EGMs), and Postal Ballots.
 
-Built from the ground up to replace cumbersome legacy workflows, the platform features mathematical ballot sealing (AES-256 + SHA-256 Merkle proofs), two-witness digital scrutinizer key unblocking, instant **Form MGT-13** reporting, and strict architectural alignment with the **Companies Act 2013**, **SEBI (LODR) Regulations 2015**, and the **Digital Personal Data Protection (DPDP) Act 2023**.
+Built from the ground up to replace cumbersome legacy workflows, the platform features mathematical ballot sealing (AES-256 + SHA-256 Merkle proofs), two-witness digital scrutinizer key unblocking, instant **Form MGT-13** reporting, Section 103 Quorum tracking, multi-mode 2FA authentication, and strict architectural alignment with the **Companies Act 2013**, **SEBI (LODR) Regulations 2015**, and the **Digital Personal Data Protection (DPDP) Act 2023**.
 
 ---
 
@@ -41,29 +41,29 @@ Built from the ground up to replace cumbersome legacy workflows, the platform fe
 
 ```mermaid
 flowchart TD
-    subgraph Ingestion["1. Roster Ingestion"]
+    subgraph Ingestion["1. Depository Benpos & Roster Ingestion"]
         RTA[RTA / Depository Benpos] -->|NSDL / CDSL / Folio CSV| Admin[Issuer Portal]
-        Admin -->|Ingest Records| DB[(Supabase PostgreSQL + RLS)]
+        Admin -->|Bulk CSV Upload & Validation| DB[(Supabase PostgreSQL + RLS)]
     end
 
     subgraph Authentication["2. Voter 2FA & Verification"]
-        Shareholder[Shareholder PWA] -->|Enter PAN / DP ID / Folio| AuthEngine[Auth Engine]
-        AuthEngine -->|Trigger SMS / Email OTP| OTP[2-Factor OTP Verification]
-        OTP -->|Authenticated Session| Ballot[Interactive Ballot Card]
+        Shareholder[Shareholder Portal] -->|Option A: Voting Token / PIN\nOption B: Demat 16-Digit + PAN| AuthEngine[Auth Engine]
+        AuthEngine -->|Trigger OTP via Edge Function| OTP[2-Factor OTP Verification]
+        OTP -->|Authenticated Session| Ballot[Interactive Weighted Ballot Card]
     end
 
-    subgraph Sealing["3. Cryptographic Sealing"]
-        Ballot -->|Submit Vote Choice| CryptoEngine[Ballot Cryptographic Engine]
-        CryptoEngine -->|AES-256 Encryption| Vault[(Encrypted Ballot Vault)]
+    subgraph Sealing["3. Cryptographic Sealing & Decoupling"]
+        Ballot -->|Submit Vote Choice (Rule 20)| CryptoEngine[Ballot Cryptographic Engine]
+        CryptoEngine -->|AES-256 GCM Encryption| Vault[(Encrypted Ballot Vault)]
         CryptoEngine -->|SHA-256 Hashing| Merkle[Immutable Merkle Audit Ledger]
-        CryptoEngine -->|Cryptographic Receipt| ShareholderReceipt[Verifiable QR Receipt]
+        CryptoEngine -->|Digital Receipt| ShareholderReceipt[Verifiable QR & PDF Receipt]
     end
 
-    subgraph Scrutiny["4. Scrutiny & Filing"]
-        Scrutinizer[Independent Scrutinizer] -->|Two Independent Witnesses| MultiKey[Multi-Party Key Unblocking]
+    subgraph Scrutiny["4. Scrutiny & Statutory Filing"]
+        Scrutinizer[Independent Scrutinizer] -->|Two Independent Witnesses (Rule 20-4-xii)| MultiKey[Multi-Party Key Unblocking]
         MultiKey -->|Decrypt Aggregates| Vault
         Vault -->|Calculate Weighted Tallies| ReportEngine[Report Engine]
-        ReportEngine -->|Automated PDF / Excel| MGT13[Form MGT-13 Scrutinizer Report]
+        ReportEngine -->|Automated PDF / CSV| MGT13[Form MGT-13 Scrutinizer Report]
         ReportEngine -->|Stock Exchange Filing| SEBI[SEBI LODR Reg 44 Filing]
     end
 ```
@@ -78,28 +78,32 @@ flowchart TD
 | **Companies (M&A) Rules 2014 — Rule 20** | Operational timelines ($\ge$ 3 days remote voting, cut-off date $\le$ 7 days, 5:00 PM close). | Automated statutory timers, cut-off date validation, and immutable timestamped session locks. |
 | **Rule 20(4)(xii) — Ballot Secrecy** | Register of votes cast cannot be accessed by company or third parties prior to unblocking. | AES-256 GCM ballot decoupling. Zero administrative access to voter choices before meeting unblocking. |
 | **Rule 20(4)(xii) — Scrutinizer Unblocking** | Vault unblocked after meeting conclusion in presence of $\ge$ 2 independent witnesses. | Multi-witness digital key unblocking ceremony requiring co-signatory confirmation. |
+| **Section 103 — Statutory Quorum** | Minimum quorum requirements for general meetings (5, 15, or 30 members based on size). | Built-in real-time Quorum Engine dynamically monitoring participant attendance against statutory tiers. |
 | **Form MGT-13** | Statutory Scrutinizer's Report on remote e-voting and venue poll results. | One-click automated Form MGT-13 PDF report generation formatted to exact MCA standards. |
-| **SEBI (LODR) 2015 — Regulation 44** | Listed entities must submit voting results to stock exchanges within 2 working days. | Real-time consolidated voting exports in structured Excel/XBRL-ready formats. |
-| **DPDP Act 2023 (India)** | Purpose limitation, data minimisation, Indian data residency, and principal rights. | 100% sovereign Indian hosting (Mumbai/Bengaluru), PAN/DPID hash masking, DPO grievance mechanism. |
+| **SEBI (LODR) 2015 — Regulation 44** | Listed entities must submit voting results to stock exchanges within 2 working days. | Real-time consolidated voting exports in structured Excel/CSV formats. |
+| **DPDP Act 2023 (India)** | Purpose limitation, data minimisation, Indian data residency, and principal rights. | 100% sovereign Indian hosting (Mumbai/Bengaluru), PAN/DPID hash masking, DPO grievance redressal. |
 | **CERT-In Directions (April 2022)** | Mandatory 180-day retention of cybersecurity telemetry and system logs. | Automated immutable audit trail logging with NTP time synchronization and 180-day retention. |
 
 ---
 
-## ✨ Key Features
+## ✨ Key Platform Features
 
-### 🏢 Enterprise Issuer & Company Dashboard (`/company-dashboard`)
-* **Depository Benpos Ingestion:** Drag-and-drop ingestion of NSDL, CDSL, and physical folio registers with automated shareholding validation.
-* **Resolution Builder:** Configure Ordinary, Special, and Multi-Class resolutions with PDF explanatory statements and statutory voting windows.
-* **Real-time Quorum Progression:** Interactive live charts (Recharts) monitoring participation percentages against statutory quorum thresholds.
-* **InstaPoll (Venue Voting):** Instantaneous in-meeting poll window for virtual/hybrid AGM attendees with duplicate vote prevention.
+### 🏢 Enterprise Issuer Portal (`/company-dashboard`)
+* **Depository Benpos Ingestion:** Drag-and-drop ingestion of NSDL, CDSL, and physical folio registers with sample CSV template download and live tabular parsing preview.
+* **Section 103 Quorum Engine:** Automated calculation of required quorum thresholds ($\le 1,000 \rightarrow 5$, $1,001-5,000 \rightarrow 15$, $> 5,000 \rightarrow 30$) with live attendance status tracking.
+* **Resolution Builder & Timers:** Configure Ordinary and Special resolutions with statutory Section 102 explanatory notes and auto-closing remote voting windows.
+* **Credential Dispatching:** One-click batch delivery of statutory AGM notices, Login IDs, and Security PINs via Supabase Edge Functions.
+* **Roster Reporting:** Instant export of MCA-compliant PDF rosters and structured CSV registers.
 
 ### 👥 Shareholder Experience (`/shareholder-login`)
-* **Universal Mobile PWA:** Responsive Progressive Web App accessible on any smartphone, tablet, or browser with sub-second page loads.
-* **Frictionless 2FA Login:** Direct authentication via DP ID / Client ID / Folio + PAN verification paired with instant OTP delivery.
+* **Dual-Mode 2FA Authentication:**
+  1. *Voting User ID & PIN:* Direct electronic tokens dispatched by the company/RTA.
+  2. *Demat & PAN Login:* Instant access using 16-digit Demat Account (NSDL/CDSL) or Folio Number + PAN verification.
+* **Interactive Live Simulation Mode:** Instant 1-click test voter credentials (`/live-demo`) for shareholders and evaluators.
 * **Cryptographic Balloting:** Cast weighted ballots in under 30 seconds with immediate cryptographic confirmation receipts and verifiable QR codes.
 * **AI Resolution Briefing:** Instant executive summaries of lengthy annual reports and proxy materials powered by LLMs.
 
-### 🛡️ Scrutinizer Digital Hub (`/live-demo`)
+### 🛡️ Scrutinizer Digital Hub (`/live-demo` & `/voting-management`)
 * **Multi-Witness Vault Unblocking:** Cryptographic key verification requiring the independent Scrutinizer and two external witnesses.
 * **Automated MGT-13 Compilation:** Generates print-ready statutory Scrutinizer Reports with resolution breakdowns (Assent / Dissent / Abstain / Invalid).
 * **Merkle Tree Audit Verification:** Independent mathematical verification of ballot ledger integrity.
@@ -108,10 +112,6 @@ flowchart TD
 * **Document Summarizer:** Condenses 200+ page corporate filings and notice agendas into clear, actionable bullet points.
 * **AGM Q&A Sentiment Analysis:** Evaluates live shareholder questions to detect investor sentiment and core boardroom concerns.
 * **VoteAssistant:** Intelligent floating chatbot assisting shareholders with procedural guidelines and statutory deadlines.
-
-### 🌐 Internationalization & Accessibility
-* **Multi-Language Support:** Powered by `i18next` supporting English and major regional Indian languages (Hindi, Tamil, Marathi, Gujarati).
-* **WCAG AAA Contrast:** High-contrast, dark-mode visual hierarchy optimized for readability and accessibility.
 
 ---
 
@@ -178,63 +178,12 @@ vote-india-secure/
     │   ├── About.tsx           # Mission & E-E-A-T Governance Desk charter
     │   ├── Compliance.tsx      # Interactive SEBI & MCA compliance guide
     │   ├── LiveDemo.tsx        # Interactive voter & scrutinizer simulation
+    │   ├── CompanyDashboard.tsx # Enterprise issuer dashboard with Benpos import & Quorum
+    │   ├── ShareholderLogin.tsx # Dual-mode 2FA shareholder portal
     │   ├── blog/               # 6 Statutory corporate governance regulatory guides
-    │   ├── legal/              # PrivacyPolicy, DataProtection, TermsOfService
-    │   └── seo/                # Targeted SEO service pages (AgmVoting, RemoteEVoting)
+    │   ├── legal/              # PrivacyPolicy (DPDP Act 2023), TermsOfService
+    │   └── seo/                # Targeted SEO service pages (HowItWorks, AgmVoting, RemoteEVoting)
     └── types/                  # TypeScript interfaces and entity types
-```
-
----
-
-## 🛢️ Database Schema & RLS Policies
-
-The PostgreSQL database enforces strict tenant isolation via **Row-Level Security (RLS)**:
-
-```sql
--- 1. Companies & Issuers
-CREATE TABLE companies (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  cin VARCHAR(21) UNIQUE NOT NULL,
-  pan VARCHAR(10) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- 2. Voting Sessions (AGM / EGM / Postal Ballot)
-CREATE TABLE voting_sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  meeting_type VARCHAR(50) CHECK (meeting_type IN ('AGM', 'EGM', 'POSTAL_BALLOT')),
-  record_cutoff_date DATE NOT NULL,
-  start_time TIMESTAMPTZ NOT NULL,
-  end_time TIMESTAMPTZ NOT NULL,
-  is_active BOOLEAN DEFAULT false,
-  is_unblocked BOOLEAN DEFAULT false,
-  scrutinizer_name VARCHAR(255)
-);
-
--- 3. Resolutions
-CREATE TABLE resolutions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id UUID REFERENCES voting_sessions(id) ON DELETE CASCADE,
-  resolution_number INT NOT NULL,
-  title VARCHAR(500) NOT NULL,
-  resolution_type VARCHAR(50) CHECK (resolution_type IN ('ORDINARY', 'SPECIAL')),
-  description TEXT
-);
-
--- 4. Cryptographically Sealed Ballots
-CREATE TABLE votes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id UUID REFERENCES voting_sessions(id) ON DELETE CASCADE,
-  resolution_id UUID REFERENCES resolutions(id) ON DELETE CASCADE,
-  shareholder_id_hash VARCHAR(64) NOT NULL, -- Decoupled voter hash
-  shares_count BIGINT NOT NULL,
-  choice VARCHAR(20) CHECK (choice IN ('ASSENT', 'DISSENT', 'ABSTAIN')),
-  vote_hash VARCHAR(64) NOT NULL,          -- SHA-256 ballot digest
-  timestamp TIMESTAMPTZ DEFAULT now()
-);
 ```
 
 ---
@@ -302,7 +251,7 @@ The platform is optimized for **Vercel** with Static Site Generation (SSG):
 
 ## 🔒 Security & Vulnerability Disclosure
 
-Security and ballot integrity are core to Vote India Secure. If you discover a potential vulnerability or security concern, please review our responsible disclosure policy and contact us directly:
+Security and ballot integrity are core to Vote India Secure. If you discover a potential vulnerability or security concern, please contact our security team:
 
 * **Security & DPO Desk:** `support@shareholdervoting.in`
 * **Response SLA:** Initial acknowledgment within 24 hours; technical triage within 72 hours.
