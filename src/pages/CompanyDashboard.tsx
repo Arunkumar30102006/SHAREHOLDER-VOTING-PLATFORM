@@ -148,11 +148,9 @@ const CompanyDashboard = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [lastCreatedCreds, setLastCreatedCreds] = useState<{
     loginId: string;
-    password: string;
     name: string;
     email?: string;
   } | null>(null);
-  const [copiedCreds, setCopiedCreds] = useState(false);
 
   // Deregistration State
   const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
@@ -386,7 +384,6 @@ const CompanyDashboard = () => {
 
       setLastCreatedCreds({
         loginId,
-        password,
         name: validatedData.name,
         email: validatedData.email,
       });
@@ -1692,20 +1689,20 @@ const CompanyDashboard = () => {
             </TabsContent>
           </Tabs>
 
-          {/* Shareholder Credentials Generated Modal */}
+          {/* Statutory Rule 20 Notice Dispatched Confirmation Modal */}
           {lastCreatedCreds && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-              <Card className="w-full max-w-lg border-cyan-500/40 bg-[#0d1b2a] backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden">
-                <CardHeader className="border-b border-white/15 pb-4 bg-gradient-to-r from-blue-950/60 to-cyan-950/60">
+              <Card className="w-full max-w-lg border-emerald-500/40 bg-[#0d1b2a] backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden">
+                <CardHeader className="border-b border-white/15 pb-4 bg-gradient-to-r from-emerald-950/60 to-cyan-950/60">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-300">
-                        <CheckCircle2 className="w-5 h-5 text-cyan-400" />
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg font-black text-white">Voting Credentials Issued</CardTitle>
+                        <CardTitle className="text-lg font-black text-white">Statutory Notice Dispatched</CardTitle>
                         <CardDescription className="text-slate-300 text-xs mt-0.5">
-                          Shareholder successfully enrolled on the electronic voting ledger.
+                          Enrolled under Section 108 &amp; Rule 20 of Companies Act 2013
                         </CardDescription>
                       </div>
                     </div>
@@ -1720,72 +1717,52 @@ const CompanyDashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-4">
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Stakeholder</span>
-                    <p className="text-base font-bold text-white">{lastCreatedCreds.name}</p>
-                    {lastCreatedCreds.email && (
-                      <p className="text-xs text-cyan-300">{lastCreatedCreds.email}</p>
-                    )}
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-black/60 border border-cyan-500/30 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Voting User ID</span>
-                        <code className="text-base font-mono font-black text-cyan-300">{lastCreatedCreds.loginId}</code>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(lastCreatedCreds.loginId);
-                          toast.success("User ID copied!");
-                        }}
-                        className="border-white/20 text-xs font-bold rounded-lg text-slate-200 hover:text-white"
-                      >
-                        <Copy className="w-3.5 h-3.5 mr-1" /> Copy ID
-                      </Button>
-                    </div>
-
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-                      <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Security PIN / Password</span>
-                        <code className="text-base font-mono font-black text-emerald-300">{lastCreatedCreds.password}</code>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(lastCreatedCreds.password);
-                          toast.success("Password copied!");
-                        }}
-                        className="border-white/20 text-xs font-bold rounded-lg text-slate-200 hover:text-white"
-                      >
-                        <Copy className="w-3.5 h-3.5 mr-1" /> Copy PIN
-                      </Button>
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
+                    <div className="text-xs text-emerald-200/90 leading-relaxed">
+                      <strong className="text-white block mb-1">Rule 20(4)(xii) Statutory Ballot Secrecy Enforced</strong>
+                      Voting security PINs and credentials have been cryptographically generated and dispatched directly to the shareholder's registered email address. Plaintext passwords are not accessible to company administrators to preserve voter confidentiality.
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/10">
+                  <div className="space-y-2 p-4 rounded-2xl bg-black/60 border border-white/10">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">Shareholder Name:</span>
+                      <span className="text-white font-bold">{lastCreatedCreds.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">Dispatched To:</span>
+                      <span className="text-cyan-300 font-mono">{lastCreatedCreds.email || "Registered Email"}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs pt-2 border-t border-white/10">
+                      <span className="text-slate-400">Voting Token ID:</span>
+                      <div className="flex items-center gap-1.5">
+                        <code className="text-cyan-400 font-mono font-bold">{lastCreatedCreds.loginId}</code>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(lastCreatedCreds.loginId);
+                            toast.success("Voting Token ID copied!");
+                          }}
+                          className="text-slate-400 hover:text-white p-1"
+                          title="Copy Token ID"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-400">Security PIN:</span>
+                      <span className="text-emerald-400 font-semibold italic">●●●●●●●● (Dispatched to Voter Only)</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
                     <Button
-                      onClick={() => {
-                        const message = `*E-Voting Credentials for ${company?.company_name || 'AGM'}*\nShareholder: ${lastCreatedCreds.name}\nUser ID: ${lastCreatedCreds.loginId}\nPIN / Password: ${lastCreatedCreds.password}\nPortal Link: https://www.shareholdervoting.in/shareholder-login`;
-                        navigator.clipboard.writeText(message);
-                        setCopiedCreds(true);
-                        toast.success("Full credential message copied to clipboard!");
-                        setTimeout(() => setCopiedCreds(false), 3000);
-                      }}
-                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs gap-2"
-                    >
-                      {copiedCreds ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                      {copiedCreds ? "Copied Full Message!" : "Copy Full WhatsApp / SMS Text"}
-                    </Button>
-                    <Button
-                      variant="ghost"
                       onClick={() => setLastCreatedCreds(null)}
-                      className="text-slate-300 hover:text-white text-xs rounded-xl font-semibold"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs"
                     >
-                      Close
+                      Acknowledge &amp; Continue
                     </Button>
                   </div>
                 </CardContent>

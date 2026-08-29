@@ -37,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
       otp
     }: CredentialsEmailRequest = await req.json();
 
-    const targetEmail = email || shareholderEmail;
+    const targetEmail = (email || shareholderEmail || "").trim();
 
     if (!targetEmail || !companyName) {
       throw new Error("Missing email or company name");
@@ -52,10 +52,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     let subject = "";
     let html = "";
+    let text = "";
 
     if (type === "deregistration_otp") {
       if (!otp) throw new Error("OTP is required");
       subject = `Deregistration Verification Code - ${companyName}`;
+      text = `Deregistration Request for ${companyName}\n\nYour OTP is: ${otp}\n\nValid for 10 minutes. If you did not request this, please contact support immediately.`;
       html = `
         <!DOCTYPE html>
         <html>
@@ -81,6 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Company Admin Login OTP
       if (!otp) throw new Error("OTP is required");
       subject = `Login Verification Code - ${companyName}`;
+      text = `Admin Login Verification - ${companyName}\n\nYour One-Time Password is: ${otp}\n\nValid for 10 minutes. Never share this OTP with anyone.\n\nVote India Secure Enterprise Platform`;
       html = `
         <!DOCTYPE html>
         <html>
@@ -131,7 +134,11 @@ const handler = async (req: Request): Promise<Response> => {
     } else {
       // Default: Shareholder Credentials
       if (!shareholderName || !loginId || !password) throw new Error("Missing credentials fields");
-      subject = `Your Statutory E-Voting Credentials for ${companyName}`;
+      subject = `Statutory E-Voting Notice & Credentials: ${companyName}`;
+      
+      // Plain text fallback (essential for Outlook/Exchange deliverability)
+      text = `Hello ${shareholderName},\n\nYou have been registered on the electronic voting roster for ${companyName}.\n\nYour confidential e-voting credentials:\n- VOTING USER ID: ${loginId}\n- SECURITY PIN: ${password}\n\nAccess the portal to cast your ballot:\nhttps://www.shareholdervoting.in/shareholder-login\n\nStatutory Notice (Companies Act Rule 20):\nYour vote is encrypted with AES-256 and decoupled from your identity. Under statutory regulations, voting choices are permanent once cast.\n\nVote India Secure Enterprise Platform`;
+
       html = `
         <!DOCTYPE html>
         <html>
@@ -203,8 +210,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Try sending with primary domain, fallback to onboarding@resend.dev if domain not yet verified
     const sendPayload = {
       from: "Vote India Secure <notifications@shareholdervoting.in>",
+      reply_to: "support@shareholdervoting.in",
       to: [targetEmail],
       subject: subject,
+      text: text,
       html: html,
     };
 
