@@ -50,14 +50,11 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { env } from "@/config/env";
 import { z } from "zod";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTranslation } from "react-i18next";
 import { MerkleTree } from "@/lib/merkle";
 import { simulateBlockchainTransaction } from "@/lib/blockchain";
 import { Nominee, VotingSession, ResolutionResult, AnchorData, Company, Shareholder, Resolution } from "@/types";
-import { generateScrutinizerAuditPDF } from "@/lib/pdfReports";
 
 const resolutionSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(250),
@@ -619,14 +616,15 @@ const toLocalDateString = (dateOrIso?: string | null) => {
     }
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!votingSession || results.length === 0) {
       toast.info("No resolution results available to generate Scrutinizer PDF.");
       return;
     }
 
     try {
-      generateScrutinizerAuditPDF({
+      const { generateScrutinizerAuditPDF } = await import("@/lib/pdfReports");
+      await generateScrutinizerAuditPDF({
         company,
         session: votingSession,
         results,

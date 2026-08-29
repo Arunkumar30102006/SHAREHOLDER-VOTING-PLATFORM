@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 import { Shield, Zap, DollarSign, BarChart3, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const statutorySources = [
+  { title: "Companies Act 2013 Section 108 / Rule 20 E-Voting - Ministry of Corporate Affairs", url: "https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" },
+  { title: "SEBI LODR Regulation 44 Mandates - Securities and Exchange Board of India", url: "https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" }
+];
+
 const BenefitsElectronicVotingShareholders = () => {
   return (
     <BlogArticleLayout
@@ -14,10 +19,11 @@ const BenefitsElectronicVotingShareholders = () => {
       readTime="5 min read"
       category="Corporate Leadership"
       keywords="benefits electronic shareholder voting, advantages e-voting AGM, corporate governance electronic voting, board resolution e-voting benefits, shareholder turnout electronic voting"
+      sources={statutorySources}
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">
-          As enterprise capital structures become increasingly dispersed, modern corporations require robust governance tools that engage investors while maintaining uncompromising security. 
+          As enterprise capital structures become increasingly dispersed, modern corporations require robust governance tools under <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>Companies Act 2013 Section 108 / Rule 20</strong></a> and <a href="https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>SEBI LODR Regulation 44</strong></a> that engage investors while maintaining uncompromising security. 
           Adopting a modern <strong>enterprise voting platform</strong> delivers substantial advantages that go well beyond regulatory compliance.
         </p>
 

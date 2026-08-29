@@ -269,7 +269,7 @@ export const Compliance = () => {
             </h1>
 
             <p className="text-base sm:text-xl text-slate-200 max-w-3xl mx-auto font-normal leading-relaxed mb-10">
-              A comprehensive guide to fulfilling electronic voting mandates under Section 108 of the Companies Act 2013, MCA General Circulars, and SEBI LODR Regulation 44 with bank-grade cryptographic vote integrity.
+              A comprehensive guide to fulfilling electronic voting mandates under <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline">Section 108 of the Companies Act 2013 / Rule 20</a>, MCA General Circulars, and <a href="https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline">SEBI LODR Regulation 44</a> with bank-grade cryptographic vote integrity.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

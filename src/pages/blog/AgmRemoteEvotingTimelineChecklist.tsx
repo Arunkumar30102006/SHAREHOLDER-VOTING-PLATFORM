@@ -4,10 +4,9 @@ import { ShieldCheck, CheckCircle2, FileText, ArrowRight, Calendar, Bell, Clock,
 import { Button } from "@/components/ui/button";
 
 const statutorySources = [
-  { title: "Section 108 of the Companies Act, 2013 - Voting Through Electronic Means", url: "https://www.mca.gov.in/" },
-  { title: "Rule 20 of Companies (Management and Administration) Rules, 2014 - E-Voting Timelines", url: "https://www.mca.gov.in/" },
-  { title: "SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015 - Regulation 44", url: "https://www.sebi.gov.in/" },
-  { title: "Ministry of Corporate Affairs (MCA) General Circulars on Virtual & Hybrid AGMs", url: "https://www.mca.gov.in/" }
+  { title: "Companies Act 2013 Section 108 / Rule 20 E-Voting - Ministry of Corporate Affairs", url: "https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" },
+  { title: "SEBI LODR Regulation 44 Operational Mandates - SEBI", url: "https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" },
+  { title: "MCA Circulars on Virtual & Hybrid General Meetings", url: "https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" }
 ];
 
 const AgmRemoteEvotingTimelineChecklist = () => {
@@ -27,7 +26,7 @@ const AgmRemoteEvotingTimelineChecklist = () => {
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">
-          Conducting an Annual General Meeting (AGM) with remote e-voting requires precision timing. Under <strong>Section 108 of the Companies Act, 2013</strong> and <strong>Rule 20 of the Companies (Management and Administration) Rules, 2014</strong>, missing a single statutory deadline can invalidate meeting resolutions or attract regulatory penalties.
+          Conducting an Annual General Meeting (AGM) with remote e-voting requires precision timing. Under <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>Section 108 of the Companies Act, 2013</strong></a>, <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>Rule 20 of the Companies (Management and Administration) Rules, 2014</strong></a>, and <a href="https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>SEBI LODR Regulation 44</strong></a>, missing a single statutory deadline can invalidate meeting resolutions or attract regulatory penalties.
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">

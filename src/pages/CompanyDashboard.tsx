@@ -70,7 +70,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { AdminVotingResults } from "@/components/company/AdminVotingResults";
 import { Company, Shareholder } from "@/types";
-import { generateShareholderRosterPDF } from "@/lib/pdfReports";
 
 const shareholderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -708,14 +707,15 @@ const CompanyDashboard = () => {
     toast.success("Shareholder roster exported as CSV.");
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (shareholders.length === 0) {
       toast.error("No shareholder data to export.");
       return;
     }
 
     try {
-      generateShareholderRosterPDF({
+      const { generateShareholderRosterPDF } = await import("@/lib/pdfReports");
+      await generateShareholderRosterPDF({
         company: company,
         shareholders: filteredShareholders,
       });

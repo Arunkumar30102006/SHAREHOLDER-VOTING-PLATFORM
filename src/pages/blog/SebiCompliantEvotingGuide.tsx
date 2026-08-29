@@ -33,13 +33,13 @@ const SebiCompliantEvotingGuide = () => {
 
         <ul className="list-disc pl-6 space-y-3 text-sm md:text-base">
           <li>
-            <strong>Section 108 of the Companies Act, 2013:</strong> Mandates that every listed company and every company having not less than 1,000 shareholders must provide members with a facility to exercise their voting rights by electronic means for all general meetings.
+            <strong><a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline">Section 108 of the Companies Act, 2013</a>:</strong> Mandates that every listed company and every company having not less than 1,000 shareholders must provide members with a facility to exercise their voting rights by electronic means for all general meetings.
           </li>
           <li>
-            <strong>Rule 20 of the Companies (Management and Administration) Rules, 2014:</strong> Governs the operational mechanics, 21 clear days notice periods, cut-off date determination (not earlier than 7 days before the meeting), remote voting windows ($\ge$ 3 days, closing 5:00 PM on preceding day), and Scrutinizer appointment.
+            <strong><a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline">Rule 20 of the Companies (Management and Administration) Rules, 2014</a>:</strong> Governs the operational mechanics, 21 clear days notice periods, cut-off date determination (not earlier than 7 days before the meeting), remote voting windows ($\ge$ 3 days, closing 5:00 PM on preceding day), and Scrutinizer appointment.
           </li>
           <li>
-            <strong>Regulation 44 of SEBI (LODR) Regulations, 2015:</strong> Obligates listed entities to provide remote e-voting facility to all shareholders for all resolutions and submit voting results to the stock exchanges within two working days of the conclusion of the general meeting.
+            <strong><a href="https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline">Regulation 44 of SEBI (LODR) Regulations, 2015</a>:</strong> Obligates listed entities to provide remote e-voting facility to all shareholders for all resolutions and submit voting results to the stock exchanges within two working days of the conclusion of the general meeting.
           </li>
         </ul>
 

@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 import { Scale, Check, X, ArrowRight, Building, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const statutorySources = [
+  { title: "Companies Act 2013 Section 108 / Rule 20 E-Voting - Ministry of Corporate Affairs", url: "https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" },
+  { title: "SEBI LODR Regulation 44 Shareholder E-Voting - SEBI", url: "https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" }
+];
+
 const AgmEvotingVsPhysicalMeeting = () => {
   return (
     <BlogArticleLayout
@@ -14,11 +19,12 @@ const AgmEvotingVsPhysicalMeeting = () => {
       readTime="7 min read"
       category="Strategic Insights"
       keywords="virtual AGM vs physical meeting India, online AGM e-voting benefits, remote shareholder participation India, AGM quorum compliance online, digital general meeting India"
+      sources={statutorySources}
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">
           For decades, the standard Annual General Meeting (AGM) meant renting hotel auditoriums, printing physical ballot papers, and managing proxy cards. 
-          Today, deploying an advanced <strong>electronic voting platform</strong> has fundamentally modernized how Indian enterprises interact with institutional and retail shareholders.
+          Today, under <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>Companies Act 2013 Section 108 / Rule 20</strong></a> and <a href="https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>SEBI LODR Regulation 44</strong></a>, deploying an advanced <strong>electronic voting platform</strong> has fundamentally modernized how Indian enterprises interact with institutional and retail shareholders.
         </p>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-8 mb-4">

@@ -1,5 +1,3 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Company, VotingSession, ResolutionResult, Shareholder } from "@/types";
 
 export interface ScrutinizerReportOptions {
@@ -35,7 +33,9 @@ export interface VotingCertificateOptions {
 /**
  * Generates an executive, boardroom-grade Scrutinizer Audit Report PDF
  */
-export const generateScrutinizerAuditPDF = (opts: ScrutinizerReportOptions) => {
+export const generateScrutinizerAuditPDF = async (opts: ScrutinizerReportOptions) => {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -298,7 +298,9 @@ export const generateScrutinizerAuditPDF = (opts: ScrutinizerReportOptions) => {
 /**
  * Generates an executive Shareholder Roster & Capital Representation PDF
  */
-export const generateShareholderRosterPDF = (opts: ShareholderRosterReportOptions) => {
+export const generateShareholderRosterPDF = async (opts: ShareholderRosterReportOptions) => {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();

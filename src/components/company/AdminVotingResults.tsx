@@ -5,12 +5,9 @@ import { votingApi } from "@/services/api/voting";
 import { Resolution, ResolutionStats } from "@/types/voting";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Loader2, Download, FileText, RefreshCw, Trophy } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
-import { generateScrutinizerAuditPDF } from "@/lib/pdfReports";
 
 interface AdminVotingResultsProps {
     sessionId: string;
@@ -82,7 +79,8 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                             against_count: 0,
                             abstain_count: 0,
                             total_weighted_votes: 0,
-                            total_vote_count: 0
+                            total_vote_count: 0,
+                            last_updated: new Date().toISOString()
                         };
 
                         const weight = newVote.weighted_votes || 1;
@@ -141,7 +139,8 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                 };
             });
 
-            generateScrutinizerAuditPDF({
+            const { generateScrutinizerAuditPDF } = await import("@/lib/pdfReports");
+            await generateScrutinizerAuditPDF({
                 company: { id: "", company_name: companyName },
                 session: { id: sessionId, title: "Annual General Meeting", start_date: new Date().toISOString(), end_date: new Date().toISOString(), is_active: true, meeting_link: null, meeting_password: null, meeting_platform: null, voting_instructions: null, is_meeting_emails_sent: false, meeting_start_date: null, meeting_end_date: null, record_date: null, status: null, description: null },
                 results: mappedResults,

@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 import { CheckCircle2, ArrowRight, UserCheck, KeyRound, Vote, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const statutorySources = [
+  { title: "Companies Act 2013 Section 108 / Rule 20 E-Voting - Ministry of Corporate Affairs", url: "https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" },
+  { title: "SEBI LODR Regulation 44 E-Voting Directives - SEBI", url: "https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" }
+];
+
 const HowOnlineShareholderVotingWorks = () => {
   return (
     <BlogArticleLayout
@@ -14,10 +19,11 @@ const HowOnlineShareholderVotingWorks = () => {
       readTime="5 min read"
       category="How-To Guide"
       keywords="how shareholder e-voting works, cryptographic ballot security India, SHA-256 shareholder voting, OTP voting authentication, Merkle tree audit trail voting"
+      sources={statutorySources}
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">
-          The shift toward digital corporate governance has made <strong>online shareholder voting</strong> the gold standard for conducting Annual General Meetings (AGMs), Extraordinary General Meetings (EGMs), and postal ballots in India. 
+          The shift toward digital corporate governance under <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>Companies Act 2013 Section 108 / Rule 20</strong></a> and <a href="https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>SEBI LODR Regulation 44</strong></a> has made <strong>online shareholder voting</strong> the gold standard for conducting Annual General Meetings (AGMs), Extraordinary General Meetings (EGMs), and postal ballots in India. 
           Whether you are an investor casting your ballot for the first time or a corporate secretary evaluating <strong>shareholder voting software</strong>, this guide breaks down the end-to-end operational lifecycle of modern electronic voting.
         </p>
 

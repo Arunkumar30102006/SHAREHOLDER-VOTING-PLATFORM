@@ -4,10 +4,9 @@ import { ShieldCheck, CheckCircle2, FileText, ArrowRight, Scale, Users, KeyRound
 import { Button } from "@/components/ui/button";
 
 const statutorySources = [
-  { title: "Section 108 of the Companies Act, 2013 - Voting Through Electronic Means", url: "https://www.mca.gov.in/" },
-  { title: "Rule 20 of Companies (Management and Administration) Rules, 2014", url: "https://www.mca.gov.in/" },
-  { title: "Form MGT-13 (Report of Scrutinizer) - Ministry of Corporate Affairs", url: "https://www.mca.gov.in/" },
-  { title: "SEBI (LODR) Regulations 2015 - Regulation 44 Voting Results Submission", url: "https://www.sebi.gov.in/" }
+  { title: "Companies Act 2013 Section 108 / Rule 20 - Ministry of Corporate Affairs", url: "https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" },
+  { title: "SEBI LODR Regulation 44 Voting Results - Securities and Exchange Board of India", url: "https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" },
+  { title: "Form MGT-13 (Report of Scrutinizer) - MCA E-Book Rules", url: "https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" }
 ];
 
 const RoleOfScrutinizerFormMgt13 = () => {
@@ -25,8 +24,8 @@ const RoleOfScrutinizerFormMgt13 = () => {
       keywords="scrutinizer e-voting India, Form MGT-13 scrutinizer report, Rule 20 e-voting scrutinizer, independent scrutinizer AGM, vault unblocking e-voting witnesses"
       sources={statutorySources}
     >
-      <div className="space-y-6 text-slate-200 leading-relaxed">
-        <p className="text-lg text-slate-300 font-medium leading-relaxed">
+      <div className="space-y-6 text-slate-200 leading-relaxed font-normal">
+        <p className="text-lg text-slate-300 font-normal leading-relaxed">
           In the governance framework of Indian corporate democracy, the <strong>Scrutinizer</strong> acts as an independent statutory custodian who ensures that electronic ballots and postal votes are counted transparently, accurately, and without management bias.
         </p>
 
@@ -34,7 +33,7 @@ const RoleOfScrutinizerFormMgt13 = () => {
           Statutory Framework Governing Scrutinizer Appointment
         </h2>
         <p>
-          Under <strong>Section 108 of the Companies Act, 2013</strong> read with <strong>Rule 20(4)(ix) of the Companies (Management and Administration) Rules, 2014</strong>, the Board of Directors of every company conducting electronic voting must appoint an independent professional as a scrutinizer.
+          Under <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>Section 108 of the Companies Act, 2013</strong></a> read with <a href="https://www.mca.gov.in/content/mca/global/en/acts-rules/ebooks/rules.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>Rule 20(4)(ix) of the Companies (Management and Administration) Rules, 2014</strong></a> and <a href="https://www.sebi.gov.in/legal/regulations/jan-2015/sebi-listing-obligations-and-disclosure-requirements-regulations-2015_26561.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline"><strong>SEBI LODR Regulation 44</strong></a>, the Board of Directors of every company conducting electronic voting must appoint an independent professional as a scrutinizer.
         </p>
 
         <div className="grid md:grid-cols-3 gap-4 my-6">
