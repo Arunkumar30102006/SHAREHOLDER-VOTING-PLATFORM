@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
-import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
+import { createBreadcrumbSchema, createFaqSchema, createWebPageSchema } from "@/components/layout/StructuredData";
 
 const breadcrumbSchema = createBreadcrumbSchema([
   { name: "Home", url: "/" },
@@ -57,6 +57,12 @@ const remoteFaqSchema = createFaqSchema(
   remoteFaqs.map((f) => ({ question: f.q, answer: f.a }))
 );
 
+const webPageSchema = createWebPageSchema({
+  name: "Remote E-Voting Guide | Companies Act Rule 20 & SEBI LODR",
+  description: "Comprehensive guide to Remote E-Voting under Companies Act Rule 20 & SEBI LODR Regulation 44: statutory timelines, cut-off dates, vote locking, and scrutinizer unblocking.",
+  url: "/remote-e-voting",
+});
+
 export const RemoteEVoting = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -70,7 +76,7 @@ export const RemoteEVoting = () => {
         title="Remote E-Voting Guide | Companies Act Rule 20 & SEBI LODR"
         description="Comprehensive guide to Remote E-Voting under Companies Act Rule 20 & SEBI LODR Regulation 44: statutory timelines, cut-off dates, vote locking, and scrutinizer unblocking."
         canonical="/remote-e-voting"
-        schemas={[breadcrumbSchema, remoteFaqSchema]}
+        schemas={[breadcrumbSchema, remoteFaqSchema, webPageSchema]}
       />
 
       {/* Hero Section */}

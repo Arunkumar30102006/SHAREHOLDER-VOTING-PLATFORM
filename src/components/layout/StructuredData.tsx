@@ -10,29 +10,23 @@ export const organizationSchema = {
   name: 'Vote India Secure',
   alternateName: ['Vote India Secure Platform', 'ShareholderVoting.in'],
   url: `${SITE_URL}/`,
-  logo: {
-    '@type': 'ImageObject',
-    url: `${SITE_URL}/logo.png`,
-    width: '512',
-    height: '512',
-    caption: 'Vote India Secure Logo',
-  },
+  logo: `${SITE_URL}/logo-48.webp`,
   image: `${SITE_URL}/og-image.jpg`,
   description: 'Secure electronic voting and corporate governance platform for shareholder general meetings, AGMs, EGMs, and resolutions.',
-  sameAs: [
-    'https://www.linkedin.com/company/vote-india-secure',
-    'https://github.com/Arunkumar30102006/SHAREHOLDER-VOTING-PLATFORM',
-    'https://twitter.com/VoteIndiaSecure',
-  ],
-  contactPoint: [
-    {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      email: 'support@shareholdervoting.in',
-      areaServed: 'IN',
-      availableLanguage: ['English', 'Hindi'],
-    },
-  ],
+  sameAs: [],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    email: 'support@shareholdervoting.in',
+    contactType: 'customer support',
+    areaServed: 'IN',
+    availableLanguage: 'en',
+  },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Mumbai',
+    addressRegion: 'Maharashtra',
+    addressCountry: 'IN',
+  },
 };
 
 /**
@@ -68,17 +62,77 @@ export const softwareAppSchema = {
   '@type': 'SoftwareApplication',
   name: 'Vote India Secure',
   applicationCategory: 'BusinessApplication',
-  operatingSystem: 'Web, iOS, Android (Progressive Web App)',
-  url: `${SITE_URL}/`,
-  description: 'Cloud platform for statutory electronic shareholder voting, resolution tracking, and scrutinizer audit reporting.',
-  softwareVersion: '2.4.0',
+  operatingSystem: 'Web, iOS, Android',
+  url: SITE_URL,
+  description: 'Secure online shareholder voting platform for AGMs, EGMs and corporate resolutions with audit trails, real-time results and enterprise-grade security.',
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'INR',
+    priceRange: '₹15,000 – ₹45,000 per session',
+    availability: 'https://schema.org/InStock',
+  },
   featureList: [
-    'Remote E-Voting for AGMs, EGMs, and Postal Ballots',
-    'Weighted shareholding ballot calculation',
-    'Cryptographic vote integrity (AES-256 and SHA-256)',
-    'Independent Scrutinizer digital portal with report generation',
-    'Two-Factor Authentication (2FA OTP)',
-    'Real-time quorum progression monitoring',
+    'AES-256 ballot encryption',
+    'SHA-256 Merkle audit trail',
+    'SEBI LODR Regulation 44 aligned',
+    'Companies Act 2013 Section 108 aligned',
+    'Form MGT-13 scrutinizer reporting',
+    '2-Factor OTP authentication',
+    'Real-time quorum analytics',
+    'Progressive Web App',
+  ],
+};
+
+/**
+ * 3b. Homepage @graph schema combining SoftwareApplication + Organization
+ */
+export const homepageSoftwareOrgGraphSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Vote India Secure',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web, iOS, Android',
+      url: SITE_URL,
+      description: 'Secure online shareholder voting platform for AGMs, EGMs and corporate resolutions with audit trails, real-time results and enterprise-grade security.',
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'INR',
+        priceRange: '₹15,000 – ₹45,000 per session',
+        availability: 'https://schema.org/InStock',
+      },
+      featureList: [
+        'AES-256 ballot encryption',
+        'SHA-256 Merkle audit trail',
+        'SEBI LODR Regulation 44 aligned',
+        'Companies Act 2013 Section 108 aligned',
+        'Form MGT-13 scrutinizer reporting',
+        '2-Factor OTP authentication',
+        'Real-time quorum analytics',
+        'Progressive Web App',
+      ],
+    },
+    {
+      '@type': 'Organization',
+      name: 'Vote India Secure',
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo-48.webp`,
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: 'support@shareholdervoting.in',
+        contactType: 'customer support',
+        areaServed: 'IN',
+        availableLanguage: 'en',
+      },
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Mumbai',
+        addressRegion: 'Maharashtra',
+        addressCountry: 'IN',
+      },
+      sameAs: [],
+    },
   ],
 };
 
@@ -129,7 +183,6 @@ export const createArticleSchema = ({
   url,
   datePublished,
   dateModified,
-  author = 'Vote India Secure Editorial Team',
   image = `${SITE_URL}/og-image.jpg`,
 }: {
   title: string;
@@ -137,7 +190,6 @@ export const createArticleSchema = ({
   url: string;
   datePublished: string;
   dateModified?: string;
-  author?: string;
   image?: string;
 }) => {
   const fullUrl = url.startsWith('http') ? url : `${SITE_URL}${url}`;
@@ -146,25 +198,70 @@ export const createArticleSchema = ({
     '@type': 'Article',
     headline: title,
     description: description,
+    datePublished: datePublished,
+    dateModified: dateModified || datePublished,
+    url: fullUrl,
     image: image.startsWith('http') ? image : `${SITE_URL}${image}`,
     author: {
       '@type': 'Organization',
-      name: author,
-      url: `${SITE_URL}/`,
+      name: 'Vote India Secure Governance Desk',
+      url: `${SITE_URL}/about`,
     },
     publisher: {
       '@type': 'Organization',
       name: 'Vote India Secure',
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/logo.png`,
+        url: `${SITE_URL}/logo-48.webp`,
       },
     },
-    datePublished: datePublished,
-    dateModified: dateModified || datePublished,
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': fullUrl,
+    },
+  };
+};
+
+/**
+ * Helper: Generate WebPage Schema with embedded BreadcrumbList
+ */
+export const createWebPageSchema = ({
+  name,
+  description,
+  url,
+}: {
+  name: string;
+  description: string;
+  url: string;
+}) => {
+  const fullUrl = url.startsWith('http') ? url : `${SITE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name,
+    description,
+    url: fullUrl,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Vote India Secure',
+      url: SITE_URL,
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: SITE_URL,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name,
+          item: fullUrl,
+        },
+      ],
     },
   };
 };
@@ -173,7 +270,9 @@ export default {
   organizationSchema,
   webSiteSchema,
   softwareAppSchema,
+  homepageSoftwareOrgGraphSchema,
   createBreadcrumbSchema,
   createFaqSchema,
   createArticleSchema,
+  createWebPageSchema,
 };

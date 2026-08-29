@@ -13,6 +13,7 @@ const HowOnlineShareholderVotingWorks = () => {
       date="2026-08-18"
       readTime="5 min read"
       category="How-To Guide"
+      keywords="how shareholder e-voting works, cryptographic ballot security India, SHA-256 shareholder voting, OTP voting authentication, Merkle tree audit trail voting"
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">

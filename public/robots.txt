@@ -3,14 +3,10 @@
 
 User-agent: *
 Allow: /
-Disallow: /company-dashboard
-Disallow: /company-login
+Disallow: /company-dashboard/
 Disallow: /shareholder-login
-Disallow: /voting-dashboard
-Disallow: /voting-management
-Disallow: /shareholder-analysis
-Disallow: /ai-power-suite
-Disallow: /supabase-proxy/
+Disallow: /company-register
+Disallow: /admin/
 
 # Googlebot specific
 User-agent: Googlebot

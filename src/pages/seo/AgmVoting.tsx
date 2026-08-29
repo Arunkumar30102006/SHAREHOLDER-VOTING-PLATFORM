@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
-import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
+import { createBreadcrumbSchema, createFaqSchema, createWebPageSchema } from "@/components/layout/StructuredData";
 
 const breadcrumbSchema = createBreadcrumbSchema([
   { name: "Home", url: "/" },
@@ -50,6 +50,12 @@ const agmFaqSchema = createFaqSchema(
   agmFaqs.map((f) => ({ question: f.q, answer: f.a }))
 );
 
+const webPageSchema = createWebPageSchema({
+  name: "AGM E-Voting Guide | Annual General Meetings Under Companies Act",
+  description: "Complete guide to Annual General Meeting (AGM) e-voting under Companies Act Section 96, 108 & Rule 20: remote voting windows, InstaPolls, and Form MGT-13 reports.",
+  url: "/agm-voting",
+});
+
 export const AgmVoting = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -63,7 +69,7 @@ export const AgmVoting = () => {
         title="AGM E-Voting Guide | Annual General Meetings Under Companies Act"
         description="Complete guide to Annual General Meeting (AGM) e-voting under Companies Act Section 96, 108 & Rule 20: remote voting windows, InstaPolls, and Form MGT-13 reports."
         canonical="/agm-voting"
-        schemas={[breadcrumbSchema, agmFaqSchema]}
+        schemas={[breadcrumbSchema, agmFaqSchema, webPageSchema]}
       />
 
       {/* Hero Section */}

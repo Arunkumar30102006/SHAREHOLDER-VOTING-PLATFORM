@@ -14,6 +14,7 @@ interface BlogArticleLayoutProps {
   lastUpdated?: string;
   readTime: string;
   category: string;
+  keywords?: string;
   sources?: { title: string; url: string }[];
   children: React.ReactNode;
 }
@@ -28,6 +29,7 @@ export const BlogArticleLayout = ({
   lastUpdated = "August 2026",
   readTime,
   category,
+  keywords,
   sources,
   children,
 }: BlogArticleLayoutProps) => {
@@ -37,12 +39,11 @@ export const BlogArticleLayout = ({
     url: canonical,
     datePublished: date,
     dateModified: lastUpdated.includes("2026") ? "2026-08-23" : date,
-    author: author,
   });
 
   const breadcrumbSchema = createBreadcrumbSchema([
     { name: "Home", url: "/" },
-    { name: "Blog", url: "/blog" },
+    { name: "Blog & Insights", url: "/blog" },
     { name: title, url: canonical }
   ]);
 
@@ -53,6 +54,7 @@ export const BlogArticleLayout = ({
         description={description}
         canonical={canonical}
         type="article"
+        keywords={keywords}
         schemas={[articleSchema, breadcrumbSchema]}
       />
 

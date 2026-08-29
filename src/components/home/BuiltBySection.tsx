@@ -144,7 +144,7 @@ const BuiltBySection = () => {
             </div>
           </motion.div>
 
-          {/* Prototype Disclaimer Badge */}
+          {/* Independence Disclaimer Badge */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -152,10 +152,10 @@ const BuiltBySection = () => {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="mt-10 flex justify-center"
           >
-            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400/90 text-xs font-medium">
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-blue-500/5 border border-blue-500/20 text-slate-400 text-xs font-medium">
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
               <span>
-                This is a prototype platform for demonstration purposes — not affiliated with NSDL, CDSL, or SEBI
+                Independent technology platform — not affiliated with NSDL, CDSL, or SEBI
               </span>
             </div>
           </motion.div>

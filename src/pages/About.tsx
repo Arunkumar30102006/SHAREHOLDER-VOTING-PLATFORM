@@ -135,6 +135,43 @@ const About = () => {
         </div>
       </section>
 
+      {/* E-E-A-T: Governance Desk & Editorial Policy */}
+      <section className="container mx-auto px-4 max-w-5xl mb-20" id="governance-desk">
+        <div className="bg-[#0d1b2a]/90 border border-white/15 rounded-3xl p-8 md:p-12 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <Scale className="w-6 h-6 text-cyan-400" />
+            <h2 className="text-2xl md:text-3xl font-black text-white">Governance Desk &amp; Editorial Policy</h2>
+          </div>
+          <div className="space-y-5 text-slate-200 text-sm md:text-base font-normal leading-relaxed">
+            <p>
+              All regulatory guidance articles, compliance checklists, and blog content published on Vote India Secure are authored and reviewed by the <strong className="text-white">Vote India Secure Governance Desk</strong> — an internal editorial function staffed by professionals with backgrounds in corporate secretarial practice, SEBI regulatory compliance, and enterprise software engineering.
+            </p>
+            <p>
+              Our editorial process follows a multi-stage review methodology designed to ensure accuracy and alignment with current statutory provisions:
+            </p>
+            <ol className="list-decimal pl-6 space-y-2 text-sm text-slate-300">
+              <li><strong className="text-slate-100">Primary Research:</strong> Authors reference official gazette notifications, SEBI circulars, MCA general circulars, and the bare text of the Companies Act 2013 and Rules.</li>
+              <li><strong className="text-slate-100">Cross-Referencing:</strong> Every statutory claim is cross-referenced against the original legislation and active SEBI/MCA notifications before publication.</li>
+              <li><strong className="text-slate-100">Advisory Alignment Review:</strong> Key articles undergo alignment review with practising Company Secretaries (PCS) and legal professionals with expertise in Indian corporate governance to verify regulatory interpretation accuracy.</li>
+              <li><strong className="text-slate-100">Periodic Updates:</strong> Published content is reviewed quarterly or following any relevant SEBI circular, MCA notification, or legislative amendment.</li>
+            </ol>
+            <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-400/30 text-blue-200 text-sm mt-4">
+              <strong>Disclaimer:</strong> Content published by the Governance Desk is educational and informational in nature. It does not constitute legal advice. Organizations should consult their Company Secretary or qualified legal counsel for compliance-specific guidance.
+            </div>
+            <div className="flex flex-wrap gap-4 mt-4">
+              <Link
+                to="/blog"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 text-blue-300 text-xs font-semibold transition-colors"
+              >
+                <FileCode className="w-4 h-4" />
+                View Published Governance Articles
+                <ArrowRight className="w-3.5 h-3.5 opacity-60" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pillars of Excellence */}
       <section className="container mx-auto px-4 max-w-6xl mb-20">
         <div className="text-center mb-12">

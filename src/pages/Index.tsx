@@ -3,7 +3,7 @@ import { SEO } from "@/components/layout/SEO";
 import { 
   organizationSchema, 
   webSiteSchema, 
-  softwareAppSchema, 
+  homepageSoftwareOrgGraphSchema, 
   createFaqSchema 
 } from "@/components/layout/StructuredData";
 import { Link } from "react-router-dom";
@@ -163,7 +163,8 @@ const Index = () => {
         title="Vote India Secure | Secure Shareholder E-Voting Platform"
         description="Secure online shareholder voting platform for AGMs, EGMs and corporate resolutions with audit trails, real-time results and enterprise-grade security."
         canonical="/"
-        schemas={[organizationSchema, webSiteSchema, softwareAppSchema, createFaqSchema(faqItems)]}
+        keywords="shareholder e-voting platform India, online AGM voting software, SEBI LODR e-voting, Companies Act Section 108 voting, electronic voting platform India, remote e-voting solution, AGM EGM voting software"
+        schemas={[organizationSchema, webSiteSchema, homepageSoftwareOrgGraphSchema, createFaqSchema(faqItems)]}
       />
 
       {/* ─── 1. HERO SECTION ─── */}
@@ -195,7 +196,7 @@ const Index = () => {
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
               Online Shareholder <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent drop-shadow-sm">
-                Voting Platform
+                Voting Platform for AGMs &amp; EGMs
               </span>
             </h1>
 

@@ -22,6 +22,7 @@ const AgmRemoteEvotingTimelineChecklist = () => {
       lastUpdated="August 2026"
       readTime="8 min read"
       category="AGM Compliance & Operations"
+      keywords="AGM e-voting checklist, remote e-voting 30 day timeline, company secretary e-voting compliance, cut-off date e-voting Rule 20, AGM notice dispatch checklist India"
       sources={statutorySources}
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">

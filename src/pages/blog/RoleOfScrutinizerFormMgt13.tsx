@@ -22,6 +22,7 @@ const RoleOfScrutinizerFormMgt13 = () => {
       lastUpdated="August 2026"
       readTime="7 min read"
       category="Corporate Law & Scrutiny"
+      keywords="scrutinizer e-voting India, Form MGT-13 scrutinizer report, Rule 20 e-voting scrutinizer, independent scrutinizer AGM, vault unblocking e-voting witnesses"
       sources={statutorySources}
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">

@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/layout/SEO";
-import { createBreadcrumbSchema, createFaqSchema } from "@/components/layout/StructuredData";
+import { createBreadcrumbSchema, createFaqSchema, createWebPageSchema } from "@/components/layout/StructuredData";
 
 // ─── JSON-LD Structured Data ───
 const breadcrumbSchema = createBreadcrumbSchema([
@@ -58,6 +58,12 @@ const faqList = [
 const complianceFaqSchema = createFaqSchema(
   faqList.map(item => ({ question: item.q, answer: item.a }))
 );
+
+const webPageSchema = createWebPageSchema({
+  name: "SEBI E-Voting Compliance for Listed Companies | Vote India Secure",
+  description: "Understand statutory e-voting provisions under Companies Act 2013 Section 108, Rule 20, and SEBI LODR Regulation 44 for general meetings in India.",
+  url: "/compliance",
+});
 
 // ─── Statutory Mandate Data ───
 const legalMandates = [
@@ -239,7 +245,7 @@ export const Compliance = () => {
         title="SEBI E-Voting Compliance for Listed Companies | Vote India Secure"
         description="Understand statutory e-voting provisions under Companies Act 2013 Section 108, Rule 20, and SEBI LODR Regulation 44 for general meetings in India."
         canonical="/compliance"
-        schemas={[breadcrumbSchema, complianceFaqSchema]}
+        schemas={[breadcrumbSchema, complianceFaqSchema, webPageSchema]}
       />
 
       {/* ─── 1. HERO SECTION ─── */}

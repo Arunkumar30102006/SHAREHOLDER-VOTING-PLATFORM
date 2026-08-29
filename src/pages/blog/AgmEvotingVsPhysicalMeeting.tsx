@@ -13,6 +13,7 @@ const AgmEvotingVsPhysicalMeeting = () => {
       date="2026-08-20"
       readTime="7 min read"
       category="Strategic Insights"
+      keywords="virtual AGM vs physical meeting India, online AGM e-voting benefits, remote shareholder participation India, AGM quorum compliance online, digital general meeting India"
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">

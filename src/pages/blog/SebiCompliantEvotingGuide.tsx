@@ -13,6 +13,7 @@ const SebiCompliantEvotingGuide = () => {
       date="2026-08-15"
       readTime="6 min read"
       category="Regulatory Analysis"
+      keywords="SEBI LODR Regulation 44 e-voting, Companies Act Section 108 compliance, remote e-voting requirements India, SEBI compliant voting platform, AGM e-voting regulations India"
     >
       <div className="space-y-6 text-slate-200 leading-relaxed font-normal">
         <p className="text-lg text-slate-300 font-normal leading-relaxed">

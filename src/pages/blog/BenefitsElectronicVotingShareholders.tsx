@@ -13,6 +13,7 @@ const BenefitsElectronicVotingShareholders = () => {
       date="2026-08-20"
       readTime="5 min read"
       category="Corporate Leadership"
+      keywords="benefits electronic shareholder voting, advantages e-voting AGM, corporate governance electronic voting, board resolution e-voting benefits, shareholder turnout electronic voting"
     >
       <div className="space-y-6 text-slate-200 leading-relaxed">
         <p className="text-lg text-slate-300 font-medium leading-relaxed">
