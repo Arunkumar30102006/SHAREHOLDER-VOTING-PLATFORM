@@ -1,71 +1,135 @@
 <div align="center">
-  <img src="https://images.unsplash.com/photo-1555849898-f29b053c52a0?auto=format&fit=crop&q=80&w=1200" alt="Vote India Secure Banner" width="100%" />
+  <img src="https://images.unsplash.com/photo-1555849898-f29b053c52a0?auto=format&fit=crop&q=80&w=1200" alt="Vote India Secure Banner" width="100%" style="border-radius: 16px;" />
   
   <br />
   <br />
 
   # 🗳️ Vote India Secure
+  ### Enterprise E-Voting Platform for Indian Corporate Governance
 
-  **Enterprise E-Voting Platform for Indian Listed Companies**
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+  [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
+  [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+  [![DPDP Act 2023](https://img.shields.io/badge/DPDP%20Act%202023-Aligned-059669?style=for-the-badge)](https://www.shareholdervoting.in/privacy-policy)
+  [![SEBI LODR 44](https://img.shields.io/badge/SEBI%20LODR-Reg%2044-2563EB?style=for-the-badge)](https://www.shareholdervoting.in/compliance)
+  [![Vercel](https://img.shields.io/badge/Deployed-Vercel-000000?style=for-the-badge&logo=vercel)](https://www.shareholdervoting.in)
 
   <p align="center">
-    <a href="#-features">Features</a> •
-    <a href="#-technology-stack">Tech Stack</a> •
-    <a href="#-project-structure">Structure</a> •
-    <a href="#-deployment">Deployment</a> •
-    <a href="#-license">License</a>
+    <a href="https://www.shareholdervoting.in">Live Platform</a> •
+    <a href="https://www.shareholdervoting.in/live-demo">Live Demo</a> •
+    <a href="#-architectural-overview">Architecture</a> •
+    <a href="#-statutory-compliance-matrix">Compliance</a> •
+    <a href="#-key-features">Features</a> •
+    <a href="#-local-development-setup">Setup Guide</a> •
+    <a href="#-database-schema--rls">Database</a>
   </p>
 </div>
 
 ---
 
-**Vote India Secure** is a state-of-the-art, secure, and regulatory-compliant e-voting platform tailored for Indian companies. Designed to facilitate digital corporate governance, it implements blockchain-inspired concepts (such as cryptographic vote hashing and verification) and adheres strictly to the **Companies Act, 2013 (Section 108)** and SEBI guidelines regarding remote e-voting.
+## 📌 Executive Summary
+
+**Vote India Secure** ([shareholdervoting.in](https://www.shareholdervoting.in)) is an enterprise-grade, cryptographically verifiable electronic voting SaaS engineered specifically for Indian corporate democracy. It empowers publicly listed corporations, unlisted enterprises, cooperatives, and Registrar & Transfer Agents (RTAs) to conduct seamless Annual General Meetings (AGMs), Extraordinary General Meetings (EGMs), and Postal Ballots.
+
+Built from the ground up to replace cumbersome legacy workflows, the platform features mathematical ballot sealing (AES-256 + SHA-256 Merkle proofs), two-witness digital scrutinizer key unblocking, instant **Form MGT-13** reporting, and strict architectural alignment with the **Companies Act 2013**, **SEBI (LODR) Regulations 2015**, and the **Digital Personal Data Protection (DPDP) Act 2023**.
+
+---
+
+## 🏛️ Architectural Overview
+
+```mermaid
+flowchart TD
+    subgraph Ingestion["1. Roster Ingestion"]
+        RTA[RTA / Depository Benpos] -->|NSDL / CDSL / Folio CSV| Admin[Issuer Portal]
+        Admin -->|Ingest Records| DB[(Supabase PostgreSQL + RLS)]
+    end
+
+    subgraph Authentication["2. Voter 2FA & Verification"]
+        Shareholder[Shareholder PWA] -->|Enter PAN / DP ID / Folio| AuthEngine[Auth Engine]
+        AuthEngine -->|Trigger SMS / Email OTP| OTP[2-Factor OTP Verification]
+        OTP -->|Authenticated Session| Ballot[Interactive Ballot Card]
+    end
+
+    subgraph Sealing["3. Cryptographic Sealing"]
+        Ballot -->|Submit Vote Choice| CryptoEngine[Ballot Cryptographic Engine]
+        CryptoEngine -->|AES-256 Encryption| Vault[(Encrypted Ballot Vault)]
+        CryptoEngine -->|SHA-256 Hashing| Merkle[Immutable Merkle Audit Ledger]
+        CryptoEngine -->|Cryptographic Receipt| ShareholderReceipt[Verifiable QR Receipt]
+    end
+
+    subgraph Scrutiny["4. Scrutiny & Filing"]
+        Scrutinizer[Independent Scrutinizer] -->|Two Independent Witnesses| MultiKey[Multi-Party Key Unblocking]
+        MultiKey -->|Decrypt Aggregates| Vault
+        Vault -->|Calculate Weighted Tallies| ReportEngine[Report Engine]
+        ReportEngine -->|Automated PDF / Excel| MGT13[Form MGT-13 Scrutinizer Report]
+        ReportEngine -->|Stock Exchange Filing| SEBI[SEBI LODR Reg 44 Filing]
+    end
+```
+
+---
+
+## ⚖️ Statutory Compliance Matrix
+
+| Statute / Regulation | Statutory Mandate | Vote India Secure Architectural Implementation |
+| :--- | :--- | :--- |
+| **Companies Act 2013 — Section 108** | Mandatory e-voting facility for listed entities and companies with $\ge$ 1,000 shareholders. | Cloud-native multi-tenant e-voting architecture with unlimited concurrent voter throughput. |
+| **Companies (M&A) Rules 2014 — Rule 20** | Operational timelines ($\ge$ 3 days remote voting, cut-off date $\le$ 7 days, 5:00 PM close). | Automated statutory timers, cut-off date validation, and immutable timestamped session locks. |
+| **Rule 20(4)(xii) — Ballot Secrecy** | Register of votes cast cannot be accessed by company or third parties prior to unblocking. | AES-256 GCM ballot decoupling. Zero administrative access to voter choices before meeting unblocking. |
+| **Rule 20(4)(xii) — Scrutinizer Unblocking** | Vault unblocked after meeting conclusion in presence of $\ge$ 2 independent witnesses. | Multi-witness digital key unblocking ceremony requiring co-signatory confirmation. |
+| **Form MGT-13** | Statutory Scrutinizer's Report on remote e-voting and venue poll results. | One-click automated Form MGT-13 PDF report generation formatted to exact MCA standards. |
+| **SEBI (LODR) 2015 — Regulation 44** | Listed entities must submit voting results to stock exchanges within 2 working days. | Real-time consolidated voting exports in structured Excel/XBRL-ready formats. |
+| **DPDP Act 2023 (India)** | Purpose limitation, data minimisation, Indian data residency, and principal rights. | 100% sovereign Indian hosting (Mumbai/Bengaluru), PAN/DPID hash masking, DPO grievance mechanism. |
+| **CERT-In Directions (April 2022)** | Mandatory 180-day retention of cybersecurity telemetry and system logs. | Automated immutable audit trail logging with NTP time synchronization and 180-day retention. |
 
 ---
 
 ## ✨ Key Features
 
-### 🏢 Corporate & Marketing Frontend
-* **Dynamic Homepage:** Modern, responsive landing page with trust signals, feature highlights, and animated interfaces (Framer Motion).
-* **Enterprise Services:** Detailed breakdown of e-voting solutions tailored for shareholders, RTAs, and CFOs.
-* **SEBI Compliance Center:** Dedicated documentation for regulatory adherence and data security standards.
-* **Lead Generation:** Integrated Contact form mapped directly to Supabase Edge Functions.
+### 🏢 Enterprise Issuer & Company Dashboard (`/company-dashboard`)
+* **Depository Benpos Ingestion:** Drag-and-drop ingestion of NSDL, CDSL, and physical folio registers with automated shareholding validation.
+* **Resolution Builder:** Configure Ordinary, Special, and Multi-Class resolutions with PDF explanatory statements and statutory voting windows.
+* **Real-time Quorum Progression:** Interactive live charts (Recharts) monitoring participation percentages against statutory quorum thresholds.
+* **InstaPoll (Venue Voting):** Instantaneous in-meeting poll window for virtual/hybrid AGM attendees with duplicate vote prevention.
 
-### 💼 Company & Administrative Portal (CompanyLogin)
-* **Verified Registration:** Automated CIN (Corporate Identification Number) and PAN validations for registering companies.
-* **Voting Event Management:** Create and schedule voting sessions with custom record dates, start/end timelines, and multiple resolutions.
-* **Document Management:** Upload PDFs, agendas, and detail specific voting choices.
-* **Scrutinizer Analytics:** Real-time Recharts dashboards showing voting progress, participation rates, and aggregate results (For, Against, Abstain).
-* **Compliance Exports:** Export complete, verifiable reports for corporate filing and audit logs via `jspdf` and Excel formats.
+### 👥 Shareholder Experience (`/shareholder-login`)
+* **Universal Mobile PWA:** Responsive Progressive Web App accessible on any smartphone, tablet, or browser with sub-second page loads.
+* **Frictionless 2FA Login:** Direct authentication via DP ID / Client ID / Folio + PAN verification paired with instant OTP delivery.
+* **Cryptographic Balloting:** Cast weighted ballots in under 30 seconds with immediate cryptographic confirmation receipts and verifiable QR codes.
+* **AI Resolution Briefing:** Instant executive summaries of lengthy annual reports and proxy materials powered by LLMs.
 
-### 👥 Shareholder Portal (ShareholderLogin)
-* **Secure Access & 2FA:** Direct login utilizing unique, system-generated credentials and OTP verification via email/SMS.
-* **Interactive Ballot Card:** Clear, responsive interface to cast votes on active resolutions securely.
-* **Personalized Analytics:** View personalized shareholding stakes, voting history, and distribution breakdowns in beautiful visual charts.
+### 🛡️ Scrutinizer Digital Hub (`/live-demo`)
+* **Multi-Witness Vault Unblocking:** Cryptographic key verification requiring the independent Scrutinizer and two external witnesses.
+* **Automated MGT-13 Compilation:** Generates print-ready statutory Scrutinizer Reports with resolution breakdowns (Assent / Dissent / Abstain / Invalid).
+* **Merkle Tree Audit Verification:** Independent mathematical verification of ballot ledger integrity.
 
-### 🧠 Intelligent AI Add-ons (Powered by Groq & Gemini)
-* **Document Summarizer:** Instantly summarizes long corporate resolutions into easy-to-read bullet points using Llama-3.3-70b-versatile.
-* **Sentiment Analysis:** Analyzes shareholder feedback to group responses by emotional tone (Positive, Neutral, Negative).
-* **Vote Assistant:** A floating AI chatbot helper that answers shareholder queries on timelines and procedures via natural language or speech recognition.
+### 🧠 AI Power Suite (Groq Llama 3.3 + Gemini)
+* **Document Summarizer:** Condenses 200+ page corporate filings and notice agendas into clear, actionable bullet points.
+* **AGM Q&A Sentiment Analysis:** Evaluates live shareholder questions to detect investor sentiment and core boardroom concerns.
+* **VoteAssistant:** Intelligent floating chatbot assisting shareholders with procedural guidelines and statutory deadlines.
 
-### 🌐 Translation & Localization
-* Fully internationalized interface using **i18next** supporting both **English** and regional Indian languages (Hindi, Tamil, etc.) for diverse shareholder demographics.
+### 🌐 Internationalization & Accessibility
+* **Multi-Language Support:** Powered by `i18next` supporting English and major regional Indian languages (Hindi, Tamil, Marathi, Gujarati).
+* **WCAG AAA Contrast:** High-contrast, dark-mode visual hierarchy optimized for readability and accessibility.
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Category | Technology |
-| :--- | :--- |
-| **Frontend Framework** | React 18, TypeScript, Vite |
-| **Styling & UI** | Tailwind CSS, Shadcn UI (Radix Primitives), Framer Motion |
-| **Icons & Assets** | Lucide React, React Three Fiber (3D Elements) |
-| **Charts & Visualizations** | Recharts |
-| **Database & Auth** | Supabase (PostgreSQL, Row-Level Security, Real-Time) |
-| **Edge Functions** | Deno (Supabase Edge Functions) for AI ops & Mailers |
-| **AI Models** | Groq Cloud (Llama 3), Google Gemini SDK |
-| **Email Service** | Resend API |
-| **Localization** | i18next, react-i18next |
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                          FRONTEND APPLICATION                          │
+│   React 18  •  TypeScript 5.5  •  Vite 5.4  •  Tailwind CSS  •  SSG   │
+│   Radix UI Primitives  •  Lucide Icons  •  Recharts  •  i18next        │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ HTTPS (TLS 1.3)
+┌───────────────────────────────────▼────────────────────────────────────┐
+│                    SUPABASE SERVERLESS INFRASTRUCTURE                  │
+│   PostgreSQL 15  •  Row-Level Security (RLS)  •  Deno Edge Functions   │
+│   Resend Transactional Email  •  Groq Cloud AI (Llama 3.3)             │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -73,99 +137,180 @@
 
 ```text
 vote-india-secure/
-├── .env                    # Environment variables (Supabase, Groq, Resend keys)
-├── package.json            # Project dependencies & scripts
-├── tailwind.config.ts      # Tailwind configuration and design tokens
-├── tsconfig.json           # TypeScript strict compilation config
-├── supabase/               # Backend Database and Serverless APIs
-│   ├── functions/          # Deno-based Supabase Edge Functions
-│   │   ├── ai-ops/                 # Groq sentiment, chat, and summarization
-│   │   ├── send-welcome-email/     # Resend welcome mailer
-│   │   ├── send-email-otp/         # 2FA OTP verification
-│   │   └── ...                     
-│   └── migrations/         # PostgreSQL schema version histories
-└── src/                    # React Source Code
-    ├── App.tsx             # Route registry and lazy-loaded Pages
-    ├── components/         # Reusable UI Components
-    │   ├── ui/             # Core shadcn design primitives (buttons, inputs)
-    │   ├── layout/         # Header, Footer, and Navbar wrappers
-    │   ├── auth/           # Login guards and role validators
-    │   ├── ai/             # VoteAssistant chatbot and AI summarizing widgets
-    │   └── company/        # Scrutinizer graphs and admin dashboard tables
-    ├── hooks/              # Custom React hooks
-    ├── i18n/               # Localization files (en.json, hi.json)
-    ├── integrations/       # Supabase client instantiation
-    ├── pages/              # Routed Views (Index, About, Services, Contact, etc.)
-    └── types/              # TypeScript typings and interfaces
+├── .env.example                # Template for environment configurations
+├── .gitignore                  # Git exclusion rules (SSG temp, audit dumps, OS files)
+├── index.html                  # HTML entrypoint with optimized font loading & GTM
+├── package.json                # Project dependencies and script commands
+├── tailwind.config.ts          # Tailwind tokens, dark palette & typography
+├── tsconfig.json               # TypeScript strict configuration
+├── vercel.json                 # Vercel deployment, headers, and security rules
+├── vite.config.ts              # Vite bundle chunking & SSG configuration
+├── public/                     # Static assets, PWA manifest, robots.txt, sitemap.xml
+│   ├── favicon-48x48.png       # High-res favicon
+│   ├── logo-48.webp            # Optimized WebP brand logo
+│   ├── manifest.json           # Progressive Web App manifest
+│   ├── robots.txt              # Production search engine crawler directives
+│   └── sitemap.xml             # XML sitemap covering all 31+ static routes
+├── supabase/                   # Supabase database & serverless infrastructure
+│   ├── supabase_setup.sql      # Core PostgreSQL schema, tables, and RLS policies
+│   └── functions/              # Deno-based Supabase Edge Functions
+│       ├── ai-ops/             # Groq AI summarization & sentiment analysis
+│       ├── send-email-otp/     # 2FA OTP mailer via Resend
+│       └── send-contact-message/ # Contact form webhook handler
+└── src/                        # Application source code
+    ├── main.tsx                # Client application bootstrap & SSG entry
+    ├── App.tsx                 # Route registry & root layout providers
+    ├── index.css               # Global CSS, Tailwind layers, font-family definitions
+    ├── components/             # Reusable UI component library
+    │   ├── 3d/                 # 3D interactive elements (OTPSuccess3D)
+    │   ├── ai/                 # VoteAssistant chatbot & AI widgets
+    │   ├── auth/               # AnimatedOtpVerification & ProtectedAdminRoute
+    │   ├── company/            # Admin voting tables & Scrutinizer chart cards
+    │   ├── home/               # HeroCyberOrb, StatsSection, Features, TrustBadges
+    │   ├── layout/             # Navbar, Footer, SEO (Head manager), StructuredData
+    │   └── ui/                 # Radix / Shadcn primitives (buttons, dialogs, tabs)
+    ├── config/                 # App config & environment wrappers
+    ├── hooks/                  # Custom React hooks (useToast, useTranslation)
+    ├── i18n/                   # i18next configuration & JSON locales (en.json)
+    ├── lib/                    # Core utilities & pdfReports generation engine
+    ├── pages/                  # Top-level route views
+    │   ├── Index.tsx           # Homepage with HeroCyberOrb & FAQPage JSON-LD
+    │   ├── About.tsx           # Mission & E-E-A-T Governance Desk charter
+    │   ├── Compliance.tsx      # Interactive SEBI & MCA compliance guide
+    │   ├── LiveDemo.tsx        # Interactive voter & scrutinizer simulation
+    │   ├── blog/               # 6 Statutory corporate governance regulatory guides
+    │   ├── legal/              # PrivacyPolicy, DataProtection, TermsOfService
+    │   └── seo/                # Targeted SEO service pages (AgmVoting, RemoteEVoting)
+    └── types/                  # TypeScript interfaces and entity types
 ```
 
 ---
 
-## 🛢️ Database Architecture
+## 🛢️ Database Schema & RLS Policies
 
-The PostgreSQL database is heavily secured by **Row Level Security (RLS)** policies to ensure data isolation between different companies and shareholders.
+The PostgreSQL database enforces strict tenant isolation via **Row-Level Security (RLS)**:
 
-1. **`companies`**: Holds company names, CIN numbers, authorized capital, and compliance contacts.
-2. **`company_admins`**: RBAC accounts for company secretaries and admins.
-3. **`shareholders`**: Stores demat/folio details, PAN, and the number of shares held per company.
-4. **`voting_sessions`**: Session data representing a meeting (record date, timeline).
-5. **`resolutions`**: Individual agenda items to be voted on.
-6. **`votes`**: Voter choices cryptographically hashed (`vote_hash`) to ensure anonymity and auditability.
-7. **`shareholder_feedback`**: Stores feedback content, themes, and calculated sentiment ratings.
+```sql
+-- 1. Companies & Issuers
+CREATE TABLE companies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  cin VARCHAR(21) UNIQUE NOT NULL,
+  pan VARCHAR(10) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 2. Voting Sessions (AGM / EGM / Postal Ballot)
+CREATE TABLE voting_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  meeting_type VARCHAR(50) CHECK (meeting_type IN ('AGM', 'EGM', 'POSTAL_BALLOT')),
+  record_cutoff_date DATE NOT NULL,
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ NOT NULL,
+  is_active BOOLEAN DEFAULT false,
+  is_unblocked BOOLEAN DEFAULT false,
+  scrutinizer_name VARCHAR(255)
+);
+
+-- 3. Resolutions
+CREATE TABLE resolutions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES voting_sessions(id) ON DELETE CASCADE,
+  resolution_number INT NOT NULL,
+  title VARCHAR(500) NOT NULL,
+  resolution_type VARCHAR(50) CHECK (resolution_type IN ('ORDINARY', 'SPECIAL')),
+  description TEXT
+);
+
+-- 4. Cryptographically Sealed Ballots
+CREATE TABLE votes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES voting_sessions(id) ON DELETE CASCADE,
+  resolution_id UUID REFERENCES resolutions(id) ON DELETE CASCADE,
+  shareholder_id_hash VARCHAR(64) NOT NULL, -- Decoupled voter hash
+  shares_count BIGINT NOT NULL,
+  choice VARCHAR(20) CHECK (choice IN ('ASSENT', 'DISSENT', 'ABSTAIN')),
+  vote_hash VARCHAR(64) NOT NULL,          -- SHA-256 ballot digest
+  timestamp TIMESTAMPTZ DEFAULT now()
+);
+```
 
 ---
 
 ## 🚀 Local Development Setup
 
 ### Prerequisites
-* Node.js (v18+)
-* npm (v9+)
-* A Supabase project (for database and auth)
+* **Node.js**: v18.0.0 or higher
+* **npm**: v9.0.0 or higher
+* **Git** installed on your machine
 
-### 1. Clone and Install
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/Arunkumar30102006/VOTING-2026.git
+git clone https://github.com/Arunkumar30102006/SHAREHOLDER-VOTING-PLATFORM.git
 cd vote-india-secure-main
+```
+
+### 2. Install Dependencies
+```bash
 npm install
 ```
 
-### 2. Configure Environment Variables
+### 3. Configure Environment Variables
 Create a `.env` file in the root directory:
 ```env
-VITE_SUPABASE_PROJECT_ID=your_project_id
-VITE_SUPABASE_URL=https://your_project_id.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_RESEND_API_KEY=your_resend_api_key
-GROQ_API_KEY=your_groq_api_key
+VITE_SUPABASE_URL=https://your-supabase-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_RESEND_API_KEY=your-resend-api-key
+GROQ_API_KEY=your-groq-api-key
 ```
 
-### 3. Run the Development Server
+### 4. Start Local Development Server
 ```bash
 npm run dev
 ```
-Navigate to `http://localhost:5173` in your browser.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🌍 Production Deployment (Vercel)
+## 📜 Available Scripts
 
-The frontend is optimized for seamless deployment on Vercel.
-
-1. Create a [Vercel](https://vercel.com/) account and connect your GitHub.
-2. Click **Add New...** -> **Project**.
-3. Select your `VOTING-2026` repository.
-4. Framework Preset will auto-detect as **Vite**.
-5. Add all your `VITE_` prefixed variables from your `.env` to the **Environment Variables** section.
-6. Click **Deploy**.
-
-For the backend, ensure your Supabase Edge Functions are deployed:
-```bash
-supabase functions deploy
-```
-*(Ensure you have set the secrets via `supabase secrets set` in the Supabase Dashboard as well).*
+| Command | Purpose |
+| :--- | :--- |
+| `npm run dev` | Starts the Vite local development server with Hot Module Replacement (HMR). |
+| `npm run build` | Builds the client bundle and static site pages via `vite-react-ssg`. |
+| `npm run preview` | Locally serves the production SSG build from `dist/client`. |
+| `npx tsc --noEmit` | Runs strict TypeScript type-checking across all `.ts` and `.tsx` files. |
+| `npx eslint .` | Runs ESLint analysis across the codebase. |
 
 ---
 
-## 📄 License
-This project is proprietary and confidential.  
-All rights reserved © 2026 Vote India Secure.
+## 🌐 Production Deployment (Vercel)
+
+The platform is optimized for **Vercel** with Static Site Generation (SSG):
+
+1. Connect your GitHub repository to [Vercel](https://vercel.com).
+2. Configure the project settings:
+   - **Framework Preset:** `Vite`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist/client`
+3. Configure environment variables in the Vercel Dashboard (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
+4. Every push to `main` triggers automated static rendering, sitemap generation, and deployment.
+
+---
+
+## 🔒 Security & Vulnerability Disclosure
+
+Security and ballot integrity are core to Vote India Secure. If you discover a potential vulnerability or security concern, please review our responsible disclosure policy and contact us directly:
+
+* **Security & DPO Desk:** `support@shareholdervoting.in`
+* **Response SLA:** Initial acknowledgment within 24 hours; technical triage within 72 hours.
+
+---
+
+## 📄 License & Legal Disclaimer
+
+Copyright © 2026 **Vote India Secure** ([shareholdervoting.in](https://www.shareholdervoting.in)). All rights reserved.
+
+> **Disclaimer:** Vote India Secure is an independent corporate governance technology platform engineered in architectural alignment with Section 108 of the Companies Act 2013 and SEBI LODR Regulation 44. It is not affiliated with, endorsed by, or sponsored by NSDL, CDSL, or SEBI.
