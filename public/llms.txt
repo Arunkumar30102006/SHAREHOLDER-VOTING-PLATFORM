@@ -1,53 +1,22 @@
-# Vote India Secure — Shareholder E-Voting Platform
+# Vote India Secure - AI Crawler Index
+# https://www.shareholdervoting.in
 
-Vote India Secure is an electronic voting platform built for Indian corporate governance. It enables companies, shareholders, scrutinizers, and RTAs to conduct secure online e-voting for AGMs, EGMs, postal ballots, and shareholder resolutions with cryptographic audit trails.
-
-## Core Capabilities
-- Remote e-voting for AGMs, EGMs, and postal ballots
-- Weighted shareholding ballot calculations
-- Cryptographic ballot integrity (AES-256, SHA-256)
-- Independent Scrutinizer portal with automated report generation
-- Two-Factor OTP authentication
-- Real-time quorum progression monitoring
-- AI document summarization for meeting notices and annual reports
+> Secure, SEBI-compliant online shareholder voting platform for AGMs and EGMs.
 
 ## Key Pages
 
-### Main
-- https://www.shareholdervoting.in/ — Homepage
-- https://www.shareholdervoting.in/about — About the platform
-- https://www.shareholdervoting.in/features — Platform features
-- https://www.shareholdervoting.in/pricing — Pricing plans
-- https://www.shareholdervoting.in/contact — Contact and support
-- https://www.shareholdervoting.in/demo — Platform demo
-- https://www.shareholdervoting.in/live-demo — Interactive live demo
+- [Home](https://www.shareholdervoting.in/)
+- [How It Works](https://www.shareholdervoting.in/how-it-works)
+- [Security](https://www.shareholdervoting.in/security)
+- [Compliance](https://www.shareholdervoting.in/compliance)
+- [Pricing](https://www.shareholdervoting.in/pricing)
+- [FAQs](https://www.shareholdervoting.in/faqs)
 
-### Solutions
-- https://www.shareholdervoting.in/shareholder-voting — Shareholder e-voting overview
-- https://www.shareholdervoting.in/remote-e-voting — Remote e-voting (Rule 20)
-- https://www.shareholdervoting.in/agm-voting — AGM e-voting
-- https://www.shareholdervoting.in/egm-voting — EGM and postal ballot voting
-- https://www.shareholdervoting.in/corporate-voting — Corporate governance voting
-- https://www.shareholdervoting.in/secure-voting — Secure voting architecture
-- https://www.shareholdervoting.in/online-e-voting — Online electronic voting
-- https://www.shareholdervoting.in/how-it-works — How the platform works
+## Blog
 
-### Trust & Compliance
-- https://www.shareholdervoting.in/security — Technical security model
-- https://www.shareholdervoting.in/compliance — Statutory compliance hub
-- https://www.shareholdervoting.in/sebi-compliance — SEBI compliance details
-- https://www.shareholdervoting.in/data-protection — Data protection practices
-- https://www.shareholdervoting.in/faqs — Frequently asked questions
-
-### Blog & Knowledge Center
-- https://www.shareholdervoting.in/blog — Blog and regulatory guides
-- https://www.shareholdervoting.in/blog/sebi-compliant-evoting-guide — SEBI e-voting guide
-- https://www.shareholdervoting.in/blog/how-online-shareholder-voting-works — How online voting works
-- https://www.shareholdervoting.in/blog/agm-evoting-vs-physical-meeting — AGM e-voting vs physical
-- https://www.shareholdervoting.in/blog/benefits-electronic-voting-shareholders — Benefits of e-voting
-- https://www.shareholdervoting.in/blog/role-of-scrutinizer-form-mgt-13 — Scrutinizer role and MGT-13
-- https://www.shareholdervoting.in/blog/agm-remote-evoting-timeline-checklist — AGM timeline checklist
-
-### Legal
-- https://www.shareholdervoting.in/privacy-policy — Privacy policy
-- https://www.shareholdervoting.in/terms-of-service — Terms of service
+- [SEBI Compliant E-Voting Guide](https://www.shareholdervoting.in/blog/sebi-compliant-evoting-guide)
+- [Role of Scrutinizer & Form MGT-13](https://www.shareholdervoting.in/blog/role-of-scrutinizer-form-mgt-13)
+- [AGM Remote E-Voting Timeline](https://www.shareholdervoting.in/blog/agm-remote-evoting-timeline-checklist)
+- [How Online Shareholder Voting Works](https://www.shareholdervoting.in/blog/how-online-shareholder-voting-works)
+- [AGM E-Voting vs Physical Meeting](https://www.shareholdervoting.in/blog/agm-evoting-vs-physical-meeting)
+- [Benefits of Electronic Voting](https://www.shareholdervoting.in/blog/benefits-electronic-voting-shareholders)
