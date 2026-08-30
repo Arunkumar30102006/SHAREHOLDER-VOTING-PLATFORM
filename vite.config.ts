@@ -1,10 +1,39 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { PurgeCSS } from "purgecss";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+function customPurgeCSS(): Plugin {
+  return {
+    name: "vite-plugin-purgecss",
+    enforce: "post",
+    async generateBundle(_options, bundle) {
+      const cssFiles = Object.keys(bundle).filter((key) => key.endsWith(".css"));
+      if (!cssFiles.length) return;
+      const purgecss = new PurgeCSS();
+      for (const file of cssFiles) {
+        const chunk = bundle[file];
+        if (chunk && "source" in chunk && chunk.source) {
+          const result = await purgecss.purge({
+            content: ["./index.html", "./src/**/*.{ts,tsx,html}"],
+            css: [{ raw: chunk.source.toString() }],
+            safelist: {
+              standard: ["html", "body"],
+              greedy: [/^swiper/, /^aos/, /^animate/, /^lucide/, /^radix/],
+            },
+          });
+          if (result && result[0]) {
+            chunk.source = result[0].css;
+          }
+        }
+      }
+    },
+  };
+}
 
 export default defineConfig(({ isSsrBuild }) => ({
   server: {
@@ -12,13 +41,17 @@ export default defineConfig(({ isSsrBuild }) => ({
     port: 5173,
     strictPort: false,
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    customPurgeCSS(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
+    sourcemap: "hidden",
     minify: "esbuild",
     modulePreload: {
       polyfill: false,
