@@ -28,6 +28,11 @@ export const ShareholderAnalysis = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [aiInsight, setAiInsight] = useState('');
     const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         fetchMetrics();
@@ -260,28 +265,32 @@ export const ShareholderAnalysis = () => {
                             <CardDescription className="text-white/60">{t("sh_analysis_dist_desc")}</CardDescription>
                         </CardHeader>
                     <CardContent className="h-[300px] flex justify-center items-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={metrics.voting_distribution}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={100}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {metrics.voting_distribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                                    itemStyle={{ color: '#fff' }}
-                                />
-                                <Legend verticalAlign="bottom" height={36} />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {mounted ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={metrics.voting_distribution}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {metrics.voting_distribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                        itemStyle={{ color: '#fff' }}
+                                    />
+                                    <Legend verticalAlign="bottom" height={36} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-[260px] w-[260px] rounded-full bg-white/5 animate-pulse" />
+                        )}
                     </CardContent>
                     </Card>
                 </div>
@@ -295,17 +304,21 @@ export const ShareholderAnalysis = () => {
                             <CardDescription className="text-white/60">Votes cast per active voting session</CardDescription>
                         </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={metrics.participation_trend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                <XAxis dataKey="session" stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
-                                <YAxis stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} allowDecimals={false} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                                />
-                                <Line type="monotone" dataKey="votes" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, fill: '#8b5cf6' }} activeDot={{ r: 6 }} />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        {mounted ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={metrics.participation_trend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                    <XAxis dataKey="session" stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
+                                    <YAxis stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} allowDecimals={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                    />
+                                    <Line type="monotone" dataKey="votes" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, fill: '#8b5cf6' }} activeDot={{ r: 6 }} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-[260px] w-full bg-white/5 rounded-xl animate-pulse" />
+                        )}
                     </CardContent>
                     </Card>
                 </div>
@@ -319,24 +332,28 @@ export const ShareholderAnalysis = () => {
                             <CardDescription className="text-white/60">Comparing your portfolio size against the company average</CardDescription>
                         </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={metrics.shareholding_comparison} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                                <XAxis type="number" stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
-                                <YAxis dataKey="category" type="category" stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} width={100} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                />
-                                <Bar dataKey="amount" fill="#3b82f6" radius={[0, 4, 4, 0]}>
-                                    {
-                                        metrics.shareholding_comparison.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={index === 0 ? '#8b5cf6' : '#3b82f6'} />
-                                        ))
-                                    }
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {mounted ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={metrics.shareholding_comparison} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} layout="vertical">
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                                    <XAxis type="number" stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
+                                    <YAxis dataKey="category" type="category" stroke="rgba(255,255,255,0.5)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} width={100} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                    />
+                                    <Bar dataKey="amount" fill="#3b82f6" radius={[0, 4, 4, 0]}>
+                                        {
+                                            metrics.shareholding_comparison.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={index === 0 ? '#8b5cf6' : '#3b82f6'} />
+                                            ))
+                                        }
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-[260px] w-full bg-white/5 rounded-xl animate-pulse" />
+                        )}
                     </CardContent>
                     </Card>
                 </div>

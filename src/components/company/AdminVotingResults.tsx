@@ -20,6 +20,11 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
     const [stats, setStats] = useState<Record<string, ResolutionStats>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const fetchResults = async () => {
         setIsLoading(true);
@@ -224,22 +229,26 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                             </CardHeader>
                             <CardContent className="pt-4">
                                 <div className="h-[180px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ffffff15" />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={60} tick={{ fill: '#e2e8f0', fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#020817', borderColor: 'rgba(255,255,255,0.2)', color: '#f8fafc', borderRadius: '12px' }}
-                                                cursor={{ fill: '#ffffff08' }}
-                                            />
-                                            <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
-                                                {chartData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                    {mounted ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ffffff15" />
+                                                <XAxis type="number" hide />
+                                                <YAxis dataKey="name" type="category" width={60} tick={{ fill: '#e2e8f0', fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#020817', borderColor: 'rgba(255,255,255,0.2)', color: '#f8fafc', borderRadius: '12px' }}
+                                                    cursor={{ fill: '#ffffff08' }}
+                                                />
+                                                <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
+                                                    {chartData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="h-[180px] w-full bg-slate-900/50 rounded-xl animate-pulse" />
+                                    )}
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-white/15 text-center">
                                     <div className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30">

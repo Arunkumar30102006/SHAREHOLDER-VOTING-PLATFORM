@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
@@ -21,6 +22,12 @@ const VotingAnalytics = ({
     recordDate,
 }: VotingAnalyticsProps) => {
     const { t } = useTranslation();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const participationPercentage =
         totalResolutions > 0 ? (votedResolutions / totalResolutions) * 100 : 0;
 
@@ -43,33 +50,43 @@ const VotingAnalytics = ({
                 </CardHeader>
                 <CardContent className="pt-4">
                     <div className="h-[130px] w-full flex items-center justify-between">
-                        <div className="h-full w-[120px] relative shrink-0">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={data}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={42}
-                                        outerRadius={56}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                        stroke="none"
-                                    >
-                                        {data.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip 
-                                        contentStyle={{ backgroundColor: "#020817", borderColor: "rgba(255,255,255,0.2)", borderRadius: "8px", color: "#fff" }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <span className="text-xl font-extrabold text-white">
-                                    {Math.round(participationPercentage)}%
-                                </span>
-                            </div>
+                        <div className="h-full w-[120px] relative shrink-0 flex items-center justify-center">
+                            {mounted ? (
+                                <>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={data}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={42}
+                                                outerRadius={56}
+                                                paddingAngle={3}
+                                                dataKey="value"
+                                                stroke="none"
+                                            >
+                                                {data.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip 
+                                                contentStyle={{ backgroundColor: "#020817", borderColor: "rgba(255,255,255,0.2)", borderRadius: "8px", color: "#fff" }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <span className="text-xl font-extrabold text-white">
+                                            {Math.round(participationPercentage)}%
+                                        </span>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="w-[112px] h-[112px] rounded-full border-4 border-emerald-500/30 bg-slate-900/50 flex items-center justify-center">
+                                    <span className="text-xl font-extrabold text-white">
+                                        {Math.round(participationPercentage)}%
+                                    </span>
+                                </div>
+                            )}
                         </div>
                         <div className="flex-1 pl-4 space-y-2.5">
                             <div className="flex justify-between items-center text-xs">
