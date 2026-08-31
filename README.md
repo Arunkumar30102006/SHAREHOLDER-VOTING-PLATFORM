@@ -1,8 +1,5 @@
 <div align="center">
 
-  <br />
-  <br />
-
   # 🗳️ Vote India Secure
   ### Enterprise E-Voting Platform for Indian Corporate Governance
 
