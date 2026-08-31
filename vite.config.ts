@@ -115,5 +115,17 @@ export default defineConfig(({ isSsrBuild }) => ({
     script: 'async',
     formatting: 'minify',
     entry: 'src/main.tsx',
+    includedRoutes: async (paths) => {
+      const blogSlugs = [
+        'sebi-compliant-evoting-guide',
+        'role-of-scrutinizer-form-mgt-13',
+        'agm-remote-evoting-timeline-checklist',
+        'how-online-shareholder-voting-works',
+        'agm-evoting-vs-physical-meeting',
+        'benefits-electronic-voting-shareholders'
+      ];
+      const blogRoutes = blogSlugs.map(slug => `/blog/${slug}`);
+      return Array.from(new Set([...paths, ...blogRoutes]));
+    },
   },
 }));
