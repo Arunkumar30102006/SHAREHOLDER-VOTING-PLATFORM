@@ -17,9 +17,10 @@ export default defineConfig(({ isSsrBuild }) => ({
     react(),
     purgecss({
       content: ['./index.html', './src/**/*.{ts,tsx,html}'],
+      defaultExtractor: (content) => content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || [],
       safelist: {
         standard: ['html', 'body'],
-        greedy: [/^animate/, /^aos/, /^swiper/, /^framer/]
+        greedy: [/^animate/, /^aos/, /^swiper/, /^framer/, /^xl:/, /^lg:/, /^md:/, /^sm:/, /^hover:/, /^focus:/, /^data-/, /^aria-/, /^lucide/, /^radix/]
       }
     }) as unknown as Plugin,
   ],
