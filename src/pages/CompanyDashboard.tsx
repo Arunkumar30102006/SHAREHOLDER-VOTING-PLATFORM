@@ -1,5 +1,5 @@
 import { SEO } from "@/components/layout/SEO";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +68,7 @@ import { votingApi } from "@/services/api/voting";
 import { env } from "@/config/env";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { AdminVotingResults } from "@/components/company/AdminVotingResults";
+const AdminVotingResults = lazy(() => import("@/components/company/AdminVotingResults").then(m => ({ default: m.AdminVotingResults })));
 import { Company, Shareholder } from "@/types";
 
 const shareholderSchema = z.object({
@@ -1611,7 +1611,9 @@ const CompanyDashboard = () => {
             {/* TAB 2: LIVE RESULTS */}
             <TabsContent value="results" className="space-y-6">
               {sessionId ? (
-                <AdminVotingResults sessionId={sessionId} companyName={company?.company_name || ""} />
+                <Suspense fallback={<div className="h-48 rounded-2xl bg-[#0d1b2a]/60 border border-white/10 animate-pulse" />}>
+                  <AdminVotingResults sessionId={sessionId} companyName={company?.company_name || ""} />
+                </Suspense>
               ) : (
                 <Card className="border-white/20 bg-[#0d1b2a]/90 backdrop-blur-xl p-12 text-center rounded-3xl shadow-2xl">
                   <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />

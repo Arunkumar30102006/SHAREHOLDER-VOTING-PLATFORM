@@ -1,5 +1,6 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import purgecss from "vite-plugin-purgecss";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -14,6 +15,13 @@ export default defineConfig(({ isSsrBuild }) => ({
   },
   plugins: [
     react(),
+    purgecss({
+      content: ['./index.html', './src/**/*.{ts,tsx,html}'],
+      safelist: {
+        standard: ['html', 'body'],
+        greedy: [/^animate/, /^aos/, /^swiper/, /^framer/]
+      }
+    }) as unknown as Plugin,
   ],
   resolve: {
     alias: {
@@ -33,7 +41,8 @@ export default defineConfig(({ isSsrBuild }) => ({
           !dep.includes('supabase') &&
           !dep.includes('charts') &&
           !dep.includes('animation') &&
-          !dep.includes('markdown')
+          !dep.includes('markdown') &&
+          !dep.includes('ogl')
         );
       },
     },
@@ -42,7 +51,14 @@ export default defineConfig(({ isSsrBuild }) => ({
         ? {}
         : {
             manualChunks(id) {
+              if (id.includes('vite/preload-helper')) {
+                return 'vendor-react';
+              }
               if (id.includes('node_modules')) {
+                // Core React, Helmet, and shared styling primitives (must be isolated so lazy leaf chunks don't capture them)
+                if (/[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|clsx|tailwind-merge)[\\/]/.test(id)) {
+                  return 'vendor-react';
+                }
                 // Three.js & 3D WebGL (standalone leaf)
                 if (/[\\/]node_modules[\\/](three|@react-three|ogl)[\\/]/.test(id)) {
                   return 'three-bundle';
@@ -56,7 +72,7 @@ export default defineConfig(({ isSsrBuild }) => ({
                   return 'supabase-bundle';
                 }
                 // Charts library (only used on dashboard pages)
-                if (/[\\/]node_modules[\\/]recharts[\\/]/.test(id)) {
+                if (/[\\/]node_modules[\\/](recharts|react-smooth|d3-scale|d3-shape|d3-path|d3-interpolate|d3-color|d3-time|d3-format|d3-array)[\\/]/.test(id)) {
                   return 'charts-bundle';
                 }
                 // Animation libraries (deferred, non-critical)

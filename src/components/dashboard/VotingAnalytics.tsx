@@ -21,12 +21,16 @@ const VotingAnalytics = ({
     totalCompanyShares = 1000000,
     recordDate,
 }: VotingAnalyticsProps) => {
-    const { t } = useTranslation();
+    // SSG GUARD: This component must never render during SSG/SSR
+    // mounted guard prevents React hydration error #418
+    // DO NOT REMOVE THIS GUARD IN FUTURE DEPLOYS
     const [mounted, setMounted] = useState(false);
-
     useEffect(() => {
         setMounted(true);
     }, []);
+    if (!mounted) return null;
+
+    const { t } = useTranslation();
 
     const participationPercentage =
         totalResolutions > 0 ? (votedResolutions / totalResolutions) * 100 : 0;

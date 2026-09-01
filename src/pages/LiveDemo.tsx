@@ -20,8 +20,6 @@ const breadcrumbSchema = createBreadcrumbSchema([
   { name: "Live Demo", url: "/live-demo" }
 ]);
 
-const OTPSuccess3D = React.lazy(() => import('@/components/3d/OTPSuccess3D'));
-
 // --- Demo Data ---
 const DEMO_COMPANY = "Zenith Enterprises Ltd.";
 const DEMO_AGM = "42nd Annual General Meeting (2026)";

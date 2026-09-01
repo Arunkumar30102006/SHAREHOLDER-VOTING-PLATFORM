@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -33,7 +33,7 @@ import { generateVoteHash } from "@/lib/blockchain";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import VotingCard from "@/components/voting/VotingCard";
-import VotingAnalytics from "@/components/dashboard/VotingAnalytics";
+const VotingAnalytics = lazy(() => import("@/components/dashboard/VotingAnalytics"));
 import VotingCardSkeleton from "@/components/voting/VotingCardSkeleton";
 import { votingApi } from "@/services/api/voting";
 import { VotingItem, VoteType, VoteRecord, Resolution } from "@/types/voting";
@@ -677,12 +677,14 @@ const VotingDashboard = () => {
           {/* Analytics Summary */}
           {!isLoading && (
             <div className="mb-8">
-              <VotingAnalytics
-                totalResolutions={votingItems.length}
-                votedResolutions={totalVoted}
-                shareholderShares={shareholder?.shares_held || 0}
-                recordDate={session?.record_date}
-              />
+              <Suspense fallback={<div className="h-48 rounded-xl bg-[#0d1b2a]/60 border border-white/10 animate-pulse" />}>
+                <VotingAnalytics
+                  totalResolutions={votingItems.length}
+                  votedResolutions={totalVoted}
+                  shareholderShares={shareholder?.shares_held || 0}
+                  recordDate={session?.record_date}
+                />
+              </Suspense>
             </div>
           )}
 

@@ -36,13 +36,19 @@ const ChartContainer = React.forwardRef<
     children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>["children"];
   }
 >(({ id, className, children, config, ...props }, ref) => {
-  const uniqueId = React.useId();
-  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
+  // SSG GUARD: This component must never render during SSG/SSR
+  // mounted guard prevents React hydration error #418
+  // DO NOT REMOVE THIS GUARD IN FUTURE DEPLOYS
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (!mounted) return <div className="h-48 rounded bg-gray-100/5 animate-pulse" />;
+
+  const uniqueId = React.useId();
+  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
   return (
     <ChartContext.Provider value={{ config }}>

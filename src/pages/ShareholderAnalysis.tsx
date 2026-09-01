@@ -22,17 +22,21 @@ const COLORS = ['#8b5cf6', '#3b82f6', '#ec4899', '#10b981'];
 
 
 export const ShareholderAnalysis = () => {
+    // SSG GUARD: This component must never render during SSG/SSR
+    // mounted guard prevents React hydration error #418
+    // DO NOT REMOVE THIS GUARD IN FUTURE DEPLOYS
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    if (!mounted) return null;
+
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [aiInsight, setAiInsight] = useState('');
     const [isGeneratingAi, setIsGeneratingAi] = useState(false);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     useEffect(() => {
         fetchMetrics();
